@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Portal - Coming Soon</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .bg-blur-overlay {
+            background: linear-gradient(rgba(255,255,255,0.85), rgba(255,255,255,0.85)), url('https://static.vecteezy.com/system/resources/previews/038/130/154/large_2x/abstract-blur-hospital-clinic-medical-interior-background-photo.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+        .particle {
+            position: absolute;
+            background: rgba(59, 130, 246, 0.3);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: float 15s infinite linear;
+        }
+        @keyframes float {
+            0% { transform: translateY(100vh) translateX(0); }
+            100% { transform: translateY(-100px) translateX(100px); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center bg-blur-overlay relative overflow-hidden">
+    <div id="particles" class="absolute inset-0"></div>
+
+    <div class="relative z-10 text-center px-6 max-w-4xl mx-auto">
+        <!-- Hospital Logo Placeholder -->
+        <div class="mb-12">
+            <div class="inline-flex items-center justify-center w-32 h-32 bg-blue-100 rounded-full shadow-2xl">
+                <svg class="w-16 h-16 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.414 3.414H4.828c-1.781 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                </svg>
+            </div>
+        </div>
+
+        <h1 class="text-5xl md:text-7xl font-bold text-gray-800 mb-6">
+            Patient Portal
+        </h1>
+        <p class="text-2xl md:text-4xl font-semibold text-blue-700 mb-8">
+            Coming Soon
+        </p>
+        <p class="text-lg md:text-xl text-gray-600 mb-12 max-w-2xl mx-auto">
+            We're working hard to bring you a secure, modern patient portal for managing appointments, viewing records, and communicating with your care team. Stay tuned!
+        </p>
+
+        <!-- Email Notification Form -->
+        <div class="max-w-md mx-auto mb-12">
+            <form class="flex flex-col sm:flex-row gap-4">
+                <input type="email" placeholder="Enter your email for updates" class="flex-1 px-6 py-4 rounded-full border border-gray-300 focus:outline-none focus:ring-4 focus:ring-blue-300 shadow-lg text-gray-800">
+                <button type="submit" class="px-8 py-4 bg-blue-600 text-white font-semibold rounded-full hover:bg-blue-700 transition shadow-lg">
+                    Notify Me
+                </button>
+            </form>
+            <p class="text-sm text-gray-500 mt-4">
+               Hemophilia Society of Bangladesh
+            </p>
+        </div>
+
+        <!-- Subtle Medical Icons -->
+        <div class="flex justify-center gap-8 text-blue-600">
+            <svg class="w-10 h-10 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <svg class="w-10 h-10 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <svg class="w-10 h-10 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        </div>
+    </div>
+
+    <script>
+        // Simple floating particles for subtle animation
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+            const size = Math.random() * 20 + 10;
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.left = `${Math.random() * 100}vw`;
+            particle.style.animationDuration = `${Math.random() * 20 + 10}s`;
+            particle.style.animationDelay = `${Math.random() * 5}s`;
+            document.getElementById('particles').appendChild(particle);
+
+            setTimeout(() => {
+                particle.remove();
+            }, 30000);
+        }
+
+        setInterval(createParticle, 2000);
+        for (let i = 0; i < 10; i++) createParticle();
+    </script>
+</body>
+</html>

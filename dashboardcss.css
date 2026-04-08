@@ -1,0 +1,369 @@
+/* Reset & General Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+}
+
+body {
+    background: url('3.jpg') no-repeat center center fixed; /* Add background image */
+    background-size: cover; /* Ensure the image covers the full screen */
+    color: #333;
+    overflow-x: hidden;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* Other Styles Remain the Same */
+.dashboard-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    background: #ffffffee;
+    padding: 30px;
+    border-radius: 10px;
+    border: 2px solid #e74c3c; /* Red border accent */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    overflow: hidden; /* Disable all scrollbars */
+    opacity: 0;
+    animation: containerFadeIn 1s forwards;
+}
+@keyframes containerFadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    border-bottom: 2px solid #e74c3c;
+    padding-bottom: 10px;
+    animation: headerSlideDown 0.8s ease-out;
+}
+@keyframes headerSlideDown {
+    from { transform: translateY(-30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+.search-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.search-box input {
+    padding: 10px;
+    font-size: 16px;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    width: 250px;
+    transition: border 0.3s, transform 0.3s;
+    background: #fff;
+    color: #333;
+}
+.search-box input:focus {
+    outline: none;
+    border-color: #e74c3c;
+    transform: scale(1.02);
+}
+.search-box button {
+    padding: 10px 20px;
+    background: #e74c3c; /* Red accent */
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s, transform 0.3s;
+    animation: buttonBounce 1s infinite alternate;
+}
+@keyframes buttonBounce {
+    from { transform: translateY(0); }
+    to { transform: translateY(-3px); }
+}
+.btn-add-injection {
+    padding: 10px 20px;
+    background: linear-gradient(45deg, #c0392b, #e74c3c);
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: transform 0.3s, background 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+.btn-add-injection::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.15), transparent 70%);
+    transform: rotate(45deg);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+.btn-add-injection:hover::before {
+    opacity: 1;
+}
+.btn-add-injection:hover {
+    transform: scale(1.05);
+}
+.table-container {
+    overflow-x: auto;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    animation: tableFadeIn 1s ease-in-out;
+    min-width: 600px; /* ensures table doesn't squish on mobile */
+}
+@keyframes tableFadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+table thead {
+    background: #e74c3c;
+    color: #fff;
+}
+table th, table td {
+    padding: 7px 20px;
+    border: 1px solid #e0e0e0;
+    text-align: left;
+}
+table tbody tr:nth-child(even) {
+    background: #f9f9f9;
+}
+table tbody tr:hover {
+    background: #ffecec;
+    transform: scale(1.01);
+    transition: transform 0.2s;
+}
+/* Styling for the Delete button */
+.delete-btn {
+    background-color: #f44336; /* Red color for the Delete button */
+    color: white; /* Text color */
+    border: none;
+    padding: 5px 10px;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s, transform 0.2s;
+    margin-left: 0.2px; /* Adding a left margin for spacing between buttons */
+    margin-top: 10px;
+}
+
+/* Styling for the Edit button (if you want to modify it as well) */
+.edit-btn {
+    background-color: #4CAF50; /* Green color for the Edit button */
+    color: white; /* Text color */
+    border: none;
+    padding: 5px 19px;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+/* Hover effect for the Delete button */
+.delete-btn:hover {
+    background-color: #d32f2f; /* Darker red on hover */
+    transform: scale(1.05); /* Slight scale up effect */
+}
+
+/* Hover effect for the Edit button */
+.edit-btn:hover {
+    background-color: #388E3C; /* Darker green on hover */
+    transform: scale(1.05); /* Slight scale up effect */
+}
+
+/* Disabled button state */
+.delete-btn:disabled {
+    background-color: #e57373;
+    cursor: not-allowed;
+}
+
+/* Modal Styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+.modal.active {
+    display: flex;
+}
+.modal-content {
+    background: #fff;
+    padding: 20px;
+    width: 90%;
+    max-width: 500px;
+    border-radius: 10px;
+    position: relative;
+}
+.modal-header {
+    margin-bottom: 15px;
+    font-size: 20px;
+    color: #e74c3c;
+}
+.modal-body label {
+    display: block;
+    margin-top: 10px;
+    font-size: 14px;
+    color: #333;
+}
+.modal-body input, .modal-body select {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+}
+.modal-footer {
+    margin-top: 15px;
+    text-align: right;
+}
+.modal-footer button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.3s;
+}
+.btn-save {
+    background: #28a745;
+    color: #fff;
+    margin-right: 10px;
+}
+.btn-save:hover {
+    background: #218838;
+}
+.btn-cancel {
+    background: #dc3545;
+    color: #fff;
+}
+.btn-cancel:hover {
+    background: #c82333;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .dashboard-container {
+        margin: 10px;
+        padding: 17px;
+    }
+    header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .search-box {
+        justify-content: center;
+        margin-bottom: 15px;
+    }
+    .search-box input {
+        width: 100%;
+        max-width: 300px;
+    }
+    .search-box button {
+        margin-top: 10px;
+    }
+    .btn-add-injection {
+        width: 100%;
+        text-align: center;
+        margin-top: 10px;
+    }
+}
+@media (max-width: 480px) {
+    .search-box input {
+        font-size: 14px;
+        padding: 8px;
+    }
+    .search-box button,
+    .btn-add-injection {
+        font-size: 14px;
+        padding: 8px 15px;
+    }
+    table th, table td {
+        font-size: 13px;
+        padding: 8px 10px;
+        width: 100px;
+    }
+}
+/* Styling for the Download PDF button */
+.btn-download {
+    background-color: #4CAF50; /* Green background color */
+    color: white; /* White text color */
+    padding: 10px 20px; /* Padding around the text */
+    text-align: center; /* Centered text */
+    text-decoration: none; /* No underline */
+    display: inline-block; /* Inline block element */
+    font-size: 16px; /* Text size */
+    border-radius: 5px; /* Rounded corners */
+    border: none; /* Remove the border */
+    cursor: pointer; /* Pointer cursor on hover */
+    margin: 10px 0; /* Margin for spacing */
+    transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transitions */
+  }
+  
+  .btn-download:hover {
+    background-color: #45a049; /* Darker green on hover */
+    transform: scale(1.05); /* Slightly enlarge button on hover */
+  }
+  
+  .btn-download:focus {
+    outline: none; /* Remove focus outline */
+  }
+  
+
+
+
+  .loader {
+    width: 48px;
+    height: 12px;
+    background: #FFF;
+    margin-top: 40px;
+    display: inline-block;
+    position: relative;
+  }
+  .loader::after {
+    content: '';  
+    left: 50%;
+    bottom: 0;
+    transform: translate(-50%, 0);
+    position: absolute;
+    border: 15px solid transparent;
+    border-top-color: #FFF;
+    box-sizing: border-box;
+    animation: bump 0.4s ease-in-out infinite alternate;
+  }
+  .loader::before {
+    content: '';  
+    left: 50%;
+    bottom: 25px;
+    transform: translate(-50%, 0);
+    position: absolute;
+    width: 15px;
+    height: 20px;
+    background: #FFF;
+    box-sizing: border-box;
+    animation: bump 0.4s ease-in-out infinite alternate;
+  }
+  
+  @keyframes bump {
+    0% {
+      transform: translate(-50%, 5px);
+    }
+    100% {
+      transform: translate(-50%, -5px);
+    }
+  }
+      

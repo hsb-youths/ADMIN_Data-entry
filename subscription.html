@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Subscription Panel</title>
+
+  <!-- Tailwind + Inter Font -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
+  <style>
+    * { font-family: 'Inter', sans-serif; }
+    body { background: linear-gradient(135deg, #e0eafc, #cfdef3); }
+
+    /* Glassmorphism Card */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    /* Neumorphic Input */
+    .neumorphic-input {
+      background: #e0e7ff;
+      box-shadow: 
+        inset 6px 6px 12px #c9d1f0,
+        inset -6px -6px 12px #f7fdff,
+        0 4px 6px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .neumorphic-input:focus {
+      box-shadow: 
+        inset 4px 4px 8px #c9d1f0,
+        inset -4px -4px 8px #f7fdff,
+        0 0 0 3px rgba(99, 102, 241, 0.4);
+      transform: translateY(-2px);
+    }
+
+    /* Sidebar Glow */
+    .sidebar-glow {
+      box-shadow: 
+        0 0 40px rgba(79, 70, 229, 0.4),
+        0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Button 3D Press */
+    .btn-3d {
+      transition: all 0.2s ease;
+      transform: translateY(0);
+    }
+    .btn-3d:active {
+      transform: translateY(2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Table Row Hover */
+    tbody tr {
+      transition: all 0.25s ease;
+    }
+    tbody tr:hover {
+      background: rgba(99, 102, 241, 0.08);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Sticky Header */
+    thead th {
+      position: sticky;
+      top: 0;
+      background: linear-gradient(to bottom, #eef2ff, #e0e7ff);
+      z-index: 10;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Mobile Drawer */
+    #sidebarDrawer {
+      transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+    #sidebarDrawerOverlay {
+      transition: opacity 0.3s ease;
+    }
+
+    /* PDF Button Pulse */
+    .pulse-on-download {
+      animation: pulse 1.5s ease-in-out;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex text-gray-800">
+
+  <!-- Mobile Hamburger -->
+  <div class="lg:hidden fixed top-4 left-4 z-50">
+    <button id="hamburgerBtn" class="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-xl border border-white/30 text-indigo-700 hover:bg-white/30 transition-all duration-300 btn-3d">
+      <i class="fas fa-bars text-xl"></i>
+    </button>
+  </div>
+
+  <!-- Desktop Sidebar -->
+  <aside class="hidden lg:flex w-80 flex-col p-8 bg-gradient-to-b from-indigo-900/95 to-purple-900/95 text-white glass-card sidebar-glow rounded-r-3xl">
+    <div class="flex items-center space-x-3 mb-10">
+      <div class="w-12 h-12 bg-gradient-to-br from-pink-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+        <i class="fas fa-heartbeat text-white"></i>
+      </div>
+      <h1 class="text-3xl font-bold tracking-tight">Subscription</h1>
+    </div>
+
+    <button id="yearlyBtn" class="group mb-4 w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 py-4 px-6 rounded-2xl shadow-xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 btn-3d flex items-center justify-center space-x-3">
+      <i class="fas fa-calendar-alt"></i>
+      <span class="font-semibold text-lg">Yearly</span>
+    </button>
+    <button id="lifeBtn" class="group w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 py-4 px-6 rounded-2xl shadow-xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 btn-3d flex items-center justify-center space-x-3">
+      <i class="fas fa-infinity"></i>
+      <span class="font-semibold text-lg">Life Member</span>
+    </button>
+
+    <div class="mt-auto pt-8 border-t border-white/20">
+      <p class="text-xs opacity-70 text-center">Powered by Firebase</p>
+    </div>
+  </aside>
+
+  <!-- Mobile Drawer -->
+  <div id="sidebarDrawerOverlay" class="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40 hidden"></div>
+  <aside id="sidebarDrawer" class="lg:hidden fixed left-0 top-0 w-80 h-full bg-gradient-to-b from-indigo-900/95 to-purple-900/95 text-white glass-card sidebar-glow p-8 transform -translate-x-full z-50 rounded-r-3xl flex flex-col">
+    <div class="flex items-center justify-between mb-10">
+      <div class="flex items-center space-x-3">
+        <div class="w-12 h-12 bg-gradient-to-br from-pink-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+          <i class="fas fa-heartbeat text-white"></i>
+        </div>
+        <h1 class="text-3xl font-bold">Subscription</h1>
+      </div>
+      <button id="closeDrawer" class="text-white/80 hover:text-white">
+        <i class="fas fa-times text-xl"></i>
+      </button>
+    </div>
+
+    <button id="yearlyBtnDrawer" class="group mb-4 w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 py-4 px-6 rounded-2xl shadow-xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 btn-3d flex items-center justify-center space-x-3">
+      <i class="fas fa-calendar-alt"></i>
+      <span class="font-semibold text-lg">Yearly</span>
+    </button>
+    <button id="lifeBtnDrawer" class="group w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 py-4 px-6 rounded-2xl shadow-xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 btn-3d flex items-center justify-center space-x-3">
+      <i class="fas fa-infinity"></i>
+      <span class="font-semibold text-lg">Life Member</span>
+    </button>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 p-6 lg:p-10 overflow-y-auto">
+
+    <!-- Yearly Section -->
+    <section id="yearlySection" class="space-y-8">
+
+      <!-- Patient ID + Fetch -->
+      <div class="glass-card p-6 rounded-3xl shadow-xl border border-white/30">
+        <div class="flex flex-col md:flex-row gap-4 items-center">
+          <input id="yearlyPatientId" type="text" placeholder="Enter Patient ID"
+                 class="neumorphic-input border-0 rounded-2xl p-5 w-full md:w-80 text-gray-800 placeholder-gray-500 focus:outline-none text-lg"/>
+          <button id="fetchYearly" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white py-4 px-10 rounded-2xl shadow-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 btn-3d flex items-center space-x-2">
+            <i class="fas fa-search"></i>
+            <span>Fetch</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Add Fee -->
+      <div class="glass-card p-6 rounded-3xl shadow-xl border border-white/30">
+        <div class="flex flex-col sm:flex-row gap-4 items-center">
+          <input id="subAmount" type="number" placeholder="Amount" class="neumorphic-input border-0 rounded-2xl p-5 w-full sm:w-40 text-gray-800 placeholder-gray-500 focus:outline-none text-lg"/>
+          <input id="subYear" type="number" placeholder="Year" class="neumorphic-input border-0 rounded-2xl p-5 w-full sm:w-40 text-gray-800 placeholder-gray-500 focus:outline-none text-lg"/>
+          <button id="addYearlyFee" class="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white py-4 px-10 rounded-2xl shadow-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 btn-3d flex items-center space-x-2">
+            <i class="fas fa-plus-circle"></i>
+            <span>Add Fee</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Patient Info Card -->
+      <div id="patientInfoCard" class="glass-card p-6 rounded-3xl shadow-xl border-l-8 border-indigo-500 hidden transform transition-all duration-500 scale-95 opacity-0">
+        <h3 class="text-2xl font-bold mb-5 text-indigo-700 flex items-center">
+          <i class="fas fa-user-circle mr-3"></i> Patient Info
+        </h3>
+        <div class="space-y-3 text-lg">
+          <p class="text-gray-700"><strong>ID:</strong> <span id="infoId" class="font-mono"></span></p>
+          <p class="text-gray-700"><strong>Name:</strong> <span id="infoName"></span></p>
+          <p class="text-gray-700"><strong>Phone:</strong> <span id="infoPhone"></span></p>
+        </div>
+      </div>
+
+      <!-- Transaction History -->
+      <div class="glass-card rounded-3xl shadow-xl border border-white/30 overflow-hidden">
+        <div class="p-6 border-b border-white/20">
+          <h3 class="text-2xl font-bold text-indigo-700 flex items-center">
+            <i class="fas fa-history mr-3"></i> Transaction History
+          </h3>
+        </div>
+        <div class="overflow-x-auto">
+          <table id="yearlyTransactionTable" class="w-full text-sm">
+            <thead>
+              <tr class="text-indigo-800 font-semibold">
+                <th class="px-6 py-5 text-left">Txn ID</th>
+                <th class="px-6 py-5 text-left">Date</th>
+                <th class="px-6 py-5 text-left">Year</th>
+                <th class="px-6 py-5 text-left">Amount</th>
+              </tr>
+            </thead>
+            <tbody class="text-gray-700"></tbody>
+          </table>
+          <div class="p-6">
+            <p id="yearlyTotalAmount" class="text-xl font-bold text-indigo-700"></p>
+            <button onclick="downloadYearlyTransactionPDF()" class="mt-4 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500 text-white px-6 py-3 rounded-2xl shadow-lg font-semibold transition-all duration-300 transform hover:scale-105 btn-3d flex items-center space-x-2">
+              <i class="fas fa-file-pdf"></i>
+              <span>Download PDF</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Date to Date Report -->
+      <div class="glass-card rounded-3xl shadow-xl border border-white/30 overflow-hidden">
+        <div class="p-6 border-b border-white/20">
+          <h3 class="text-2xl font-bold text-indigo-700 flex items-center">
+            <i class="fas fa-chart-line mr-3"></i> Date to Date Report
+          </h3>
+        </div>
+        <div class="p-6 space-y-6">
+          <div class="flex flex-col md:flex-row gap-4 items-center">
+            <input id="fromDate" type="date" class="neumorphic-input border-0 rounded-2xl p-5 w-full md:w-48 text-gray-800 text-lg"/>
+            <input id="toDate" type="date" class="neumorphic-input border-0 rounded-2xl p-5 w-full md:w-48 text-gray-800 text-lg"/>
+            <button id="fetchDateRange" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white py-4 px-10 rounded-2xl shadow-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 btn-3d flex items-center space-x-2">
+              <i class="fas fa-search-dollar"></i>
+              <span>Fetch Report</span>
+            </button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table id="dateRangeTable" class="w-full text-sm">
+              <thead>
+                <tr class="text-indigo-800 font-semibold">
+                  <th class="px-6 py-5 text-left">Txn ID</th>
+                  <th class="px-6 py-5 text-left">Patient ID</th>
+                  <th class="px-6 py-5 text-left">Name</th>
+                  <th class="px-6 py-5 text-left">Date</th>
+                  <th class="px-6 py-5 text-left">Year</th>
+                  <th class="px-6 py-5 text-left">Amount</th>
+                </tr>
+              </thead>
+              <tbody class="text-gray-700"></tbody>
+            </table>
+            <div class="mt-4">
+              <p id="dateRangeTotalAmount" class="text-xl font-bold text-indigo-700"></p>
+            </div>
+          </div>
+
+          <button id="downloadReport" class="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white py-4 px-10 rounded-2xl shadow-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 btn-3d flex items-center space-x-2 hidden">
+            <i class="fas fa-download"></i>
+            <span>Download PDF Report</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Life Section -->
+    <section id="lifeSection" class="hidden flex items-center justify-center h-full">
+      <div class="text-center">
+        <div class="w-32 h-32 mx-auto mb-6 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center shadow-2xl">
+          <i class="fas fa-infinity text-white text-5xl"></i>
+        </div>
+        <h2 class="text-4xl font-bold text-indigo-700 mb-2">Life Membership</h2>
+        <p class="text-xl text-gray-600">Coming Soon...</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Firebase + JS Logic (Unchanged) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+    import { getDatabase, ref, set, push, onValue, get } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB7QLBLarDiqdpYy5jw8_1e-gTR-aR1Wqc",
+      authDomain: "hemophilia-society-of-bd.firebaseapp.com",
+      projectId: "hemophilia-society-of-bd",
+      storageBucket: "hemophilia-society-of-bd.appspot.com",
+      messagingSenderId: "674332798483",
+      appId: "1:674332798483:web:cedb62cb05e03b5cadd9e6",
+      measurementId: "G-J5D8R7P18D"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // UI Elements
+    const yearlyBtn = document.getElementById('yearlyBtn');
+    const lifeBtn = document.getElementById('lifeBtn');
+    const yearlySection = document.getElementById('yearlySection');
+    const lifeSection = document.getElementById('lifeSection');
+    const patientInfoCard = document.getElementById('patientInfoCard');
+    const infoId = document.getElementById('infoId');
+    const infoName = document.getElementById('infoName');
+    const infoPhone = document.getElementById('infoPhone');
+
+    // Mobile Drawer
+    const sidebarDrawer = document.getElementById("sidebarDrawer");
+    const sidebarDrawerOverlay = document.getElementById("sidebarDrawerOverlay");
+    const hamburgerBtn = document.getElementById("hamburgerBtn");
+    const closeDrawer = document.getElementById("closeDrawer");
+
+    yearlyBtn.onclick = () => { yearlySection.classList.remove('hidden'); lifeSection.classList.add('hidden'); };
+    lifeBtn.onclick = () => { lifeSection.classList.remove('hidden'); yearlySection.classList.add('hidden'); };
+
+    const toggleDrawer = (open) => {
+      sidebarDrawer.classList.toggle("-translate-x-full", !open);
+      sidebarDrawerOverlay.classList.toggle("hidden", !open);
+    };
+    hamburgerBtn.onclick = () => toggleDrawer(true);
+    closeDrawer.onclick = () => toggleDrawer(false);
+    sidebarDrawerOverlay.onclick = () => toggleDrawer(false);
+
+    document.getElementById("yearlyBtnDrawer").onclick = () => { yearlySection.classList.remove('hidden'); lifeSection.classList.add('hidden'); toggleDrawer(false); };
+    document.getElementById("lifeBtnDrawer").onclick = () => { lifeSection.classList.remove('hidden'); yearlySection.classList.add('hidden'); toggleDrawer(false); };
+
+    // Enter key support
+    ["yearlyPatientId", "fromDate", "toDate"].forEach(id => {
+      document.getElementById(id).addEventListener("keydown", e => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          if (id === "yearlyPatientId") document.getElementById("fetchYearly").click();
+          else document.getElementById("fetchDateRange").click();
+        }
+      });
+    });
+
+    // Show patient card with animation
+    const showPatientCard = () => {
+      patientInfoCard.classList.remove('hidden', 'scale-95', 'opacity-0');
+      patientInfoCard.classList.add('scale-100', 'opacity-100');
+    };
+
+    // Fetch Yearly Transactions
+    document.getElementById("fetchYearly").onclick = async () => {
+      const patientId = document.getElementById("yearlyPatientId").value.trim();
+      if (!patientId) return alert("Enter Patient ID");
+
+      const patientRef = ref(db, `patients/${patientId}`);
+      const patientSnap = await get(patientRef);
+      if (patientSnap.exists()) {
+        const p = patientSnap.val();
+        showPatientCard();
+        infoId.textContent = p.id ?? patientId;
+        infoName.textContent = p.name ?? "";
+        infoPhone.textContent = p.phone ?? "";
+      } else {
+        patientInfoCard.classList.add('hidden');
+        alert("Patient not found.");
+      }
+
+      const transRef = ref(db, `subscriptions/${patientId}/yearly`);
+      onValue(transRef, snap => {
+        const tbody = document.querySelector("#yearlyTransactionTable tbody");
+        tbody.innerHTML = "";
+        const txns = [];
+
+        snap.forEach(child => {
+          const d = child.val();
+          txns.push({
+            transactionNumber: d.transactionNumber,
+            date: d.date,
+            year: d.year,
+            amount: d.amount
+          });
+        });
+
+        txns.sort((a, b) => new Date(a.date) - new Date(b.date));
+        const total = txns.reduce((s, t) => s + parseFloat(t.amount || 0), 0);
+        document.getElementById("yearlyTotalAmount").textContent = `Total Amount: ${total.toFixed(2)}`;
+
+        txns.forEach(t => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td class="px-6 py-4 border-b">${t.transactionNumber}</td>
+            <td class="px-6 py-4 border-b">${new Date(t.date).toLocaleDateString()}</td>
+            <td class="px-6 py-4 border-b">${t.year}</td>
+            <td class="px-6 py-4 border-b font-medium">${t.amount}</td>`;
+          tbody.appendChild(tr);
+        });
+      }, err => alert("Error: " + err.message));
+    };
+
+    // Add Yearly Fee
+    document.getElementById("addYearlyFee").onclick = async () => {
+      const patientId = document.getElementById("yearlyPatientId").value.trim();
+      const amount = document.getElementById("subAmount").value;
+      const year = document.getElementById("subYear").value;
+      if (!patientId || !amount || !year) return alert("All fields required");
+
+      const patientRef = ref(db, `patients/${patientId}`);
+      const snap = await get(patientRef);
+      if (!snap.exists()) return alert("Patient not found.");
+
+      const newRef = push(ref(db, `subscriptions/${patientId}/yearly`));
+      await set(newRef, {
+        amount,
+        year,
+        date: new Date().toISOString(),
+        transactionNumber: newRef.key
+      });
+
+      document.getElementById("subAmount").value = "";
+      document.getElementById("subYear").value = "";
+      document.getElementById("fetchYearly").click();
+    };
+
+    // Date to Date Report
+    document.getElementById("fetchDateRange").onclick = async () => {
+      const fromStr = document.getElementById("fromDate").value;
+      const toStr = document.getElementById("toDate").value;
+      if (!fromStr || !toStr) return alert("Select both dates");
+
+      const from = new Date(fromStr + "T00:00:00.000Z");
+      const to = new Date(toStr + "T23:59:59.999Z");
+      if (to < from) return alert("To date must be after From date");
+
+      const subsRef = ref(db, "subscriptions");
+      const patsRef = ref(db, "patients");
+
+      try {
+        const [subsSnap, patsSnap] = await Promise.all([get(subsRef), get(patsRef)]);
+        const subs = subsSnap.val() || {};
+        const pats = patsSnap.val() || {};
+
+        const tbody = document.querySelector("#dateRangeTable tbody");
+        tbody.innerHTML = "";
+        const rows = [];
+
+        for (const pid in subs) {
+          const yearly = subs[pid].yearly || {};
+          const name = pats[pid]?.name || "Unknown";
+
+          for (const tid in yearly) {
+            const rec = yearly[tid];
+            const recDate = new Date(rec.date);
+            if (isNaN(recDate)) continue;
+
+            if (recDate >= from && recDate <= to) {
+              rows.push({
+                txnId: rec.transactionNumber ?? tid,
+                patientId: pid,
+                patientName: name,
+                date: rec.date,
+                year: rec.year,
+                amount: rec.amount
+              });
+            }
+          }
+        }
+
+        rows.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        const total = rows.reduce((s, r) => s + parseFloat(r.amount || 0), 0);
+        document.getElementById("dateRangeTotalAmount").textContent = `Total Amount: ${total.toFixed(2)}`;
+
+        rows.forEach(r => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td class="px-6 py-4 border-b">${r.txnId}</td>
+            <td class="px-6 py-4 border-b font-mono">${r.patientId}</td>
+            <td class="px-6 py-4 border-b">${r.patientName}</td>
+            <td class="px-6 py-4 border-b">${new Date(r.date).toLocaleDateString()}</td>
+            <td class="px-6 py-4 border-b">${r.year}</td>
+            <td class="px-6 py-4 border-b font-medium">${r.amount}</td>`;
+          tbody.appendChild(tr);
+        });
+
+        const downloadBtn = document.getElementById("downloadReport");
+        downloadBtn.classList.toggle("hidden", rows.length === 0);
+
+        downloadBtn.onclick = () => {
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF();
+          doc.setFontSize(16);
+          doc.text("Date Range Subscription Report", 14, 20);
+          doc.setFontSize(12);
+          doc.text(`From: ${fromStr}  To: ${toStr}`, 14, 30);
+
+          doc.autoTable({ html: "#dateRangeTable", startY: 40, theme: "grid" });
+
+          const finalY = doc.lastAutoTable.finalY || 40;
+          doc.setFontSize(14);
+          doc.text(`Total Amount: ${total.toFixed(2)}`, 14, finalY + 15);
+          doc.save(`report_${fromStr}_to_${toStr}.pdf`);
+
+          downloadBtn.classList.add('pulse-on-download');
+          setTimeout(() => downloadBtn.classList.remove('pulse-on-download'), 1500);
+        };
+
+      } catch (e) {
+        console.error(e);
+        alert("Error loading report: " + e.message);
+      }
+    };
+
+    // PDF for Yearly
+    window.downloadYearlyTransactionPDF = () => {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const pid = document.getElementById("yearlyPatientId").value.trim() || "N/A";
+      const name = infoName.textContent || "Unknown";
+      const phone = infoPhone.textContent || "N/A";
+      const total = document.getElementById("yearlyTotalAmount").textContent.replace('Total Amount: ', '') || "0.00";
+
+      doc.setFontSize(16);
+      doc.text("Yearly Transaction History", 14, 20);
+      doc.setFontSize(12);
+      doc.text(`Patient ID: ${pid}`, 14, 32);
+      doc.text(`Name: ${name}`, 14, 40);
+      doc.text(`Phone: ${phone}`, 14, 48);
+
+      doc.autoTable({ html: "#yearlyTransactionTable", startY: 58, theme: "grid" });
+
+      const finalY = doc.lastAutoTable.finalY || 58;
+      doc.setFontSize(14);
+      doc.text(`Total Amount: ${total}`, 14, finalY + 15);
+      doc.save(`yearly_${pid}.pdf`);
+    };
+  </script>
+</body>
+</html>

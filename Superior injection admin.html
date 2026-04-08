@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Superior Admin - Review Pending Injections</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    .loader {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: inline-block;
+      position: relative;
+      border: 3px solid;
+      border-color: #FFF #FFF transparent transparent;
+      box-sizing: border-box;
+      animation: rotation 1s linear infinite;
+    }
+    .loader::after,
+    .loader::before {
+      content: '';  
+      box-sizing: border-box;
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      margin: auto;
+      border: 3px solid;
+      border-color: transparent transparent #FF3D00 #FF3D00;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      box-sizing: border-box;
+      animation: rotationBack 0.5s linear infinite;
+      transform-origin: center center;
+    }
+    .loader::before {
+      width: 32px;
+      height: 32px;
+      border-color: #FFF #FFF transparent transparent;
+      animation: rotation 1.5s linear infinite;
+    }
+
+    @keyframes rotation {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes rotationBack {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(-360deg); }
+    }
+
+    #loaderContainer {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.25);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      display: none;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+  <div class="max-w-4xl mx-auto p-6 space-y-6">
+    <h2 class="text-3xl font-bold text-center text-blue-800">Superior Admin - Review Pending Injections (HSB Only)</h2>
+
+    <!-- Pending Injections Viewer -->
+    <div class="bg-white p-4 rounded shadow space-y-4">
+      <h4 class="text-lg font-medium text-blue-700">Pending Injections</h4>
+      <button id="loadPendingsBtn" class="bg-purple-600 text-white px-4 py-2 rounded">Load Pending Injections</button>
+      <table id="pendingTable" class="w-full table-auto border text-sm text-left mt-4">
+        <thead class="bg-purple-100">
+          <tr>
+            <th class="p-2 border">Transaction ID</th>
+            <th class="p-2 border">Patient Name</th>
+            <th class="p-2 border">Patient ID</th>
+            <th class="p-2 border">Injection Type</th>
+            <th class="p-2 border">Vial Info</th>
+            <th class="p-2 border">Dosage (IU)</th>
+            <th class="p-2 border">Bleeding</th>
+            <th class="p-2 border">Date</th>
+            <th class="p-2 border">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="pendingTableBody" class="bg-white"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Loader -->
+  <div id="loaderContainer"><span class="loader"></span></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+    import { getDatabase, ref, set, get, remove } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB7QLBLarDiqdpYy5jw8_1e-girl-aR1Wqc",
+      authDomain: "hemophilia-society-of-bd.firebaseapp.com",
+      projectId: "hemophilia-society-of-bd",
+      storageBucket: "hemophilia-society-of-bd.appspot.com",
+      messagingSenderId: "674332798483",
+      appId: "1:674332798483:web:cedb62cb05e03b5cadd9e6",
+      measurementId: "G-J5D8R7P18D"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const loader = document.getElementById("loaderContainer");
+
+    function showLoader() {
+      loader.style.display = "flex";
+    }
+    function hideLoader() {
+      loader.style.display = "none";
+    }
+
+    document.getElementById("loadPendingsBtn").addEventListener("click", loadPendingInjections);
+
+    function loadPendingInjections() {
+      showLoader();
+      Promise.all([
+        get(ref(db, 'patients')),
+        get(ref(db, 'pending_injections'))
+      ]).then(([patientsSnap, pendingsSnap]) => {
+        const patients = patientsSnap.val() || {};
+        const pendings = pendingsSnap.val() || {};
+        const tbody = document.getElementById("pendingTableBody");
+        tbody.innerHTML = '';
+
+        for (const patientId in pendings) {
+          const name = patients[patientId] ? patients[patientId].name : 'Unknown';
+          const data = pendings[patientId];
+          for (const tid in data) {
+            const inj = data[tid];
+            const row = tbody.insertRow();
+            row.insertCell(0).textContent = tid;
+            row.insertCell(1).textContent = name;
+            row.insertCell(2).textContent = patientId;
+            row.insertCell(3).textContent = inj.injectionType;
+            row.insertCell(4).textContent = inj.vialInfo;
+            row.insertCell(5).textContent = inj.dosage;
+            row.insertCell(6).textContent = inj.bleeding || 'N/A';
+            row.insertCell(7).textContent = inj.date;
+
+            const actionsCell = row.insertCell(8);
+            const approveBtn = document.createElement('button');
+            approveBtn.textContent = 'Approve';
+            approveBtn.classList.add('bg-green-600', 'text-white', 'px-2', 'py-1', 'rounded', 'mr-2');
+            approveBtn.onclick = () => approveInjection(patientId, tid, row);
+            actionsCell.appendChild(approveBtn);
+
+            const rejectBtn = document.createElement('button');
+            rejectBtn.textContent = 'Reject';
+            rejectBtn.classList.add('bg-red-600', 'text-white', 'px-2', 'py-1', 'rounded');
+            rejectBtn.onclick = () => rejectInjection(patientId, tid, row);
+            actionsCell.appendChild(rejectBtn);
+          }
+        }
+        hideLoader();
+      }).catch(() => {
+        alert("Error loading pending injections.");
+        hideLoader();
+      });
+    }
+
+    function approveInjection(patientId, tid, row) {
+      const pendingRef = ref(db, 'pending_injections/' + patientId + '/' + tid);
+      get(pendingRef).then(snap => {
+        if (snap.exists()) {
+          const data = snap.val();
+          const mainRef = ref(db, 'injections/' + patientId + '/' + tid);
+          set(mainRef, data).then(() => {
+            remove(pendingRef).then(() => {
+              row.remove();
+              alert("Injection approved and added to main database.");
+            });
+          }).catch(() => alert("Error approving injection."));
+        }
+      }).catch(() => alert("Error fetching pending injection."));
+    }
+
+    function rejectInjection(patientId, tid, row) {
+      if (confirm("Are you sure you want to reject this injection?")) {
+        const pendingRef = ref(db, 'pending_injections/' + patientId + '/' + tid);
+        remove(pendingRef).then(() => {
+          row.remove();
+          alert("Injection rejected and removed.");
+        }).catch(() => alert("Error rejecting injection."));
+      }
+    }
+  </script>
+</body>
+</html>

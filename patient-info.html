@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Patient Info Dashboard | HSB</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <style>
+    :root {
+      --primary: #e11d48;
+      --primary-light: #fdf2f5;
+      --primary-dark: #be123c;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-700: #374151;
+      --gray-900: #111827;
+    }
+
+    * {
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #fdf2f5 0%, #f8f9fa 100%);
+      color: var(--gray-900);
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+
+    /* Glassmorphism */
+    .glass {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(225, 29, 72, 0.15);
+      box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.08),
+        0 0 0 1px rgba(225, 29, 72, 0.05);
+      transition: all 0.3s ease;
+    }
+
+    .glass:hover {
+      box-shadow: 
+        0 25px 50px rgba(225, 29, 72, 0.12),
+        0 0 0 1px rgba(225, 29, 72, 0.1);
+      transform: translateY(-4px);
+    }
+
+    /* Sidebar */
+    .sidebar {
+      background: linear-gradient(180deg, #be123c 0%, #e11d48 100%);
+      color: white;
+      box-shadow: 8px 0 30px rgba(0, 0, 0, 0.15);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .sidebar::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+      pointer-events: none;
+    }
+
+    /* Input Focus */
+    .input-focus:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(225, 29, 72, 0.2);
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: 1rem;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(225, 29, 72, 0.25);
+    }
+
+    .btn-success {
+      background: #10b981;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #059669;
+    }
+
+    .btn-edit {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .btn-edit:hover {
+      background: #2563eb;
+    }
+
+    .btn-close {
+      background: #ef4444;
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+    }
+
+    .btn-close:hover {
+      background: #dc2626;
+      transform: scale(1.1);
+    }
+
+    /* Scanner Modal */
+    #scannerModal {
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .scanner-bar {
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #e11d48, transparent);
+      box-shadow: 0 0 10px #e11d48, 0 0 20px #e11d48;
+      animation: scan 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes scan {
+      0% { top: 0; opacity: 0.7; }
+      100% { top: 100%; opacity: 1; }
+    }
+
+    /* Card 3D Effect */
+    .patient-card {
+      background: white;
+      border-radius: 1.5rem;
+      overflow: hidden;
+      box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.1),
+        0 0 0 1px rgba(225, 29, 72, 0.08);
+      transition: all 0.4s ease;
+      transform: perspective(1000px) rotateX(0deg);
+    }
+
+    .patient-card:hover {
+      transform: perspective(1000px) rotateX(4deg) translateY(-8px);
+      box-shadow: 
+        0 30px 60px rgba(0, 0, 0, 0.15),
+        0 0 0 1px rgba(225, 29, 72, 0.12);
+    }
+
+    /* Table */
+    .table-container {
+      overflow-x-auto;
+      border-radius: 1rem;
+      border: 1px solid var(--gray-200);
+      background: white;
+    }
+
+    .table-container table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .table-container th {
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.875rem;
+      letter-spacing: 0.05em;
+      padding: 1rem;
+    }
+
+    .table-container td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--gray-200);
+      font-size: 0.9rem;
+    }
+
+    .table-container tbody tr:hover {
+      background: rgba(225, 29, 72, 0.03);
+    }
+
+    /* Loader */
+    #loader {
+      width: 56px;
+      height: 56px;
+      border: 5px solid #f3f4f6;
+      border-top: 5px solid var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 2rem auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Modal */
+    #patientModal .modal-content {
+      max-height: 80vh;
+      overflow-y: auto;
+      padding-right: 1rem;
+    }
+
+    .modal-content::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .modal-content::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+
+    .modal-content::-webkit-scrollbar-thumb {
+      background: var(--primary);
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body class="antialiased">
+
+  <!-- Scanner Modal -->
+  <div id="scannerModal" class="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4">
+    <div class="glass rounded-2xl shadow-2xl p-8 w-full max-w-md text-center relative">
+      <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-rose-500/10 to-pink-500/10 pointer-events-none"></div>
+      <h3 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-rose-600 to-rose-700 mb-6">
+        Scan Patient QR Code
+      </h3>
+      <div class="relative h-64 w-full bg-gradient-to-b from-gray-800 to-gray-900 rounded-xl overflow-hidden shadow-inner">
+        <div class="scanner-bar absolute left-0 w-full"></div>
+        <div class="absolute inset-0 flex flex-col items-center justify-center text-white">
+          <i class="fas fa-qrcode text-6xl mb-4 opacity-30"></i>
+          <p class="text-lg font-medium">Align QR code within frame</p>
+          <p class="text-sm opacity-70 mt-1">or enter Patient ID manually</p>
+        </div>
+      </div>
+      <button id="skipScanBtn" class="mt-6 btn bg-yellow-500 hover:bg-yellow-600 text-white w-full py-3 text-lg font-semibold">
+        Skip Scanning
+      </button>
+    </div>
+  </div>
+
+  <div class="flex h-screen">
+
+    <!-- Sidebar -->
+    <aside class="w-72 sidebar flex flex-col p-6 space-y-6 relative z-10">
+      <div class="text-center">
+        <h2 class="text-3xl font-bold bg-gradient-to-r from-white to-rose-200 bg-clip-text text-transparent">
+          HSB Dashboard
+        </h2>
+      </div>
+
+      <div class="space-y-4">
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Enter Patient ID (e.g., HSB-001)"
+          class="w-full px-5 py-4 rounded-xl border border-white/30 bg-white/20 backdrop-blur text-white placeholder-white/70 input-focus transition-all text-base font-medium"
+        />
+        <button id="searchBtn" class="w-full btn btn-primary justify-center text-lg py-3">
+          <i data-lucide="search"></i> Search Patient
+        </button>
+      </div>
+
+      <nav class="mt-auto space-y-3">
+        <a href="#" class="flex items-center gap-3 hover:bg-white/10 px-4 py-3 rounded-xl transition-all">
+          <i data-lucide="plus"></i> Create User Info
+        </a>
+        <a href="#" class="flex items-center gap-3 hover:bg-white/10 px-4 py-3 rounded-xl transition-all">
+          <i data-lucide="users"></i> Manage Users
+        </a>
+        <a href="#" class="flex items-center gap-3 hover:bg-white/10 px-4 py-3 rounded-xl transition-all">
+          <i data-lucide="bar-chart-2"></i> Reports
+        </a>
+        <a href="#" class="flex items-center gap-3 hover:bg-white/10 px-4 py-3 rounded-xl transition-all">
+          <i data-lucide="log-out"></i> Logout
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-8 overflow-y-auto bg-gradient-to-br from-rose-50/50 to-pink-50/50">
+      <div class="max-w-7xl mx-auto space-y-8">
+
+        <h2 class="text-4xl font-bold text-center bg-gradient-to-r from-rose-600 to-rose-700 bg-clip-text text-transparent">
+          Search and View Patient Info
+        </h2>
+
+        <div id="loader" class="hidden"></div>
+
+        <div id="resultContainer" class="space-y-8"></div>
+        <div id="injectionTransactionsContainer"></div>
+        <div id="subscriptionTransactionsContainer"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Patient Details Modal -->
+  <div id="patientModal" class="fixed inset-0 bg-black bg-opacity-60 hidden items-center justify-center z-50 p-4">
+    <div class="glass rounded-2xl w-full max-w-2xl shadow-2xl relative overflow-hidden">
+      <button onclick="document.getElementById('patientModal').classList.add('hidden')" class="btn btn-close absolute top-6 right-6 z-10">
+        <i data-lucide="x"></i>
+      </button>
+      <div class="p-8">
+        <h3 class="text-2xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-rose-600 to-rose-700 mb-6">
+          Patient Full Details
+        </h3>
+        <div id="modalContent" class="modal-content space-y-4 text-gray-700"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase Logic (100% UNCHANGED) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB7QLBLarDiqdpYy5jw8_1e-gTR-aR1Wqc",
+      authDomain: "hemophilia-society-of-bd.firebaseapp.com",
+      projectId: "hemophilia-society-of-bd",
+      storageBucket: "hemophilia-society-of-bd.appspot.com",
+      messagingSenderId: "674332798483",
+      appId: "1:674332798483:web:cedb62cb05e03b5cadd9e6",
+      measurementId: "G-J5D8R7P18D"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const searchBtn = document.getElementById("searchBtn");
+    const searchInput = document.getElementById("searchInput");
+    const loader = document.getElementById("loader");
+    const resultContainer = document.getElementById("resultContainer");
+    const injectionTransactionsContainer = document.getElementById("injectionTransactionsContainer");
+    const subscriptionTransactionsContainer = document.getElementById("subscriptionTransactionsContainer");
+    const scannerModal = document.getElementById("scannerModal");
+    const skipScanBtn = document.getElementById("skipScanBtn");
+
+    const fetchPatientInfo = async () => {
+      const patientId = searchInput.value.trim();
+      if (!patientId) {
+        alert("Please enter a Patient ID.");
+        return;
+      }
+
+      resultContainer.innerHTML = '';
+      injectionTransactionsContainer.innerHTML = '';
+      subscriptionTransactionsContainer.innerHTML = '';
+      loader.classList.remove("hidden");
+
+      try {
+        const patientSnapshot = await get(ref(db, 'patients/' + patientId));
+        loader.classList.add("hidden");
+
+        if (patientSnapshot.exists()) {
+          const patientData = patientSnapshot.val();
+          resultContainer.innerHTML = `
+            <div class="patient-card p-8">
+              <div class="grid md:grid-cols-2 gap-8">
+                <div class="space-y-6">
+                  <h3 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-rose-600 to-rose-700">
+                    Patient Summary
+                  </h3>
+                  <div class="space-y-3 text-lg">
+                    <div><strong class="text-rose-600">ID:</strong> ${patientData.patientId || 'N/A'}</div>
+                    <div><strong class="text-rose-600">Name:</strong> ${patientData.name || 'N/A'}</div>
+                    <div><strong class="text-rose-600">DOB:</strong> ${patientData.dob || 'N/A'}</div>
+                    <div><strong class="text-rose-600">Phone:</strong> ${patientData.phone || 'N/A'}</div>
+                  </div>
+                  <div class="flex flex-wrap gap-3">
+                    <button onclick='showDetails(${JSON.stringify(patientData)})' class="btn btn-success">
+                      <i data-lucide="eye"></i> Show Full Details
+                    </button>
+                    <button onclick="window.location.href='/update/${patientData.patientId}'" class="btn btn-edit">
+                      <i data-lucide="edit"></i> Update Info
+                    </button>
+                  </div>
+                </div>
+                <div class="flex justify-center items-center">
+                  <div class="relative group">
+                    <img src="${patientData.imageUrl || 'default.jpg'}" class="w-64 h-64 rounded-2xl object-cover shadow-xl group-hover:scale-105 transition-transform duration-300" />
+                    <div class="absolute inset-0 rounded-2xl bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+
+          // Injections
+          const injectionsSnapshot = await get(ref(db, 'injections/' + patientId));
+          if (injectionsSnapshot.exists()) {
+            const injectionsData = injectionsSnapshot.val();
+            injectionTransactionsContainer.innerHTML = `
+              <div class="glass p-6 rounded-2xl">
+                <h3 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-rose-600 to-rose-700 mb-6">
+                  Injection Transactions
+                </h3>
+                <div class="table-container">
+                  <table>
+                    <thead>
+                      <tr><th>Date</th><th>Injection Type</th><th>Dosage (IU)</th></tr>
+                    </thead>
+                    <tbody>
+                      ${Object.values(injectionsData).map(inj => `
+                        <tr>
+                          <td>${inj.date || 'N/A'}</td>
+                          <td>${inj.injectionType || 'N/A'}</td>
+                          <td>${inj.dosage || 'N/A'}</td>
+                        </tr>`).join('')}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            `;
+          }
+
+          // Subscriptions
+          const subsSnapshot = await get(ref(db, `subscriptions/${patientId}/yearly`));
+          if (subsSnapshot.exists()) {
+            const subsData = subsSnapshot.val();
+            subscriptionTransactionsContainer.innerHTML = `
+              <div class="glass p-6 rounded-2xl">
+                <h3 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-rose-600 to-rose-700 mb-6">
+                  Yearly Subscription History
+                </h3>
+                <div class="table-container">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Transaction No</th>
+                        <th>Year</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${Object.values(subsData).map(sub => `
+                        <tr>
+                          <td>${sub.transactionNumber || 'N/A'}</td>
+                          <td>${sub.year || 'N/A'}</td>
+                          <td>${sub.amount || 'N/A'}</td>
+                          <td>${sub.date || 'N/A'}</td>
+                        </tr>`).join('')}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            `;
+          } else {
+            subscriptionTransactionsContainer.innerHTML = `<div class="text-center text-rose-500 font-semibold py-8">No subscription transactions found.</div>`;
+          }
+
+        } else {
+          resultContainer.innerHTML = `<div class="text-center text-rose-600 font-bold text-xl mt-8">Patient not found.</div>`;
+        }
+
+      } catch (error) {
+        console.error(error);
+        loader.classList.add("hidden");
+        resultContainer.innerHTML = `<div class="text-center text-rose-600 font-bold text-xl mt-8">Error fetching data. Try again later.</div>`;
+      }
+    };
+
+    window.showDetails = function(data) {
+      const modal = document.getElementById("patientModal");
+      const content = document.getElementById("modalContent");
+      const orderedKeys = [
+        'name', 'patientId', 'fatherName', 'motherName', 'address', 'phone', 'dob', 'imageUrl'
+      ];
+      const orderedData = {};
+      orderedKeys.forEach(key => {
+        if (data[key]) orderedData[key] = data[key];
+      });
+      Object.keys(data).sort().forEach(key => {
+        if (!orderedKeys.includes(key)) orderedData[key] = data[key];
+      });
+      content.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          ${Object.entries(orderedData).map(([key, value]) => `
+            <div class="bg-rose-50/50 p-4 rounded-xl">
+              <div class="font-bold text-rose-600 text-sm uppercase tracking-wider">${key}</div>
+              <div class="mt-1 text-gray-800 font-medium break-all">${value}</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    };
+
+    searchBtn.addEventListener("click", fetchPatientInfo);
+    skipScanBtn.addEventListener("click", () => {
+      scannerModal.classList.add("hidden");
+      searchInput.focus();
+    });
+
+    searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        scannerModal.classList.add("hidden");
+        fetchPatientInfo();
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      searchInput.focus();
+      lucide.createIcons();
+    });
+  </script>
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>

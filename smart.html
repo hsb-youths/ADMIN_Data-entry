@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HSB Smart Card Generator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <style>
+    :root {
+      --primary: #e11d48;
+      --primary-light: #fdf2f5;
+      --primary-dark: #be123c;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-700: #374151;
+      --gray-900: #111827;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #fdf2f5 0%, #f8f9fa 100%);
+      color: var(--gray-900);
+      min-height: 100vh;
+    }
+
+    /* Glassmorphism Container */
+    .glass-container {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(225, 29, 72, 0.15);
+      border-radius: 1.5rem;
+      padding: 2rem;
+      box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.08),
+        0 0 0 1px rgba(225, 29, 72, 0.05);
+    }
+
+    /* Input Focus */
+    .input-focus:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(225, 29, 72, 0.2);
+    }
+
+    /* Button */
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: 1rem;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(225, 29, 72, 0.25);
+    }
+
+    .btn-back {
+      background: white;
+      color: var(--primary);
+      border: 1.5px solid var(--primary);
+    }
+
+    .btn-back:hover {
+      background: var(--primary-light);
+      transform: translateY(-2px);
+    }
+
+    /* Smart Card - Cream background, no hover animation */
+    #smartCard {
+      width: 380px;
+      height: 240px;
+      background: #FDF8F0;                    /* Soft professional cream */
+      border: 1px solid #e0d5c3;              /* subtle border for definition */
+      border-radius: 1.25rem;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 
+        0 10px 25px rgba(0, 0, 0, 0.12),
+        0 0 0 1px rgba(0, 0, 0, 0.06) inset;
+    }
+
+    /* Card subtle inner glow */
+    .card-glow {
+      position: absolute;
+      inset: 0;
+      border-radius: 1.25rem;
+      padding: 2px;
+      background: linear-gradient(45deg, transparent, rgba(0, 0, 0, 0.03), transparent);
+      mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+      mask-composite: exclude;
+      -webkit-mask-composite: destination-out;
+    }
+
+    /* Patient Photo */
+    #patientPhoto {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid #000000;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    /* QR Code */
+    #qrcode img {
+      width: 52px !important;
+      height: 52px !important;
+      padding: 6px;
+      background: white;
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    }
+
+    /* Loader */
+    .loader {
+      width: 56px;
+      height: 56px;
+      border: 4px solid;
+      border-color: #fff #fff transparent transparent;
+      border-radius: 50%;
+      animation: rotation 1s linear infinite;
+      position: relative;
+    }
+
+    .loader::after,
+    .loader::before {
+      content: '';
+      position: absolute;
+      left: 0; right: 0; top: 0; bottom: 0;
+      margin: auto;
+      border: 4px solid;
+      border-color: transparent transparent var(--primary) var(--primary);
+      width: 46px; height: 46px;
+      border-radius: 50%;
+      animation: rotationBack 0.5s linear infinite;
+    }
+
+    .loader::before {
+      width: 36px; height: 36px;
+      border-color: #fff #fff transparent transparent;
+      animation: rotation 1.5s linear infinite;
+    }
+
+    @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    @keyframes rotationBack { 0% { transform: rotate(0deg); } 100% { transform: rotate(-360deg); } }
+
+    #loaderOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      backdrop-filter: blur(8px);
+      display: none;
+    }
+
+    /* Section Title */
+    .section-title {
+      font-size: 1.75rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #e11d48, #be123c);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body class="antialiased">
+
+  <!-- Loader -->
+  <div id="loaderOverlay">
+    <div class="loader"></div>
+  </div>
+
+  <div class="max-w-4xl mx-auto p-6 space-y-10 relative">
+
+    <!-- Back Button -->
+    <div class="absolute top-4 left-4">
+      <button onclick="window.history.back()" class="btn btn-back">
+        <i class="fas fa-arrow-left"></i> Back
+      </button>
+    </div>
+
+    <!-- Header -->
+    <div class="text-center pt-8">
+      <h1 class="section-title">HSB Smart Card Generator</h1>
+      <p class="text-gray-600 text-lg">Generate digital ID cards for hemophilia patients</p>
+    </div>
+
+    <!-- Main Card -->
+    <div class="glass-container">
+      <div class="space-y-8">
+
+        <!-- Search Form -->
+        <form id="searchForm" class="flex flex-col sm:flex-row gap-4">
+          <input
+            type="text"
+            id="searchId"
+            placeholder="Enter Patient ID (e.g., HSB-001)"
+            required
+            class="flex-1 px-5 py-4 border border-gray-300 rounded-xl input-focus transition-all text-base font-medium"
+          />
+          <button type="submit" class="btn btn-primary text-lg">
+            <i class="fas fa-search"></i> Search Patient
+          </button>
+        </form>
+
+        <!-- Smart Card Preview -->
+        <div class="flex justify-center items-center">
+          <div id="cardContainer" class="relative">
+            <div id="smartCard" class="relative">
+              <div class="card-glow"></div>
+
+              <!-- Header - Logo + Name on same line -->
+              <div class="absolute top-5 left-5 flex items-center gap-3 z-10">
+                <img src="https://i.ibb.co/LXNLB98t/OIP-1.png" alt="HSB Logo" class="w-10 h-10 rounded-lg shadow-md flex-shrink-0" />
+                <div class="flex flex-col leading-tight">
+                  <div class="text-black font-bold text-base">Hemophilia Society of Bangladesh</div>
+                </div>
+              </div>
+
+              <!-- Content -->
+              <div class="flex px-6 pt-20">
+                <!-- Photo -->
+                <div class="flex justify-center items-start w-1/4">
+                  <img
+                    id="patientPhoto"
+                    src=""
+                    alt="Patient"
+                    class="w-20 h-20 rounded-full object-cover"
+                    crossorigin="anonymous"
+                  />
+                </div>
+
+                <!-- Info -->
+                <div class="ml-6 w-3/4 text-black">
+                  <h2 id="patientName" class="font-bold text-xl mb-1">Patient Name</h2>
+                  <p id="patientId" class="text-sm mb-0.5">ID: -</p>
+                  <p class="text-sm opacity-90">DOB: <span id="patientDob">-</span></p>
+                  <p class="text-sm mb-0.5">Blood Group: <span id="patientBloodGroup">-</span></p>
+                  <p class="text-sm">Deficiency Factor: <span id="patientFactor">-</span></p>
+                </div>
+              </div>
+
+              <!-- QR Code -->
+              <div id="qrcode" class="absolute bottom-5 right-5">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Download Button -->
+        <button id="downloadBtn" class="w-full btn btn-primary text-lg py-4 justify-center">
+          <i class="fas fa-download"></i> Download Smart Card as PDF
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Firebase & Logic -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+    import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB7QLBLarDiqdpYy5jw8_1e-gTR-aR1Wqc",
+      authDomain: "hemophilia-society-of-bd.firebaseapp.com",
+      databaseURL: "https://hemophilia-society-of-bd-default-rtdb.firebaseio.com",
+      projectId: "hemophilia-society-of-bd",
+      storageBucket: "hemophilia-society-of-bd.appspot.com",
+      messagingSenderId: "674332798483",
+      appId: "1:674332798483:web:cedb62cb05e03b5cadd9e6"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    document.getElementById("searchForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const id = document.getElementById("searchId").value.trim();
+      if (!id) return;
+
+      const loader = document.getElementById("loaderOverlay");
+      loader.style.display = "flex";
+
+      try {
+        const snapshot = await get(child(ref(db), `patients/${id}`));
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+
+          document.getElementById("patientName").innerText = data.name || "Unknown";
+          document.getElementById("patientId").innerText = "ID: " + id;
+         document.getElementById("patientDob").innerText = data.dob || "-";
+          document.getElementById("patientBloodGroup").innerText = data.bloodGroup || "-";
+          document.getElementById("patientFactor").innerText = data.factorType || "-";
+
+          const photo = document.getElementById("patientPhoto");
+          photo.src = data.imageUrl || "";
+          photo.crossOrigin = "anonymous";
+
+          const qrContainer = document.getElementById("qrcode");
+          qrContainer.innerHTML = "";
+          const qr = qrcode(0, 'H');
+          qr.addData(id);
+          qr.make();
+          qrContainer.innerHTML = qr.createImgTag(4, 4);
+        } else {
+          alert("Patient not found.");
+        }
+      } catch (error) {
+        console.error("Fetch error:", error);
+        alert("Error fetching patient data.");
+      } finally {
+        loader.style.display = "none";
+      }
+    });
+
+    document.getElementById("downloadBtn").addEventListener("click", async () => {
+      const loader = document.getElementById("loaderOverlay");
+      loader.style.display = "flex";
+
+      const card = document.getElementById("smartCard");
+      const img = document.getElementById("patientPhoto");
+
+      if (img.src && !img.complete) {
+        await new Promise(resolve => {
+          img.onload = resolve;
+          img.onerror = resolve;
+        });
+      }
+
+      html2canvas(card, {
+        useCORS: true,
+        scale: 4,
+        backgroundColor: null,
+        logging: false,
+      }).then(canvas => {
+        const imgData = canvas.toDataURL("image/png");
+        const { jsPDF } = window.jspdf;
+
+        const pdf = new jsPDF({
+          orientation: "landscape",
+          unit: "mm",
+          format: [86, 54],
+        });
+
+        pdf.addImage(imgData, "PNG", 0, 0, 86, 54);
+        pdf.save(`HSB_SmartCard_${document.getElementById("searchId").value || "Patient"}.pdf`);
+
+        loader.style.display = "none";
+      }).catch(err => {
+        console.error(err);
+        alert("Failed to generate PDF.");
+        loader.style.display = "none";
+      });
+    });
+  </script>
+</body>
+</html>

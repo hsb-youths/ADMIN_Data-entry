@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard - Hemophilia Society of Bangladesh</title>
+  <link rel="icon" type="image/png" href="OIP (1).png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    :root {
+      --primary: #e11d48;
+      --primary-light: #fdf2f5;
+      --primary-dark: #be123c;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-700: #374151;
+      --gray-900: #111827;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #fdf2f5 0%, #f8f9fa 100%);
+      color: var(--gray-900);
+      min-height: 100vh;
+    }
+
+    /* Glassmorphism Card */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(225, 29, 72, 0.1);
+      border-radius: 1rem;
+      padding: 1.75rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .glass-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(135deg, rgba(225, 29, 72, 0.03), transparent);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .glass-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 20px 40px rgba(225, 29, 72, 0.12);
+      border-color: rgba(225, 29, 72, 0.25);
+    }
+
+    .glass-card > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Icon Styling */
+    .icon-wrapper {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      background: var(--primary-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .glass-card:hover .icon-wrapper {
+      background: var(--primary);
+      color: white;
+      transform: scale(1.1);
+    }
+
+    /* Sidebar */
+    .sidebar {
+      background: white;
+      border-right: 1px solid var(--gray-200);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      transition: transform 0.3s ease;
+    }
+
+    .nav-item {
+      padding: 0.75rem 1rem;
+      border-radius: 0.75rem;
+      margin: 0.5rem 1rem;
+      transition: all 0.2s ease;
+      color: var(--gray-700);
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .nav-item:hover, .nav-item.active {
+      background: var(--primary-light);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .nav-item i {
+      width: 20px;
+      text-align: center;
+    }
+
+    /* Mobile Menu */
+    @media (max-width: 1024px) {
+      .sidebar {
+        position: fixed;
+        left: -100%;
+        z-index: 50;
+      }
+      .sidebar.open {
+        left: 0;
+      }
+      .mobile-menu-btn {
+        display: flex;
+      }
+    }
+
+    .mobile-menu-btn {
+      display: none;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--primary);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 0.75rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    /* Header */
+    .header-shadow {
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    /* Footer */
+    .footer-link {
+      color: var(--gray-600);
+      transition: color 0.2s;
+    }
+    .footer-link:hover {
+      color: var(--primary);
+    }
+  </style>
+</head>
+<body class="antialiased">
+
+  <!-- Mobile Menu Button -->
+  <div class="lg:hidden fixed top-4 left-4 z-50">
+    <button id="menuBtn" class="mobile-menu-btn">
+      <i class="fas fa-bars"></i>
+      Menu
+    </button>
+  </div>
+
+  <div class="flex">
+
+    <!-- Sidebar -->
+    <aside class="sidebar w-72 p-6 hidden lg:block">
+      <div class="flex items-center gap-3 mb-10">
+        <img src="OIP (1).png" alt="Logo" class="w-14 h-14 rounded-lg shadow-md">
+        <div>
+          <h1 class="text-lg font-bold text-gray-900">Hemophilia Society</h1>
+          <p class="text-xs text-gray-500">Admin Panel</p>
+        </div>
+      </div>
+
+      <nav class="space-y-2">
+        <a href="form.html" class="nav-item">
+          <i class="fas fa-user-plus"></i>
+          New Patient Registration
+        </a>
+        <a href="dashboard.html" class="nav-item">
+          <i class="fas fa-database"></i>
+          Patient Database
+        </a>
+        <a href="injection_add.html" class="nav-item">
+          <i class="fas fa-syringe"></i>
+          Factor Utilization
+        </a>
+        <a href="patient-info.html" class="nav-item">
+          <i class="fas fa-id-card"></i>
+          Individual Info
+        </a>
+        <a href="subscription.html" class="nav-item">
+          <i class="fas fa-receipt"></i>
+          Subscription Fee
+        </a>
+        <a href="smart.html" class="nav-item">
+          <i class="fas fa-credit-card"></i>
+          Smart Card
+        </a>
+        <a href="news portal.html" class="nav-item">
+          <i class="fas fa-newspaper"></i>
+          News Portal
+        </a>
+      </nav>
+
+      <div class="mt-auto pt-8 border-t border-gray-200">
+        <div class="flex items-center gap-3 p-3">
+          <div class="w-10 h-10 bg-primary-light rounded-full flex items-center justify-center text-primary font-bold text-sm">
+            A
+          </div>
+          <div>
+            <p id="usernameDisplay" class="text-sm font-semibold text-gray-900"></p>
+            <p class="text-xs text-gray-500">Administrator</p>
+          </div>
+        </div>
+        <button id="logoutButton" class="w-full mt-3 text-left text-sm text-red-600 hover:text-red-700 font-medium flex items-center gap-2">
+          <i class="fas fa-sign-out-alt"></i>
+          Logout
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="flex-1 lg:ml-0">
+      <!-- Header -->
+      <header class="bg-white header-shadow px-6 py-4 flex justify-between items-center">
+        <h2 class="text-xl font-bold text-gray-800">Dashboard Overview</h2>
+        <div class="hidden lg:flex items-center gap-4">
+          <span id="usernameDisplayHeader" class="text-sm text-gray-600"></span>
+          <button id="logoutButtonHeader" class="text-primary hover:text-primary-dark text-sm font-medium">
+            <i class="fas fa-sign-out-alt mr-1"></i> Logout
+          </button>
+        </div>
+      </header>
+
+      <!-- Dashboard Grid -->
+      <main class="p-6 max-w-7xl mx-auto">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
+          <!-- New Patient Registration -->
+          <div class="glass-card cursor-pointer" onclick="window.location.href='form.html'">
+            <div class="icon-wrapper text-primary">
+              <i class="fas fa-user-plus text-xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900">New Patient Registration</h3>
+            <p class="text-sm text-gray-500 mt-1">Register new hemophilia patients</p>
+          </div>
+
+          <!-- Patient Database -->
+          <div class="glass-card cursor-pointer" onclick="window.location.href='dashboard.html'">
+            <div class="icon-wrapper text-primary">
+              <i class="fas fa-database text-xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900">Patient Database</h3>
+            <p class="text-sm text-gray-500 mt-1">View all registered patients</p>
+          </div>
+
+          <!-- Factor Utilization -->
+          <div class="glass-card cursor-pointer" onclick="window.location.href='injection_add.html'">
+            <div class="icon-wrapper text-primary">
+              <i class="fas fa-syringe text-xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900">Factor Utilization</h3>
+            <p class="text-sm text-gray-500 mt-1">Track factor VIII/IX usage</p>
+          </div>
+
+          <!-- Individual Info -->
+          <div class="glass-card cursor-pointer" onclick="window.location.href='patient-info.html'">
+            <div class="icon-wrapper text-primary">
+              <i class="fas fa-id-card text-xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900">Individual Info</h3>
+            <p class="text-sm text-gray-500 mt-1">Detailed patient profiles</p>
+          </div>
+
+          <!-- Subscription Fee -->
+          <div class="glass-card cursor-pointer" onclick="window.location.href='subscription.html'">
+            <div class="icon-wrapper text-primary">
+              <i class="fas fa-receipt text-xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900">Subscription Fee</h3>
+            <p class="text-sm text-gray-500 mt-1">Manage membership payments</p>
+          </div>
+
+          <!-- Smart Card -->
+          <div class="glass-card cursor-pointer" onclick="window.location.href='smart.html'">
+            <div class="icon-wrapper text-primary">
+              <i class="fas fa-credit-card text-xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900">Smart Card</h3>
+            <p class="text-sm text-gray-500 mt-1">Issue digital patient cards</p>
+          </div>
+
+          <!-- News Portal -->
+          <div class="glass-card cursor-pointer" onclick="window.location.href='news portal.html'">
+            <div class="icon-wrapper text-primary">
+              <i class="fas fa-newspaper text-xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900">News Portal</h3>
+            <p class="text-sm text-gray-500 mt-1">Manage website content</p>
+          </div>
+
+        </div>
+      </main>
+
+      <!-- Footer -->
+      <footer class="mt-16 bg-white border-t border-gray-200 py-8">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+          <p class="text-sm text-gray-600 mb-2">© 2025 Hemophilia Society of Bangladesh. All rights reserved.</p>
+          <p class="text-sm text-gray-500 mb-6">Developed by <span class="font-semibold text-gray-700">Binty</span></p>
+          <div class="flex justify-center space-x-6">
+            <a href="https://facebook.com" target="_blank" class="footer-link">
+              <i class="fab fa-facebook-f text-lg"></i>
+            </a>
+            <a href="https://discord.com" target="_blank" class="footer-link">
+              <i class="fab fa-discord text-lg"></i>
+            </a>
+            <a href="mailto:info@hemophilia.org.bd" class="footer-link">
+              <i class="fas fa-envelope text-lg"></i>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Mobile Sidebar Overlay -->
+  <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden lg:hidden"></div>
+
+  <script src="auth.js"></script>
+  <script>
+    // Mobile Menu Toggle
+    const menuBtn = document.getElementById('menuBtn');
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('overlay');
+
+    menuBtn?.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('hidden');
+    });
+
+    overlay?.addEventListener('click', () => {
+      sidebar.classList.remove('open');
+      overlay.classList.add('hidden');
+    });
+
+    // Auth Check
+    window.addEventListener('load', function() {
+      const username = localStorage.getItem('username');
+      const password = localStorage.getItem('password');
+      if (!username || !password || !isValidCredentials(username, password)) {
+        window.location.href = 'login.html';
+      } else {
+        document.getElementById('usernameDisplay').textContent = username;
+        const headerDisplay = document.getElementById('usernameDisplayHeader');
+        if (headerDisplay) headerDisplay.textContent = `Welcome, ${username}`;
+      }
+    });
+
+    // Logout
+    document.getElementById('logoutButton')?.addEventListener('click', logout);
+    document.getElementById('logoutButtonHeader')?.addEventListener('click', logout);
+
+    function logout() {
+      localStorage.removeItem('username');
+      localStorage.removeItem('password');
+      window.location.href = 'login.html';
+    }
+  </script>
+</body>
+</html>

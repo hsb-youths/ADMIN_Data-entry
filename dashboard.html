@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Dashboard - Patient Info</title>
+  <link rel="stylesheet" href="dashboardcss.css">
+  <style>
+    table {
+      table-layout: fixed;
+      width: 100%;
+    }
+    .download-loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #3498db;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 2s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: translate(-50%, -50%) rotate(0deg); }
+      100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+    .btn-download:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-container">
+    <header>
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Search by Patient ID" />
+        <button id="searchBtn">Search</button>
+      </div>
+      <button id="downloadPdfBtn" class="btn-download">Download PDF</button>
+    </header>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Patient ID</th>
+            <th>Name</th>
+            <th>Age</th>
+            <th>Factor Type</th>
+            <th>Factor Level</th>
+            <th>Phone</th>
+            <th>Home Town</th>
+            <th>NID</th>
+          </tr>
+        </thead>
+        <tbody id="patientsTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+    import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB7QLBLarDiqdpYy5jw8_1e-gTR-aR1Wqc",
+      authDomain: "hemophilia-society-of-bd.firebaseapp.com",
+      projectId: "hemophilia-society-of-bd",
+      storageBucket: "hemophilia-society-of-bd.firebasestorage.app",
+      messagingSenderId: "674332798483",
+      appId: "1:674332798483:web:cedb62cb05e03b5cadd9e6",
+      measurementId: "G-J5D8R7P18D"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const patientsRef = ref(db, 'patients');
+
+    function renderPatients(snapshot) {
+      const tbody = document.getElementById('patientsTable');
+      tbody.innerHTML = '';
+      if (!snapshot.exists() || snapshot.val() === null) {
+        tbody.innerHTML = '<tr><td colspan="8">No patients found.</td></tr>';
+        return;
+      }
+      snapshot.forEach(childSnapshot => {
+        const data = childSnapshot.val();
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${data.patientId}</td>
+          <td>${data.name}</td>
+          <td>${data.age}</td>
+          <td>${data.factorType}</td>
+          <td>${data.factorLevel}</td>
+          <td>${data.phone}</td>
+          <td>${data.hometown}</td>
+          <td>${data.nid || 'N/A'}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    onValue(patientsRef, renderPatients, { onlyOnce: false });
+
+    function performSearch() {
+      const searchValue = document.getElementById("searchInput").value.trim();
+      if (!searchValue) {
+        onValue(patientsRef, renderPatients); // Reload all patients if search is empty
+        return;
+      }
+      get(patientsRef).then(snapshot => {
+        const tbody = document.getElementById('patientsTable');
+        tbody.innerHTML = '';
+        let found = false;
+        snapshot.forEach(childSnapshot => {
+          const data = childSnapshot.val();
+          if (data.patientId === searchValue) {
+            found = true;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${data.patientId}</td>
+              <td>${data.name}</td>
+              <td>${data.age}</td>
+              <td>${data.factorType}</td>
+              <td>${data.factorLevel}</td>
+              <td>${data.phone}</td>
+              <td>${data.hometown}</td>
+              <td>${data.nid || 'N/A'}</td>
+            `;
+            tbody.appendChild(tr);
+          }
+        });
+        if (!found) tbody.innerHTML = '<tr><td colspan="8">No patient found.</td></tr>';
+      }).catch(error => {
+        console.error("Error searching patients:", error);
+        alert("Error searching patients. Please try again.");
+      });
+    }
+
+    document.getElementById("searchBtn").addEventListener("click", performSearch);
+
+    document.getElementById("searchInput").addEventListener("keypress", (event) => {
+      if (event.key === "Enter") {
+        performSearch();
+      }
+    });
+
+    document.getElementById("downloadPdfBtn").addEventListener("click", () => {
+      const downloadBtn = document.getElementById("downloadPdfBtn");
+      downloadBtn.disabled = true;
+      const spinner = document.createElement("div");
+      spinner.classList.add("download-loading");
+      document.body.appendChild(spinner);
+
+      try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        let y = 20;
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8);
+        doc.text("Patient Information Report HEMOPHILIA SOCIETY OF BANGLADESH", 4, y);
+        y += 10;
+
+        const customHeader = ["Patient ID", "Name", "Age", "Factor Type", "Factor Level", "Phone", "Home Town", "NID"];
+        const columnWidths = [20, 54, 10, 22, 20, 22, 22, 33]; // Restored original measurements
+        const cellHeight = 6;
+        const marginLeft = 2; // Restored original margin
+
+        // Draw header
+        customHeader.forEach((header, index) => {
+          const x = marginLeft + columnWidths.slice(0, index).reduce((a, b) => a + b, 0);
+          doc.rect(x, y, columnWidths[index], cellHeight);
+          doc.text(header, x + 2, y + 4);
+        });
+        y += cellHeight;
+
+        // Draw table rows
+        const rows = document.querySelectorAll('#patientsTable tr');
+        if (rows.length === 0 || rows[0].querySelectorAll('td')[0].innerText.includes("No patients found")) {
+          doc.text("No patient data available.", marginLeft, y + 4);
+        } else {
+          rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length >= 8) {
+              const rowData = [];
+              for (let i = 0; i < 8; i++) {
+                rowData.push(cells[i].innerText.trim());
+              }
+              rowData.forEach((cell, index) => {
+                const x = marginLeft + columnWidths.slice(0, index).reduce((a, b) => a + b, 0);
+                doc.rect(x, y, columnWidths[index], cellHeight);
+                doc.text(cell, x + 2, y + 4);
+              });
+              y += cellHeight;
+            }
+          });
+        }
+
+        setTimeout(() => {
+          doc.save("patients_report.pdf");
+          document.body.removeChild(spinner);
+          downloadBtn.disabled = false;
+        }, 1500); // Restored original timeout
+      } catch (error) {
+        console.error("Error generating PDF:", error);
+        alert("Error generating PDF. Please try again.");
+        document.body.removeChild(spinner);
+        downloadBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

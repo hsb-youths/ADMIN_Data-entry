@@ -109,7 +109,7 @@
     function performSearch() {
       const searchValue = document.getElementById("searchInput").value.trim();
       if (!searchValue) {
-        onValue(patientsRef, renderPatients); // Reload all patients if search is empty
+        onValue(patientsRef, renderPatients);
         return;
       }
       get(patientsRef).then(snapshot => {
@@ -149,6 +149,7 @@
       }
     });
 
+    // ==================== UPDATED PDF DOWNLOAD FUNCTION ====================
     document.getElementById("downloadPdfBtn").addEventListener("click", () => {
       const downloadBtn = document.getElementById("downloadPdfBtn");
       downloadBtn.disabled = true;
@@ -161,36 +162,52 @@
         const doc = new jsPDF();
 
         let y = 20;
+        const pageHeight = doc.internal.pageSize.height;
+        const marginLeft = 2;
+        const cellHeight = 6;
+        const customHeader = ["Patient ID", "Name", "Age", "Factor Type", "Factor Level", "Phone", "Home Town", "NID"];
+        const columnWidths = [20, 54, 10, 22, 20, 22, 22, 33];
+
+        // Title
         doc.setFont("helvetica", "normal");
         doc.setFontSize(8);
         doc.text("Patient Information Report HEMOPHILIA SOCIETY OF BANGLADESH", 4, y);
         y += 10;
 
-        const customHeader = ["Patient ID", "Name", "Age", "Factor Type", "Factor Level", "Phone", "Home Town", "NID"];
-        const columnWidths = [20, 54, 10, 22, 20, 22, 22, 33]; // Restored original measurements
-        const cellHeight = 6;
-        const marginLeft = 2; // Restored original margin
+        // Function to draw header on current page
+        function drawHeader() {
+          customHeader.forEach((header, index) => {
+            const x = marginLeft + columnWidths.slice(0, index).reduce((a, b) => a + b, 0);
+            doc.rect(x, y, columnWidths[index], cellHeight);
+            doc.text(header, x + 2, y + 4);
+          });
+          y += cellHeight;
+        }
 
-        // Draw header
-        customHeader.forEach((header, index) => {
-          const x = marginLeft + columnWidths.slice(0, index).reduce((a, b) => a + b, 0);
-          doc.rect(x, y, columnWidths[index], cellHeight);
-          doc.text(header, x + 2, y + 4);
-        });
-        y += cellHeight;
+        // Draw initial header
+        drawHeader();
 
-        // Draw table rows
+        // Draw table rows with page break logic
         const rows = document.querySelectorAll('#patientsTable tr');
+        
         if (rows.length === 0 || rows[0].querySelectorAll('td')[0].innerText.includes("No patients found")) {
           doc.text("No patient data available.", marginLeft, y + 4);
         } else {
           rows.forEach(row => {
             const cells = row.querySelectorAll('td');
             if (cells.length >= 8) {
+              // Check if we need a new page
+              if (y + cellHeight > pageHeight - 10) {
+                doc.addPage();
+                y = 20;
+                drawHeader();   // Draw header on new page
+              }
+
               const rowData = [];
               for (let i = 0; i < 8; i++) {
                 rowData.push(cells[i].innerText.trim());
               }
+
               rowData.forEach((cell, index) => {
                 const x = marginLeft + columnWidths.slice(0, index).reduce((a, b) => a + b, 0);
                 doc.rect(x, y, columnWidths[index], cellHeight);
@@ -205,7 +222,8 @@
           doc.save("patients_report.pdf");
           document.body.removeChild(spinner);
           downloadBtn.disabled = false;
-        }, 1500); // Restored original timeout
+        }, 1500);
+
       } catch (error) {
         console.error("Error generating PDF:", error);
         alert("Error generating PDF. Please try again.");

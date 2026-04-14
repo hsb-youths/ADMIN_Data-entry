@@ -78,7 +78,7 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="input-group">
           <label for="patientId" class="block text-sm font-medium text-gray-700">Patient ID</label>
-          <input type="text" id="patientId" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" />
+          <input type="text" id="patientId" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" />
           <p id="patientIdError" class="text-red-600 text-sm mt-1 hidden">This Patient ID is already registered.</p>
         </div>
         <div class="input-group">
@@ -109,11 +109,11 @@
         </div>
         <div class="input-group">
           <label for="phone" class="block text-sm font-medium text-gray-700">Phone Number</label>
-          <input type="tel" id="phone" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" />
+          <input type="text" id="phone" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" />
         </div>
       </div>
 
-      <!-- Home Town, NID, and Image Upload (Modified for Webcam) -->
+      <!-- Home Town, NID, and Image Upload -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="input-group">
           <label for="hometown" class="block text-sm font-medium text-gray-700">Home Town</label>
@@ -187,7 +187,7 @@
         </div>
         <div class="input-group">
           <label for="nid" class="block text-sm font-medium text-gray-700">NID/Birth No.</label>
-          <input type="text" id="nid" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" />
+          <input type="text" id="nid" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" />
           <p id="nidError" class="text-red-600 text-sm mt-1 hidden">This NID is already registered.</p>
         </div>
         <div class="input-group">
@@ -210,18 +210,14 @@
           <label for="membershipDate" class="block text-sm font-medium text-gray-700">Date of Membership</label>
           <input type="date" id="membershipDate" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" />
         </div>
-   <div class="input-group">
-     <label for="membershipType" class="block text-sm font-medium text-gray-700">Membership Type</label>
-     <select 
-          id="membershipType" 
-          class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
-     >
-          <option value="">-- Select --</option>
-          <option value="patient">Patient Member</option>
-          
-          <option value="guardian_member">Guardian Member</option>
-     </select>
-</div>
+        <div class="input-group">
+          <label for="membershipType" class="block text-sm font-medium text-gray-700">Membership Type</label>
+          <select id="membershipType" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
+            <option value="">-- Select --</option>
+            <option value="patient">Patient Member</option>
+            <option value="guardian_member">Guardian Member</option>
+          </select>
+        </div>
         <div class="input-group">
           <label for="dob" class="block text-sm font-medium text-gray-700">Date of Birth</label>
           <input type="date" id="dob" required class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" />
@@ -256,7 +252,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="input-group">
           <label for="mobile" class="block text-sm font-medium text-gray-700">Mobile No.</label>
-          <input type="tel" id="mobile" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" />
+          <input type="text" id="mobile" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" />
         </div>
         <div class="input-group">
           <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
@@ -270,23 +266,20 @@
           <label for="diseaseHistory" class="block text-sm font-medium text-gray-700">Disease History</label>
           <input type="text" id="diseaseHistory" value="By Birth" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" />
         </div>
-       <div class="input-group">
-  <label for="bloodGroup" class="block text-sm font-medium text-gray-700">Blood Group</label>
-  <select 
-    id="bloodGroup" 
-    class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
-  >
-    <option value="">-- Select Blood Group --</option>
-    <option value="A+">A+</option>
-    <option value="A-">A-</option>
-    <option value="B+">B+</option>
-    <option value="B-">B-</option>
-    <option value="O+">O+</option>
-    <option value="O-">O-</option>
-    <option value="AB+">AB+</option>
-    <option value="AB-">AB-</option>
-  </select>
-</div>
+        <div class="input-group">
+          <label for="bloodGroup" class="block text-sm font-medium text-gray-700">Blood Group</label>
+          <select id="bloodGroup" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
+            <option value="">-- Select Blood Group --</option>
+            <option value="A+">A+</option>
+            <option value="A-">A-</option>
+            <option value="B+">B+</option>
+            <option value="B-">B-</option>
+            <option value="O+">O+</option>
+            <option value="O-">O-</option>
+            <option value="AB+">AB+</option>
+            <option value="AB-">AB-</option>
+          </select>
+        </div>
         <div class="input-group">
           <label for="occupation" class="block text-sm font-medium text-gray-700">Occupation</label>
           <input type="text" id="occupation" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" />
@@ -300,25 +293,22 @@
           <input type="text" id="income" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" />
         </div>
         <div class="input-group">
-  <label for="diseaseClass" class="block text-sm font-medium text-gray-700">Disease Class</label>
-  <select id="diseaseClass" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
-    <option>Hemophilia A</option>
-    <option>Hemophilia B</option>
-    <option>Von Willebrand Disease</option>
-    <option>Other</option>
-  </select>
-</div>
+          <label for="diseaseClass" class="block text-sm font-medium text-gray-700">Disease Class</label>
+          <select id="diseaseClass" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
+            <option>Hemophilia A</option>
+            <option>Hemophilia B</option>
+            <option>Von Willebrand Disease</option>
+            <option>Other</option>
+          </select>
+        </div>
         <div class="input-group">
-  <label for="maritalStatus" class="block text-sm font-medium text-gray-700">Marital Status</label>
-  <select 
-    id="maritalStatus" 
-    class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
-  >
-    <option>Single</option>
-    <option>Married</option>
-    <option>Divorced</option>
-  </select>
-</div>
+          <label for="maritalStatus" class="block text-sm font-medium text-gray-700">Marital Status</label>
+          <select id="maritalStatus" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
+            <option>Single</option>
+            <option>Married</option>
+            <option>Divorced</option>
+          </select>
+        </div>
       </div>
 
       <!-- Spouse Name, No. of Children, Nationality -->
@@ -337,18 +327,15 @@
         </div>
       </div>
 
-      <!-- Family History of Hemophilia, Present Affected Organs -->
+      <!-- Family History, Affected Organs -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="input-group">
-  <label for="membershipStatus" class="block text-sm font-medium text-gray-700">Membership Status</label>
-  <select 
-    id="membershipStatus" 
-    class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
-  >
-    <option>Annual Membership</option>
-    <option>Life Membership</option>
-  </select>
-</div>
+          <label for="membershipStatus" class="block text-sm font-medium text-gray-700">Membership Status</label>
+          <select id="membershipStatus" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
+            <option>Annual Membership</option>
+            <option>Life Membership</option>
+          </select>
+        </div>
         <div class="input-group">
           <label for="organsAffected" class="block text-sm font-medium text-gray-700">Present Affected Organs</label>
           <input type="text" id="organsAffected" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" />
@@ -410,7 +397,6 @@
     const dobInput = document.getElementById("dob");
     const ageInput = document.getElementById("age");
 
-    // Photo integration variables
     const imageUpload = document.getElementById("imageUpload");
     const openWebcamBtn = document.getElementById("openWebcamBtn");
     const webcamModal = document.getElementById("webcamModal");
@@ -423,11 +409,10 @@
     let videoStream = null;
     let imageFileToUpload = null;
 
-    // Function to calculate age from date of birth
     function calculateAge(dob) {
       if (!dob) return "";
       const birthDate = new Date(dob);
-      const currentDate = new Date("2025-10-20"); // Current date as provided
+      const currentDate = new Date();
       let age = currentDate.getFullYear() - birthDate.getFullYear();
       const monthDiff = currentDate.getMonth() - birthDate.getMonth();
       if (monthDiff < 0 || (monthDiff === 0 && currentDate.getDate() < birthDate.getDate())) {
@@ -436,13 +421,10 @@
       return age >= 0 ? age : 0;
     }
 
-    // Update age when date of birth changes
     dobInput.addEventListener("change", () => {
-      const dob = dobInput.value;
-      ageInput.value = calculateAge(dob);
+      ageInput.value = calculateAge(dobInput.value);
     });
 
-    // Debounce function to limit Firebase queries
     function debounce(func, wait) {
       let timeout;
       return function (...args) {
@@ -451,31 +433,24 @@
       };
     }
 
-    // Function to check if Patient ID exists
     async function checkPatientId(patientId) {
       if (!patientId) return false;
-      const patientRef = ref(db, `patients/${patientId}`);
-      const snapshot = await get(patientRef);
+      const snapshot = await get(ref(db, `patients/${patientId}`));
       return snapshot.exists();
     }
 
-    // Function to check if NID exists
     async function checkNid(nid) {
       if (!nid) return false;
-      const patientsRef = ref(db, 'patients');
-      const snapshot = await get(patientsRef);
+      const snapshot = await get(ref(db, 'patients'));
       if (snapshot.exists()) {
         const patients = snapshot.val();
         for (const pid in patients) {
-          if (patients[pid].nid === nid) {
-            return true;
-          }
+          if (patients[pid].nid === nid) return true;
         }
       }
       return false;
     }
 
-    // Validate captured or uploaded image
     function validateImage() {
       if (!imageFileToUpload) {
         imageError.classList.remove("hidden");
@@ -488,8 +463,7 @@
         imageError.textContent = "Please use a JPEG or PNG image.";
         return false;
       }
-      const maxSize = 5 * 1024 * 1024; // 5MB
-      if (imageFileToUpload.size > maxSize) {
+      if (imageFileToUpload.size > 5 * 1024 * 1024) {
         imageError.classList.remove("hidden");
         imageError.textContent = "Image size must be less than 5MB.";
         return false;
@@ -498,88 +472,61 @@
       return true;
     }
 
-    // Real-time validation for Patient ID with debounce
     const debouncedCheckPatientId = debounce(async (patientId) => {
       try {
-        const exists = await checkPatientId(patientId);
-        if (exists) {
+        if (await checkPatientId(patientId)) {
           patientIdError.classList.remove("hidden");
           submitBtn.disabled = true;
           alert("This Patient ID is already registered.");
         } else {
           patientIdError.classList.add("hidden");
-          submitBtn.disabled = nidError.classList.contains("hidden") && imageError.classList.contains("hidden") ? false : true;
+          submitBtn.disabled = !nidError.classList.contains("hidden");
         }
-      } catch (error) {
-        console.error("Error checking Patient ID:", error);
-        alert("Error validating Patient ID.");
-      }
+      } catch (err) { console.error(err); }
     }, 500);
 
-    patientIdInput.addEventListener("input", () => {
-      const patientId = patientIdInput.value.trim();
-      debouncedCheckPatientId(patientId);
-    });
+    patientIdInput.addEventListener("input", () => debouncedCheckPatientId(patientIdInput.value.trim()));
 
-    // Real-time validation for NID with debounce
     const debouncedCheckNid = debounce(async (nid) => {
       try {
-        const exists = await checkNid(nid);
-        if (exists) {
+        if (await checkNid(nid)) {
           nidError.classList.remove("hidden");
           submitBtn.disabled = true;
           alert("This NID is already registered.");
         } else {
           nidError.classList.add("hidden");
-          submitBtn.disabled = patientIdError.classList.contains("hidden") && imageError.classList.contains("hidden") ? false : true;
+          submitBtn.disabled = !patientIdError.classList.contains("hidden");
         }
-      } catch (error) {
-        console.error("Error checking NID:", error);
-        alert("Error validating NID.");
-      }
+      } catch (err) { console.error(err); }
     }, 500);
 
-    nidInput.addEventListener("input", () => {
-      const nid = nidInput.value.trim();
-      debouncedCheckNid(nid);
-    });
+    nidInput.addEventListener("input", () => debouncedCheckNid(nidInput.value.trim()));
 
-    // Handle File Upload Change
     imageUpload.addEventListener("change", () => {
       if (imageUpload.files && imageUpload.files.length > 0) {
         imageFileToUpload = imageUpload.files[0];
         photoStatus.textContent = "✅ Photo uploaded from device.";
         photoStatus.classList.remove("hidden");
         imageError.classList.add("hidden");
-        
-        // Reset webcam button UI if previously used
         openWebcamBtn.textContent = "📷 Webcam";
         openWebcamBtn.classList.replace("text-green-600", "text-gray-700");
         openWebcamBtn.classList.replace("border-green-500", "border-gray-300");
-      } else {
-        imageFileToUpload = null;
-        photoStatus.classList.add("hidden");
       }
-      submitBtn.disabled = !(patientIdError.classList.contains("hidden") && nidError.classList.contains("hidden") && validateImage());
     });
 
-    // --- Webcam Logic ---
     openWebcamBtn.addEventListener("click", async () => {
       webcamModal.classList.remove("hidden");
       try {
         videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
         webcamVideo.srcObject = videoStream;
       } catch (err) {
-        alert("Error accessing webcam. Please make sure your camera is connected and permissions are granted. " + err.message);
+        alert("Error accessing webcam: " + err.message);
         webcamModal.classList.add("hidden");
       }
     });
 
     function stopWebcam() {
-      if (videoStream) {
-        videoStream.getTracks().forEach(track => track.stop());
-        videoStream = null;
-      }
+      if (videoStream) videoStream.getTracks().forEach(track => track.stop());
       webcamVideo.srcObject = null;
       webcamModal.classList.add("hidden");
     }
@@ -588,114 +535,61 @@
 
     captureBtn.addEventListener("click", () => {
       const context = webcamCanvas.getContext("2d");
-      // Set canvas size matching the video stream dimensions
       webcamCanvas.width = webcamVideo.videoWidth;
       webcamCanvas.height = webcamVideo.videoHeight;
-      context.drawImage(webcamVideo, 0, 0, webcamCanvas.width, webcamCanvas.height);
-      
-      // Convert captured frame to a Blob (JPEG format)
+      context.drawImage(webcamVideo, 0, 0);
       webcamCanvas.toBlob((blob) => {
         imageFileToUpload = blob;
-        
-        // Clear file input if previously selected
         imageUpload.value = "";
-
         photoStatus.textContent = "✅ Photo captured via webcam.";
         photoStatus.classList.remove("hidden");
         imageError.classList.add("hidden");
-        
-        // Update the button UI to reflect a successful capture
         openWebcamBtn.textContent = "✅ Captured (Retake)";
         openWebcamBtn.classList.replace("text-gray-700", "text-green-600");
         openWebcamBtn.classList.replace("border-gray-300", "border-green-500");
-
-        // Re-evaluate form validation
-        submitBtn.disabled = patientIdError.classList.contains("hidden") && nidError.classList.contains("hidden") ? false : true;
-        
         stopWebcam();
       }, "image/jpeg", 0.9);
     });
-    // --- End Webcam Logic ---
 
     document.getElementById("patientForm").addEventListener("submit", async function(e) {
       e.preventDefault();
-      loaderOverlay.style.display = "block"; // Show loader
-
+      if (!validateImage()) return;
+      loaderOverlay.style.display = "block";
       const patientId = patientIdInput.value.trim();
-      const nid = nidInput.value.trim();
 
       try {
-        // Validate captured image before proceeding
-        if (!validateImage()) {
+        if (await checkPatientId(patientId)) {
+          alert("Patient ID exists.");
           loaderOverlay.style.display = "none";
           return;
         }
 
-        // Double-check Patient ID and NID
-        const patientExists = await checkPatientId(patientId);
-        const nidExists = await checkNid(nid);
-        if (patientExists) {
-          alert("This Patient ID is already registered.");
-          loaderOverlay.style.display = "none";
-          return;
-        }
-        if (nidExists) {
-          alert("This NID is already registered.");
-          loaderOverlay.style.display = "none";
-          return;
-        }
-
-        // Prepare FormData. Pass the custom filename as the Patient ID
         const formData = new FormData();
-        const extension = imageFileToUpload.name ? imageFileToUpload.name.split('.').pop() : 'jpg';
-        const fileName = `${patientId}.${extension}`;
-        formData.append("image", imageFileToUpload, fileName);
+        formData.append("image", imageFileToUpload, `${patientId}.jpg`);
         formData.append("key", "34586b2f49002bd441a1e6816d633fd9");
 
-        const response = await fetch("https://api.imgbb.com/1/upload", {
-          method: "POST",
-          body: formData
-        });
-
+        const response = await fetch("https://api.imgbb.com/1/upload", { method: "POST", body: formData });
         const data = await response.json();
+
         if (data.success) {
-          const imageUrl = data.data.url;
-          const formDataObj = {};
+          const formDataObj = { imageUrl: data.data.url, timestamp: serverTimestamp() };
           Array.from(e.target.elements).forEach(el => {
-            if (el.id && el.type !== "submit" && el.type !== "button") {
-              formDataObj[el.id] = el.value;
-            }
+            if (el.id && el.type !== "submit" && el.type !== "button") formDataObj[el.id] = el.value;
           });
-          formDataObj["imageUrl"] = imageUrl;
-          formDataObj["timestamp"] = serverTimestamp();
 
           await set(ref(db, 'patients/' + patientId), formDataObj);
           alert("Patient Registered Successfully!");
-          
-          // Reset Form and State
           e.target.reset();
-          patientIdError.classList.add("hidden");
-          nidError.classList.add("hidden");
-          imageError.classList.add("hidden");
-          submitBtn.disabled = false;
-          ageInput.value = ""; 
-          
-          // Reset Photo State
-          imageFileToUpload = null;
           photoStatus.classList.add("hidden");
-          openWebcamBtn.textContent = "📷 Webcam";
-          openWebcamBtn.classList.replace("text-green-600", "text-gray-700");
-          openWebcamBtn.classList.replace("border-green-500", "border-gray-300");
-
+          imageFileToUpload = null;
+          ageInput.value = "";
         } else {
-          console.error("ImgBB error:", data.error);
-          alert(`Image upload failed: ${data.error?.message || "Unknown error"}`);
+          alert("Upload failed.");
         }
-      } catch (error) {
-        console.error("Submission error:", error);
-        alert(`Error during submission: ${error.message || "Unknown error"}`);
+      } catch (err) {
+        alert("Error: " + err.message);
       } finally {
-        loaderOverlay.style.display = "none"; // Hide loader
+        loaderOverlay.style.display = "none";
       }
     });
   </script>

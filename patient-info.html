@@ -6,14 +6,17 @@
   <title>Patient Info Dashboard | HSB</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Added html2pdf.js for PDF Generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
   <style>
     :root {
-      --primary: #e11d48;
-      --primary-light: #fdf2f5;
-      --primary-dark: #be123c;
+      --primary: #e60000; /* Updated to #e60000 */
+      --primary-light: #fff1f1;
+      --primary-dark: #cc0000;
+      --brand-red: #e60000;
       --gray-50: #f9fafb;
       --gray-100: #f3f4f6;
       --gray-200: #e5e7eb;
@@ -26,7 +29,7 @@
     }
 
     body {
-      background: linear-gradient(135deg, #fdf2f5 0%, #f8f9fa 100%);
+      background: linear-gradient(135deg, #fff1f1 0%, #f8f9fa 100%);
       color: var(--gray-900);
       margin: 0;
       padding: 0;
@@ -38,23 +41,23 @@
       background: rgba(255, 255, 255, 0.92);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(225, 29, 72, 0.15);
+      border: 1px solid rgba(230, 0, 0, 0.15);
       box-shadow: 
         0 20px 40px rgba(0, 0, 0, 0.08),
-        0 0 0 1px rgba(225, 29, 72, 0.05);
+        0 0 0 1px rgba(230, 0, 0, 0.05);
       transition: all 0.3s ease;
     }
 
     .glass:hover {
       box-shadow: 
-        0 25px 50px rgba(225, 29, 72, 0.12),
-        0 0 0 1px rgba(225, 29, 72, 0.1);
+        0 25px 50px rgba(230, 0, 0, 0.12),
+        0 0 0 1px rgba(230, 0, 0, 0.1);
       transform: translateY(-4px);
     }
 
     /* Sidebar */
     .sidebar {
-      background: linear-gradient(180deg, #be123c 0%, #e11d48 100%);
+      background: linear-gradient(180deg, #cc0000 0%, #e60000 100%);
       color: white;
       box-shadow: 8px 0 30px rgba(0, 0, 0, 0.15);
       position: relative;
@@ -73,7 +76,7 @@
     .input-focus:focus {
       outline: none;
       border-color: var(--primary);
-      box-shadow: 0 0 0 4px rgba(225, 29, 72, 0.2);
+      box-shadow: 0 0 0 4px rgba(230, 0, 0, 0.2);
     }
 
     /* Buttons */
@@ -97,7 +100,7 @@
     .btn-primary:hover {
       background: var(--primary-dark);
       transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(225, 29, 72, 0.25);
+      box-shadow: 0 8px 20px rgba(230, 0, 0, 0.25);
     }
 
     .btn-success {
@@ -139,8 +142,8 @@
 
     .scanner-bar {
       height: 3px;
-      background: linear-gradient(90deg, transparent, #e11d48, transparent);
-      box-shadow: 0 0 10px #e11d48, 0 0 20px #e11d48;
+      background: linear-gradient(90deg, transparent, #e60000, transparent);
+      box-shadow: 0 0 10px #e60000, 0 0 20px #e60000;
       animation: scan 2s ease-in-out infinite alternate;
     }
 
@@ -155,8 +158,8 @@
       border-radius: 1.5rem;
       overflow: hidden;
       box-shadow: 
-        0 20px 40px rgba(0, 0, 0, 0.1),
-        0 0 0 1px rgba(225, 29, 72, 0.08);
+        0 20px 40px rgba(0, 0, 0, 0.08),
+        0 0 0 1px rgba(230, 0, 0, 0.05);
       transition: all 0.4s ease;
       transform: perspective(1000px) rotateX(0deg);
     }
@@ -165,12 +168,12 @@
       transform: perspective(1000px) rotateX(4deg) translateY(-8px);
       box-shadow: 
         0 30px 60px rgba(0, 0, 0, 0.15),
-        0 0 0 1px rgba(225, 29, 72, 0.12);
+        0 0 0 1px rgba(230, 0, 0, 0.12);
     }
 
     /* Table */
     .table-container {
-      overflow-x-auto;
+      overflow-x: auto;
       border-radius: 1rem;
       border: 1px solid var(--gray-200);
       background: white;
@@ -198,7 +201,7 @@
     }
 
     .table-container tbody tr:hover {
-      background: rgba(225, 29, 72, 0.03);
+      background: rgba(230, 0, 0, 0.03);
     }
 
     /* Loader */
@@ -243,9 +246,9 @@
 
   <!-- Scanner Modal -->
   <div id="scannerModal" class="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4">
-    <div class="glass rounded-2xl shadow-2xl p-8 w-full max-w-md text-center relative">
-      <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-rose-500/10 to-pink-500/10 pointer-events-none"></div>
-      <h3 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-rose-600 to-rose-700 mb-6">
+    <div class="glass rounded-2xl shadow-2xl p-8 w-full max-md text-center relative">
+      <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-red-500/10 to-rose-500/10 pointer-events-none"></div>
+      <h3 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-700 mb-6">
         Scan Patient QR Code
       </h3>
       <div class="relative h-64 w-full bg-gradient-to-b from-gray-800 to-gray-900 rounded-xl overflow-hidden shadow-inner">
@@ -267,7 +270,7 @@
     <!-- Sidebar -->
     <aside class="w-72 sidebar flex flex-col p-6 space-y-6 relative z-10">
       <div class="text-center">
-        <h2 class="text-3xl font-bold bg-gradient-to-r from-white to-rose-200 bg-clip-text text-transparent">
+        <h2 class="text-3xl font-bold bg-gradient-to-r from-white to-red-100 bg-clip-text text-transparent">
           HSB Dashboard
         </h2>
       </div>
@@ -301,10 +304,10 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 p-8 overflow-y-auto bg-gradient-to-br from-rose-50/50 to-pink-50/50">
+    <main class="flex-1 p-8 overflow-y-auto bg-gradient-to-br from-red-50/50 to-pink-50/50">
       <div class="max-w-7xl mx-auto space-y-8">
 
-        <h2 class="text-4xl font-bold text-center bg-gradient-to-r from-rose-600 to-rose-700 bg-clip-text text-transparent">
+        <h2 class="text-4xl font-bold text-center bg-gradient-to-r from-red-600 to-red-700 bg-clip-text text-transparent">
           Search and View Patient Info
         </h2>
 
@@ -324,7 +327,7 @@
         <i data-lucide="x"></i>
       </button>
       <div class="p-8">
-        <h3 class="text-2xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-rose-600 to-rose-700 mb-6">
+        <h3 class="text-2xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-700 mb-6">
           Patient Full Details
         </h3>
         <div id="modalContent" class="modal-content space-y-4 text-gray-700"></div>
@@ -332,7 +335,7 @@
     </div>
   </div>
 
-  <!-- Firebase Logic (100% UNCHANGED) -->
+  <!-- Firebase Logic -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
     import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
@@ -381,14 +384,14 @@
             <div class="patient-card p-8">
               <div class="grid md:grid-cols-2 gap-8">
                 <div class="space-y-6">
-                  <h3 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-rose-600 to-rose-700">
+                  <h3 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-700">
                     Patient Summary
                   </h3>
                   <div class="space-y-3 text-lg">
-                    <div><strong class="text-rose-600">ID:</strong> ${patientData.patientId || 'N/A'}</div>
-                    <div><strong class="text-rose-600">Name:</strong> ${patientData.name || 'N/A'}</div>
-                    <div><strong class="text-rose-600">DOB:</strong> ${patientData.dob || 'N/A'}</div>
-                    <div><strong class="text-rose-600">Phone:</strong> ${patientData.phone || 'N/A'}</div>
+                    <div><strong class="text-red-600">ID:</strong> ${patientData.patientId || 'N/A'}</div>
+                    <div><strong class="text-red-600">Name:</strong> ${patientData.name || 'N/A'}</div>
+                    <div><strong class="text-red-600">DOB:</strong> ${patientData.dob || 'N/A'}</div>
+                    <div><strong class="text-red-600">Phone:</strong> ${patientData.phone || 'N/A'}</div>
                   </div>
                   <div class="flex flex-wrap gap-3">
                     <button onclick='showDetails(${JSON.stringify(patientData)})' class="btn btn-success">
@@ -396,6 +399,9 @@
                     </button>
                     <button onclick="window.location.href='/update/${patientData.patientId}'" class="btn btn-edit">
                       <i data-lucide="edit"></i> Update Info
+                    </button>
+                    <button id="pdfDownloadTrigger" class="btn bg-purple-600 hover:bg-purple-700 text-white">
+                      <i data-lucide="download"></i> Download Form PDF
                     </button>
                   </div>
                 </div>
@@ -409,13 +415,14 @@
             </div>
           `;
 
-          // Injections
+          document.getElementById('pdfDownloadTrigger').onclick = () => downloadPatientPDF(patientData);
+
           const injectionsSnapshot = await get(ref(db, 'injections/' + patientId));
           if (injectionsSnapshot.exists()) {
             const injectionsData = injectionsSnapshot.val();
             injectionTransactionsContainer.innerHTML = `
               <div class="glass p-6 rounded-2xl">
-                <h3 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-rose-600 to-rose-700 mb-6">
+                <h3 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-700 mb-6">
                   Injection Transactions
                 </h3>
                 <div class="table-container">
@@ -437,13 +444,12 @@
             `;
           }
 
-          // Subscriptions
           const subsSnapshot = await get(ref(db, `subscriptions/${patientId}/yearly`));
           if (subsSnapshot.exists()) {
             const subsData = subsSnapshot.val();
             subscriptionTransactionsContainer.innerHTML = `
               <div class="glass p-6 rounded-2xl">
-                <h3 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-rose-600 to-rose-700 mb-6">
+                <h3 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-700 mb-6">
                   Yearly Subscription History
                 </h3>
                 <div class="table-container">
@@ -470,38 +476,34 @@
               </div>
             `;
           } else {
-            subscriptionTransactionsContainer.innerHTML = `<div class="text-center text-rose-500 font-semibold py-8">No subscription transactions found.</div>`;
+            subscriptionTransactionsContainer.innerHTML = `<div class="text-center text-red-500 font-semibold py-8">No subscription transactions found.</div>`;
           }
 
+          if (window.lucide) lucide.createIcons();
+
         } else {
-          resultContainer.innerHTML = `<div class="text-center text-rose-600 font-bold text-xl mt-8">Patient not found.</div>`;
+          resultContainer.innerHTML = `<div class="text-center text-red-600 font-bold text-xl mt-8">Patient not found.</div>`;
         }
 
       } catch (error) {
         console.error(error);
         loader.classList.add("hidden");
-        resultContainer.innerHTML = `<div class="text-center text-rose-600 font-bold text-xl mt-8">Error fetching data. Try again later.</div>`;
+        resultContainer.innerHTML = `<div class="text-center text-red-600 font-bold text-xl mt-8">Error fetching data. Try again later.</div>`;
       }
     };
 
     window.showDetails = function(data) {
       const modal = document.getElementById("patientModal");
       const content = document.getElementById("modalContent");
-      const orderedKeys = [
-        'name', 'patientId', 'fatherName', 'motherName', 'address', 'phone', 'dob', 'imageUrl'
-      ];
+      const orderedKeys = ['name', 'patientId', 'fatherName', 'motherName', 'address', 'phone', 'dob', 'imageUrl'];
       const orderedData = {};
-      orderedKeys.forEach(key => {
-        if (data[key]) orderedData[key] = data[key];
-      });
-      Object.keys(data).sort().forEach(key => {
-        if (!orderedKeys.includes(key)) orderedData[key] = data[key];
-      });
+      orderedKeys.forEach(key => { if (data[key]) orderedData[key] = data[key]; });
+      Object.keys(data).sort().forEach(key => { if (!orderedKeys.includes(key)) orderedData[key] = data[key]; });
       content.innerHTML = `
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           ${Object.entries(orderedData).map(([key, value]) => `
-            <div class="bg-rose-50/50 p-4 rounded-xl">
-              <div class="font-bold text-rose-600 text-sm uppercase tracking-wider">${key}</div>
+            <div class="bg-red-50/50 p-4 rounded-xl">
+              <div class="font-bold text-red-600 text-sm uppercase tracking-wider">${key}</div>
               <div class="mt-1 text-gray-800 font-medium break-all">${value}</div>
             </div>
           `).join('')}
@@ -509,6 +511,97 @@
       `;
       modal.classList.remove('hidden');
       modal.classList.add('flex');
+    };
+
+    window.downloadPatientPDF = function(data) {
+      const RED_CODE = "#e60000"; // UPDATED COLOR CODE
+      const orderedKeys = ['patientId', 'name', 'fatherName', 'motherName', 'presentAddress', 'permanentAddress', 'phone', 'mobileNo', 'nid', 'dob'];
+      const allEntries = [];
+      const addedKeys = new Set();
+      orderedKeys.forEach(key => { if (data[key]) { allEntries.push([key, data[key]]); addedKeys.add(key); } });
+      Object.keys(data).sort().forEach(key => { if (!addedKeys.has(key) && key !== 'imageUrl' && typeof data[key] !== 'object') { allEntries.push([key, data[key]]); } });
+
+      const element = document.createElement('div');
+      
+      element.innerHTML = `
+          <div id="pdf-root" style="width: 794px; height: 1120px; padding: 25px 40px; font-family: 'Helvetica', sans-serif; color: #000; background: #fff; position: relative; box-sizing: border-box; overflow: hidden; display: block; page-break-after: avoid; page-break-before: avoid;">
+            
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.1; width: 450px; height: 450px; z-index: 0; pointer-events: none; display: flex; align-items: center; justify-content: center;">
+              <img src="https://i.ibb.co.com/rKmDL4LT/OIP-1.png" style="width: 100%; height: 100%; object-fit: contain; mix-blend-mode: multiply;" crossorigin="anonymous" />
+            </div>
+
+            <div style="position: relative; z-index: 1; display: flex; align-items: flex-start; border-bottom: 3px solid ${RED_CODE}; padding-bottom: 10px; margin-bottom: 15px;">
+              <div style="flex: 1; text-align: left;">
+                <h1 style="color: ${RED_CODE}; margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; text-transform: uppercase;">Hemophilia Society of Bangladesh</h1>
+                <h2 style="margin: 4px 0; font-size: 18px; color: #374151; font-weight: 700;">Patient Membership Record</h2>
+                <p style="margin: 0; font-size: 13px; color: #6b7280;"><strong>Issue Date:</strong> ${new Date().toLocaleDateString()}</p>
+              </div>
+              <div style="width: 110px; text-align: right;">
+                ${data.imageUrl ? `
+                  <img src="${data.imageUrl}" style="width: 100px; height: 115px; object-fit: cover; border-radius: 6px; border: 2px solid ${RED_CODE};" crossorigin="anonymous"/>
+                ` : `
+                  <div style="width: 100px; height: 115px; border: 2px dashed #ccc; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #999;">PHOTO</div>
+                `}
+              </div>
+            </div>
+
+            <div style="position: relative; z-index: 1; display: flex; flex-wrap: wrap; border-top: 1.5px solid #000; border-left: 1.5px solid #000; background: transparent;">
+              ${allEntries.map(([key, value]) => {
+                const isFullWidth = key.toLowerCase().includes('address') || String(value).length > 45;
+                return `
+                  <div style="width: ${isFullWidth ? '100%' : '50%'}; display: flex; border-right: 1.5px solid #000; border-bottom: 1.5px solid #000; min-height: 32px; box-sizing: border-box;">
+                    <div style="width: ${isFullWidth ? '20%' : '40%'}; padding: 5px 10px; font-size: 12.5px; font-weight: 800; color: ${RED_CODE}; text-transform: capitalize; border-right: 1px solid #ccc; display: flex; align-items: center; background: rgba(255, 255, 255, 0.4);">
+                      ${key.replace(/([A-Z])/g, ' $1').trim()}
+                    </div>
+                    <div style="width: ${isFullWidth ? '80%' : '60%'}; padding: 5px 10px; font-size: 12.5px; color: #000; font-weight: 600; display: flex; align-items: center; overflow: hidden; line-height: 1.2;">
+                      ${value}
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+            
+            <div style="position: relative; z-index: 1; margin-top: 15px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; background: transparent;">
+              <p style="font-size: 12px; line-height: 1.6; color: #333; margin: 0; font-weight: 500;">
+                <strong style="color: ${RED_CODE}; font-weight: 800;">Member Declaration:</strong> I hereby certify that the information provided in this form is complete, accurate, and current to the best of my knowledge. I understand that HSB uses this data for patient support, medical coordination, and record-keeping purposes.
+              </p>
+            </div>
+
+            <div style="position: absolute; bottom: 80px; left: 40px; right: 40px; display: flex; justify-content: space-between; z-index: 1;">
+              <div style="text-align: center; width: 40%;">
+                <div style="border-bottom: 2px solid #000; margin-bottom: 8px;"></div>
+                <p style="margin: 0; font-size: 14px; font-weight: 800; color: #000;">Signature of Patient/Guardian</p>
+              </div>
+              <div style="text-align: center; width: 40%;">
+                <div style="border-bottom: 2px solid #000; margin-bottom: 8px;"></div>
+                <p style="margin: 0; font-size: 14px; font-weight: 800; color: #000;">Authorized Officer Seal & Sign</p>
+              </div>
+            </div>
+
+            <div style="position: absolute; bottom: 20px; left: 0; width: 100%; text-align: center; z-index: 1;">
+              <p style="font-size: 10px; color: #999; margin: 0;">Hemophilia Society of Bangladesh (HSB) | www.hemophiliabd.org | Confidential Medical Record</p>
+            </div>
+          </div>
+      `;
+
+      const opt = {
+        margin: 0,
+        filename: `${data.patientId || 'HSB'}_Record.pdf`,
+        image: { type: 'jpeg', quality: 1.0 },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+        html2canvas: { 
+          scale: 2.5, 
+          useCORS: true, 
+          logging: false,
+          letterRendering: true,
+          scrollX: 0,
+          scrollY: 0,
+          windowWidth: 794
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true }
+      };
+
+      html2pdf().set(opt).from(element.querySelector('#pdf-root')).save();
     };
 
     searchBtn.addEventListener("click", fetchPatientInfo);
@@ -526,11 +619,8 @@
 
     window.addEventListener('DOMContentLoaded', () => {
       searchInput.focus();
-      lucide.createIcons();
+      if (window.lucide) lucide.createIcons();
     });
-  </script>
-  <script>
-    lucide.createIcons();
   </script>
 </body>
 </html>

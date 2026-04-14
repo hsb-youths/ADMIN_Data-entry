@@ -214,7 +214,7 @@
           <label for="membershipType" class="block text-sm font-medium text-gray-700">Membership Type</label>
           <select id="membershipType" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
             <option value="">-- Select --</option>
-            <option value="patient">Patient Member</option>
+            <option value="patient" selected>Patient Member</option>
             <option value="guardian_member">Guardian Member</option>
           </select>
         </div>
@@ -282,7 +282,15 @@
         </div>
         <div class="input-group">
           <label for="occupation" class="block text-sm font-medium text-gray-700">Occupation</label>
-          <input type="text" id="occupation" value="Baby" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" />
+          <select id="occupation" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
+            <option value="Baby">Baby</option>
+            <option value="Student">Student</option>
+            <option value="Businessmen">Businessmen</option>
+            <option value="Service">Service</option>
+            <option value="Job">Job</option>
+            <option value="Unemployed">Unemployed</option>
+            <option value="Other">Other</option>
+          </select>
         </div>
       </div>
 
@@ -454,7 +462,7 @@
     function validateImage() {
       if (!imageFileToUpload) {
         imageError.classList.remove("hidden");
-        imageError.textContent = "Please upload or capture a photo.";
+        imageError.textContent = "Please provide a photo.";
         return false;
       }
       const validTypes = ["image/jpeg", "image/png", "image/jpg"];

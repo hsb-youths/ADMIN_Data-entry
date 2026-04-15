@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HSB Patient Query System</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- html2pdf library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    .loader {
+      width: 48px;
+      height: 48px;
+      border: 4px solid #fff;
+      border-bottom-color: #dc2626; 
+      border-radius: 50%;
+      display: inline-block;
+      box-sizing: border-box;
+      animation: rotation 1s linear infinite;
+    }
+    @keyframes rotation {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    #loaderOverlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      backdrop-filter: blur(8px);
+      z-index: 99999;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+
+    /* Standard Web View Scrollbar */
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #dc2626; border-radius: 10px; }
+
+    /* Print styling strictly for the browser Print dialog */
+    @media print {
+      body * { visibility: hidden; }
+      #printContainer, #printContainer * { visibility: visible; }
+      #printContainer {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        display: block !important;
+      }
+      table { width: 100%; border-collapse: collapse; font-size: 9px; }
+      th, td { border: 1px solid black !important; padding: 4px; text-align: left; }
+    }
+  </style>
+</head>
+<body class="bg-gray-50 font-sans leading-normal tracking-normal text-gray-800 min-h-screen">
+
+  <!-- PDF/Print Container (Hidden until needed) -->
+  <div id="printContainer" class="hidden w-full bg-white text-black">
+    <div class="flex flex-col items-center text-center mb-6 border-b-2 border-red-600 pb-4">
+      <img src="https://i.ibb.co.com/rKmDL4LT/OIP-1.png" alt="HSB Logo" class="h-16 w-auto mb-2" />
+      <h1 class="text-2xl font-black uppercase tracking-tight" style="color: black !important; margin: 0;">Hemophilia Society of Bangladesh</h1>
+      <h2 class="text-lg font-bold text-gray-700" style="margin: 2px 0;">Patient Query Report</h2>
+      <p class="text-[10px] text-gray-500" id="printDate" style="margin: 0;"></p>
+    </div>
+    <table class="w-full border-collapse" style="border: 1px solid black; width: 100%; table-layout: fixed;">
+      <thead>
+        <tr class="bg-gray-100">
+          <th style="border: 1px solid black; padding: 4px; font-size: 10px; font-weight: bold; width: 10%;">ID</th>
+          <th style="border: 1px solid black; padding: 4px; font-size: 10px; font-weight: bold; width: 20%;">Name</th>
+          <th style="border: 1px solid black; padding: 4px; font-size: 10px; font-weight: bold; width: 8%;">Age</th>
+          <th style="border: 1px solid black; padding: 4px; font-size: 10px; font-weight: bold; width: 8%;">Blood</th>
+          <th style="border: 1px solid black; padding: 4px; font-size: 10px; font-weight: bold; width: 12%;">Factor/Lvl</th>
+          <th style="border: 1px solid black; padding: 4px; font-size: 10px; font-weight: bold; width: 15%;">Disease Class</th>
+          <th style="border: 1px solid black; padding: 4px; font-size: 10px; font-weight: bold; width: 12%;">Phone</th>
+          <th style="border: 1px solid black; padding: 4px; font-size: 10px; font-weight: bold; width: 15%;">Hometown</th>
+        </tr>
+      </thead>
+      <tbody id="printTableBody">
+        <!-- Rows added by JS -->
+      </tbody>
+    </table>
+    <div class="mt-6 text-[9px] text-gray-400 italic text-right border-t pt-2">
+      * Generated via HSB Advanced Patient Query Engine.
+    </div>
+  </div>
+
+  <!-- Main Web Interface -->
+  <main id="mainContent" class="relative z-10 flex flex-col items-center pt-12 px-4 pb-12 w-full max-w-6xl mx-auto print:hidden">
+    
+    <div class="text-center mb-8 flex flex-col items-center">
+      <img src="https://i.ibb.co.com/rKmDL4LT/OIP-1.png" alt="HSB Monogram Logo" class="h-24 w-auto object-contain mb-4" />
+      <h1 class="text-3xl md:text-4xl font-bold text-red-600 mb-1 uppercase tracking-tight">Hemophilia Society of Bangladesh</h1>
+      <h2 class="text-lg md:text-xl font-medium text-gray-500 italic">Advanced Patient Query Engine</h2>
+    </div>
+
+    <!-- Filter Interface -->
+    <div class="bg-white p-6 md:p-8 rounded-3xl shadow-xl border border-gray-100 w-full max-w-5xl mb-10">
+      <div id="filterContainer" class="space-y-4 mb-6"></div>
+
+      <div class="flex flex-col md:flex-row justify-between items-center gap-4 border-t pt-6">
+        <button type="button" id="addFilterBtn" class="flex items-center text-red-600 font-bold hover:text-red-700 transition-colors">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+          Add Filter
+        </button>
+
+        <div class="flex space-x-3 w-full md:w-auto">
+          <button id="viewAllBtn" class="flex-1 md:flex-none bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 px-8 rounded-xl transition-all text-sm">View All</button>
+          <button id="searchBtn" class="flex-1 md:flex-none bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-12 rounded-xl shadow-lg transition-all text-sm uppercase">Search</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Report Actions -->
+    <div id="reportActions" class="hidden w-full max-w-6xl mb-6 flex flex-col md:flex-row justify-between items-center bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+      <p class="text-gray-600 font-medium mb-3 md:mb-0"><span id="resultCount" class="text-red-600 font-bold">0</span> patients found.</p>
+      <div class="flex space-x-3">
+        <button id="exportCsvBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-lg text-xs font-bold transition-all uppercase">CSV</button>
+        <button id="downloadPdfBtn" class="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-lg text-xs font-bold transition-all uppercase">Download PDF</button>
+        <button id="printReportBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-xs font-bold transition-all uppercase">Print</button>
+      </div>
+    </div>
+
+    <div id="resultsContainer" class="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    <div id="feedbackMessage" class="hidden text-center text-gray-500 text-lg mt-8 py-8 w-full">No records found matching these filters.</div>
+  </main>
+
+  <div id="patientModal" class="fixed inset-0 z-[999999] hidden flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
+    <div class="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+      <div class="p-6 border-b flex justify-between items-center bg-gray-50">
+        <h2 class="text-xl font-bold text-gray-800">Patient Profile</h2>
+        <button id="closeModalBtn" class="text-gray-400 hover:text-red-600 transition-colors"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+      </div>
+      <div id="modalContent" class="p-8 overflow-y-auto custom-scrollbar"></div>
+    </div>
+  </div>
+
+  <div id="loaderOverlay">
+    <div class="loader mb-4"></div>
+    <p class="font-bold tracking-widest uppercase text-sm">Processing...</p>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB7QLBLarDiqdpYy5jw8_1e-gTR-aR1Wqc",
+      authDomain: "hemophilia-society-of-bd.firebaseapp.com",
+      projectId: "hemophilia-society-of-bd",
+      storageBucket: "hemophilia-society-of-bd.firebasestorage.app",
+      messagingSenderId: "674332798483",
+      appId: "1:674332798483:web:cedb62cb05e03b5cadd9e6",
+      measurementId: "G-J5D8R7P18D"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const filterContainer = document.getElementById("filterContainer");
+    const addFilterBtn = document.getElementById("addFilterBtn");
+    const searchBtn = document.getElementById("searchBtn");
+    const viewAllBtn = document.getElementById("viewAllBtn");
+    const resultsContainer = document.getElementById("resultsContainer");
+    const feedbackMessage = document.getElementById("feedbackMessage");
+    const loaderOverlay = document.getElementById("loaderOverlay");
+    const reportActions = document.getElementById("reportActions");
+    const resultCount = document.getElementById("resultCount");
+    const printTableBody = document.getElementById("printTableBody");
+    const patientModal = document.getElementById("patientModal");
+    const modalContent = document.getElementById("modalContent");
+    const closeModalBtn = document.getElementById("closeModalBtn");
+
+    let currentPatientsData = [];
+
+    const fieldOptions = {
+      factorType: ["VIII", "IX", "VWD", "Others"],
+      diseaseClass: ["Hemophilia A", "Hemophilia B", "Von Willebrand Disease", "Other"],
+      division: ["Barishal", "Chattogram", "Dhaka", "Khulna", "Mymensingh", "Rajshahi", "Rangpur", "Sylhet"]
+    };
+
+    const divisionMapping = {
+      "Barishal": ["Barguna", "Barishal", "Bhola", "Jhalokati", "Patuakhali", "Pirojpur"],
+      "Chattogram": ["Bandarban", "Brahmanbaria", "Chandpur", "Chattogram", "Cox's Bazar", "Cumilla", "Feni", "Khagrachari", "Lakshmipur", "Noakhali", "Rangamati"],
+      "Dhaka": ["Dhaka", "Faridpur", "Gazipur", "Gopalganj", "Kishoreganj", "Madaripur", "Manikganj", "Munshiganj", "Narayanganj", "Narsingdi", "Rajbari", "Shariatpur", "Tangail"],
+      "Khulna": ["Bagerhat", "Chuadanga", "Jashore", "Jhenaidah", "Khulna", "Kushtia", "Magura", "Meherpur", "Narail", "Satkhira"],
+      "Mymensingh": ["Jamalpur", "Mymensingh", "Netrokona", "Sherpur"],
+      "Rajshahi": ["Bogura", "Chapainawabganj", "Joypurhat", "Naogaon", "Natore", "Pabna", "Rajshahi", "Sirajganj"],
+      "Rangpur": ["Dinajpur", "Gaibandha", "Kurigram", "Lalmonirhat", "Nilphamari", "Panchagarh", "Rangpur", "Thakurgaon"],
+      "Sylhet": ["Habiganj", "Moulvibazar", "Sunamganj", "Sylhet"]
+    };
+
+    function createFilterRow() {
+      const rowId = Date.now();
+      const div = document.createElement("div");
+      div.className = "flex flex-col md:flex-row items-end gap-3 bg-gray-50 p-4 rounded-2xl border border-gray-100 filter-row";
+      div.id = `row-${rowId}`;
+      div.innerHTML = `
+        <div class="w-full md:w-1/4">
+          <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">Field</label>
+          <select class="field-select w-full p-2.5 bg-white border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-red-500">
+            <option value="patientId">Patient ID</option>
+            <option value="name">Patient Name</option>
+            <option value="division">Division</option>
+            <option value="age">Age</option>
+            <option value="bloodGroup">Blood Group</option>
+            <option value="hometown">Home Town</option>
+            <option value="factorType">Factor Type</option>
+            <option value="factorLevel">Factor Level</option>
+            <option value="diseaseClass">Disease Class</option>
+          </select>
+        </div>
+        <div class="w-full md:w-32 op-container hidden">
+          <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">Condition</label>
+          <select class="op-select w-full p-2.5 bg-white border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-red-500">
+            <option value="eq">=</option><option value="gt">&gt;</option><option value="lt">&lt;</option><option value="gte">&ge;</option><option value="lte">&le;</option>
+          </select>
+        </div>
+        <div class="flex-grow w-full val-container">
+          <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">Search Term</label>
+          <div class="input-slot"><input type="text" class="val-input w-full p-2.5 bg-white border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-red-500" placeholder="Type here..."></div>
+        </div>
+        <button type="button" class="remove-row p-2.5 text-gray-300 hover:text-red-500 transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+      `;
+      filterContainer.appendChild(div);
+      const fieldSelect = div.querySelector(".field-select");
+      const opContainer = div.querySelector(".op-container");
+      const inputSlot = div.querySelector(".input-slot");
+      fieldSelect.addEventListener("change", () => {
+        const field = fieldSelect.value;
+        field === 'age' || field === 'factorLevel' ? opContainer.classList.remove('hidden') : opContainer.classList.add('hidden');
+        if (fieldOptions[field]) {
+          let html = `<select class="val-input w-full p-2.5 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-red-500">`;
+          fieldOptions[field].forEach(o => html += `<option value="${o}">${o}</option>`);
+          html += `</select>`;
+          inputSlot.innerHTML = html;
+        } else {
+          inputSlot.innerHTML = `<input type="text" class="val-input w-full p-2.5 bg-white border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-red-500" placeholder="Type here...">`;
+        }
+      });
+      div.querySelector(".remove-row").addEventListener("click", () => { if (filterContainer.children.length > 1) div.remove(); });
+    }
+
+    const runMultiFilter = async (isAll = false) => {
+      loaderOverlay.querySelector("p").innerText = "Searching Data...";
+      loaderOverlay.style.display = "flex";
+      resultsContainer.innerHTML = "";
+      printTableBody.innerHTML = "";
+      feedbackMessage.classList.add("hidden");
+      reportActions.classList.add("hidden");
+      try {
+        const snap = await get(ref(db, 'patients'));
+        if (!snap.exists()) return;
+        let patients = Object.values(snap.val());
+        if (!isAll) {
+          document.querySelectorAll(".filter-row").forEach(row => {
+            const field = row.querySelector(".field-select").value;
+            const op = row.querySelector(".op-select").value;
+            const val = row.querySelector(".val-input").value.trim().toLowerCase();
+            if (!val) return;
+            patients = patients.filter(p => {
+              if (field === 'division') {
+                return (divisionMapping[row.querySelector(".val-input").value] || []).some(d => d.toLowerCase() === (p.hometown || '').toLowerCase());
+              }
+              const pVal = p[field];
+              if (pVal === undefined || pVal === null) return false;
+              if (field === 'age' || field === 'factorLevel') {
+                const pNum = parseFloat(pVal); const sNum = parseFloat(val);
+                if (isNaN(pNum)) return false;
+                if (op === 'eq') return pNum === sNum;
+                if (op === 'gt') return pNum > sNum;
+                if (op === 'lt') return pNum < sNum;
+                if (op === 'gte') return pNum >= sNum;
+                if (op === 'lte') return pNum <= sNum;
+              }
+              return String(pVal).toLowerCase().includes(val);
+            });
+          });
+        }
+        currentPatientsData = patients;
+        if (patients.length > 0) {
+          renderPatients(patients);
+          resultCount.textContent = patients.length;
+          reportActions.classList.remove("hidden");
+        } else {
+          feedbackMessage.classList.remove("hidden");
+        }
+      } finally { loaderOverlay.style.display = "none"; }
+    };
+
+    function renderPatients(patients) {
+      patients.forEach(p => {
+        const img = p.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name || 'P')}&background=fee2e2&color=dc2626`;
+        const card = document.createElement("div");
+        card.className = "bg-white border border-gray-100 rounded-3xl p-6 shadow-sm hover:shadow-xl transition-all cursor-pointer group flex flex-col";
+        card.onclick = () => openDetails(p);
+        card.innerHTML = `
+          <div class="flex items-center space-x-4 mb-4">
+            <img src="${img}" class="w-14 h-14 rounded-2xl object-cover border group-hover:scale-105 transition-transform">
+            <div><h3 class="font-bold text-gray-800 line-clamp-1 group-hover:text-red-600">${p.name || "N/A"}</h3><p class="text-xs text-red-500 font-bold tracking-tight">ID: ${p.patientId}</p></div>
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-[10px] flex-grow">
+            <div class="bg-gray-50 p-2 rounded-xl"><p class="text-gray-400 font-bold uppercase">Age</p><p class="text-gray-800 font-black">${p.age || '-'}</p></div>
+            <div class="bg-gray-50 p-2 rounded-xl"><p class="text-gray-400 font-bold uppercase">Blood</p><p class="text-gray-800 font-black">${p.bloodGroup || '-'}</p></div>
+          </div>
+        `;
+        resultsContainer.appendChild(card);
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td style="border: 1px solid black; padding: 4px; font-size: 9px; width: 10%;">${p.patientId}</td>
+          <td style="border: 1px solid black; padding: 4px; font-size: 9px; width: 20%;">${p.name}</td>
+          <td style="border: 1px solid black; padding: 4px; font-size: 9px; width: 8%;">${p.age}</td>
+          <td style="border: 1px solid black; padding: 4px; font-size: 9px; width: 8%;">${p.bloodGroup}</td>
+          <td style="border: 1px solid black; padding: 4px; font-size: 9px; width: 12%;">${p.factorType}/${p.factorLevel}%</td>
+          <td style="border: 1px solid black; padding: 4px; font-size: 9px; width: 15%;">${p.diseaseClass}</td>
+          <td style="border: 1px solid black; padding: 4px; font-size: 9px; width: 12%;">${p.phone}</td>
+          <td style="border: 1px solid black; padding: 4px; font-size: 9px; width: 15%;">${p.hometown}</td>
+        `;
+        printTableBody.appendChild(tr);
+      });
+    }
+
+    function openDetails(patient) {
+      const img = patient.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(patient.name || 'P')}&background=fee2e2&color=dc2626`;
+      modalContent.innerHTML = `
+        <div class="flex flex-col md:flex-row gap-10">
+          <div class="flex flex-col items-center w-full md:w-1/3"><img src="${img}" class="w-full aspect-square rounded-3xl object-cover shadow-xl border-8 border-gray-50 mb-6"><h2 class="text-2xl font-black text-gray-900 text-center mb-1">${patient.name}</h2><div class="px-4 py-1 bg-red-600 text-white rounded-full text-xs font-bold uppercase tracking-widest mb-6">ID: ${patient.patientId}</div></div>
+          <div class="flex-grow grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
+            <div><p class="text-[10px] uppercase font-bold text-gray-400 mb-1">Condition</p><p class="text-lg font-black text-gray-800">${patient.diseaseClass || 'N/A'}</p></div>
+            <div><p class="text-[10px] uppercase font-bold text-gray-400 mb-1">Blood Group</p><p class="text-lg font-black text-red-600">${patient.bloodGroup || 'N/A'}</p></div>
+            <div><p class="text-[10px] uppercase font-bold text-gray-400 mb-1">Factor</p><p class="text-gray-800 font-bold">${patient.factorType} (${patient.factorLevel}%)</p></div>
+            <div><p class="text-[10px] uppercase font-bold text-gray-400 mb-1">Town</p><p class="text-gray-800 font-bold">${patient.hometown}</p></div>
+          </div>
+        </div>
+      `;
+      patientModal.classList.remove("hidden");
+    }
+
+    // THE RELIABLE PDF GENERATOR
+    downloadPdfBtn.addEventListener("click", () => {
+      if (!currentPatientsData.length) return;
+      
+      const loader = document.getElementById('loaderOverlay');
+      loader.querySelector("p").innerText = "Generating PDF...";
+      loader.style.display = "flex";
+      
+      document.getElementById("printDate").innerText = "Date: " + new Date().toLocaleString();
+      
+      const el = document.getElementById('printContainer');
+      const mainUI = document.getElementById('mainContent');
+      
+      // CRITICAL FIX: Scroll to the very top before capturing. 
+      // If the user is scrolled down, html2canvas captures the blank space above.
+      window.scrollTo(0, 0);
+      document.body.classList.remove('min-h-screen');
+      
+      // RELIABILITY FIX: Hide the main UI completely. 
+      // Render the table as a completely normal, visible webpage element.
+      mainUI.style.display = 'none';
+      el.classList.remove('hidden');
+      el.style.display = 'block';
+      
+      const opt = {
+        margin: [10, 10, 10, 10], // Margin in mm
+        filename: `HSB_Report_${Date.now()}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+            scale: 2, 
+            useCORS: true, 
+            backgroundColor: '#ffffff', 
+            logging: false,
+            scrollY: 0, // Force canvas to start at the absolute top
+            windowY: 0 
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      // 500ms timeout ensures the browser successfully paints the layout before capture
+      setTimeout(() => {
+        html2pdf().set(opt).from(el).save().then(() => {
+          // Restore original state
+          el.style.display = 'none';
+          el.classList.add('hidden');
+          mainUI.style.display = 'flex';
+          document.body.classList.add('min-h-screen');
+          loader.style.display = "none";
+        }).catch(err => {
+          console.error(err);
+          el.style.display = 'none';
+          el.classList.add('hidden');
+          mainUI.style.display = 'flex';
+          document.body.classList.add('min-h-screen');
+          loader.style.display = "none";
+        });
+      }, 500);
+    });
+
+    addFilterBtn.addEventListener("click", createFilterRow);
+    searchBtn.addEventListener("click", () => runMultiFilter(false));
+    viewAllBtn.addEventListener("click", () => runMultiFilter(true));
+    closeModalBtn.addEventListener("click", () => patientModal.classList.add("hidden"));
+    printReportBtn.addEventListener("click", () => { document.getElementById("printDate").innerText = "Printed: " + new Date().toLocaleString(); window.print(); });
+    exportCsvBtn.addEventListener("click", () => {
+      if (!currentPatientsData.length) return;
+      const headers = ["ID", "Name", "Age", "Blood", "Factor", "Disease", "Phone", "Hometown"];
+      const rows = [headers.join(",")];
+      currentPatientsData.forEach(p => rows.push([p.patientId, p.name, p.age, p.bloodGroup, p.factorType, p.diseaseClass, p.phone, p.hometown].map(v => `"${v || ''}"`).join(",")));
+      const link = document.createElement("a"); link.href = "data:text/csv;charset=utf-8," + encodeURI(rows.join("\n")); link.download = `HSB_Data.csv`; link.click();
+    });
+    createFilterRow();
+  </script>
+</body>
+</html>

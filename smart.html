@@ -4,24 +4,23 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>HSB Smart Card Generator</title>
+  
+  <!-- Libraries -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Arial:wght@400;700;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
   <style>
     :root {
-      --primary: #e11d48;
-      --primary-light: #fdf2f5;
-      --primary-dark: #be123c;
-      --gray-50: #f9fafb;
-      --gray-100: #f3f4f6;
-      --gray-200: #e5e7eb;
-      --gray-700: #374151;
+      --primary: #d92027; /* Matching the red from the card */
+      --primary-dark: #b91b21;
       --gray-900: #111827;
+      --label-color: #2c3e50; /* Dark navy/grey for labels */
     }
 
     body {
@@ -31,161 +30,287 @@
       min-height: 100vh;
     }
 
-    /* Glassmorphism Container */
+    /* Glassmorphism Container for UI */
     .glass-container {
       background: rgba(255, 255, 255, 0.92);
       backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(225, 29, 72, 0.15);
+      border: 1px solid rgba(217, 32, 39, 0.15);
       border-radius: 1.5rem;
       padding: 2rem;
-      box-shadow: 
-        0 20px 40px rgba(0, 0, 0, 0.08),
-        0 0 0 1px rgba(225, 29, 72, 0.05);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(217, 32, 39, 0.05);
     }
 
-    /* Input Focus */
+    /* Buttons & Inputs */
     .input-focus:focus {
       outline: none;
       border-color: var(--primary);
-      box-shadow: 0 0 0 4px rgba(225, 29, 72, 0.2);
+      box-shadow: 0 0 0 4px rgba(217, 32, 39, 0.2);
     }
 
-    /* Button */
     .btn {
       padding: 0.75rem 1.5rem;
       border-radius: 1rem;
       font-weight: 600;
       font-size: 0.95rem;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.3s ease;
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
     }
 
-    .btn-primary {
-      background: var(--primary);
-      color: white;
+    .btn-primary { background: var(--primary); color: white; border: none; }
+    .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(217, 32, 39, 0.25); }
+
+    /* Smart Card Exact Replica CSS */
+    #cardWrapper {
+      /* Wrapper to handle scaling on small screens without breaking fixed size */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+      width: 100%;
+      overflow-x: auto;
+      padding: 1rem 0;
     }
 
-    .btn-primary:hover {
-      background: var(--primary-dark);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(225, 29, 72, 0.25);
-    }
-
-    .btn-back {
-      background: white;
-      color: var(--primary);
-      border: 1.5px solid var(--primary);
-    }
-
-    .btn-back:hover {
-      background: var(--primary-light);
-      transform: translateY(-2px);
-    }
-
-    /* Smart Card - Cream background, no hover animation */
-    #smartCard {
-      width: 380px;
-      height: 240px;
-      background: #FDF8F0;                    /* Soft professional cream */
-      border: 1px solid #e0d5c3;              /* subtle border for definition */
-      border-radius: 1.25rem;
+    .id-card {
+      width: 600px;
+      height: 380px;
+      background: #ffffff;
       position: relative;
       overflow: hidden;
-      box-shadow: 
-        0 10px 25px rgba(0, 0, 0, 0.12),
-        0 0 0 1px rgba(0, 0, 0, 0.06) inset;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+      font-family: Arial, Helvetica, sans-serif;
+      flex-shrink: 0;
     }
 
-    /* Card subtle inner glow */
-    .card-glow {
+    /* Watermark Image */
+    .card-watermark {
       position: absolute;
-      inset: 0;
-      border-radius: 1.25rem;
-      padding: 2px;
-      background: linear-gradient(45deg, transparent, rgba(0, 0, 0, 0.03), transparent);
-      mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
-      mask-composite: exclude;
-      -webkit-mask-composite: destination-out;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 280px;
+      height: 280px;
+      opacity: 0.15;
+      object-fit: contain;
+      z-index: 0;
+      pointer-events: none;
     }
 
-    /* Patient Photo */
-    #patientPhoto {
-      width: 80px;
-      height: 80px;
+    /* Top and Bottom Border Stripes */
+    .border-top-black { position: absolute; top: 0; left: 0; width: 100%; height: 20px; background-color: #000; z-index: 10; }
+    .border-top-white { position: absolute; top: 20px; left: 0; width: 100%; height: 6px; background-color: #fff; z-index: 10; }
+    .border-top-red { position: absolute; top: 26px; left: 0; width: 100%; height: 16px; background-color: #d92027; z-index: 10; }
+
+    .border-bottom-red { position: absolute; bottom: 26px; left: 0; width: 100%; height: 16px; background-color: #d92027; z-index: 10; }
+    .border-bottom-white { position: absolute; bottom: 20px; left: 0; width: 100%; height: 6px; background-color: #fff; z-index: 10; }
+    .border-bottom-black { position: absolute; bottom: 0; left: 0; width: 100%; height: 20px; background-color: #000; z-index: 10; }
+
+    /* Top Right Corner Decor */
+    .corner-shape-black {
+      position: absolute;
+      top: -30px;
+      right: 15px;
+      width: 90px;
+      height: 90px;
+      background-color: #000;
+      border-radius: 12px;
+      transform: rotate(45deg);
+      z-index: 11;
+    }
+    
+    .corner-shape-red {
+      position: absolute;
+      top: -45px;
+      right: -15px;
+      width: 100px;
+      height: 100px;
+      background-color: #d92027;
+      border-radius: 14px;
+      transform: rotate(45deg);
+      z-index: 12;
+    }
+
+    /* Typography & Layout inside card */
+    .card-content {
+      position: absolute;
+      top: 50px;
+      left: 30px;
+      right: 30px;
+      bottom: 50px;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-title-red {
+      font-size: 26px;
+      font-weight: 900;
+      color: #d92027;
+      line-height: 1.1;
+      letter-spacing: -0.5px;
+    }
+
+    .card-title-black {
+      font-size: 20px;
+      font-weight: 900;
+      color: #000;
+      margin-top: 6px;
+    }
+
+    .info-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 25px;
+      font-size: 15px;
+    }
+
+    .info-row {
+      display: flex;
+      align-items: center;
+    }
+
+    .info-label {
+      width: 160px;
+      color: var(--label-color);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .info-value {
+      color: #000;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-left: 10px;
+    }
+
+    /* Photo and Barcode Area */
+    .right-section {
+      position: absolute;
+      right: 10px;
+      top: 70px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .photo-container {
+      width: 140px;
+      height: 140px;
+      background-color: #6a9ac4; /* Light blue circle */
       border-radius: 50%;
-      object-fit: cover;
-      border: 4px solid #000000;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
     }
 
-    /* QR Code */
-    #qrcode img {
-      width: 52px !important;
-      height: 52px !important;
-      padding: 6px;
+    .photo-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .barcode-container {
       background: white;
-      border-radius: 0.5rem;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+      padding: 4px;
+      border-radius: 4px;
+    }
+
+    #barcode {
+      height: 45px !important;
+      width: 150px !important;
+    }
+
+    /* Back Page Specific CSS */
+    .terms-title {
+      color: #d92027;
+      text-align: center;
+      font-size: 25px;
+      font-weight: 900;
+      margin-top: 0px;
+      margin-bottom: 12px;
+      letter-spacing: -0.5px;
+    }
+    
+    .terms-text {
+      font-size: 14.5px;
+      line-height: 1.4;
+      color: #000;
+      margin-bottom: 12px;
+    }
+
+    .back-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: auto;
+      padding-bottom: 0px;
+    }
+
+    .contact-info {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #000;
+    }
+
+    .contact-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .contact-icon {
+      color: #000;
+      font-size: 16px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px; /* Keeps the text aligned properly */
+    }
+
+    .qr-back {
+      width: 85px;
+      height: 85px;
+      border: 3px solid #d92027;
+      padding: 2px;
+      border-radius: 4px;
     }
 
     /* Loader */
     .loader {
-      width: 56px;
-      height: 56px;
-      border: 4px solid;
+      width: 56px; height: 56px; border: 4px solid;
       border-color: #fff #fff transparent transparent;
-      border-radius: 50%;
-      animation: rotation 1s linear infinite;
+      border-radius: 50%; animation: rotation 1s linear infinite;
       position: relative;
     }
-
-    .loader::after,
-    .loader::before {
-      content: '';
-      position: absolute;
-      left: 0; right: 0; top: 0; bottom: 0;
-      margin: auto;
-      border: 4px solid;
+    .loader::after, .loader::before {
+      content: ''; position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+      margin: auto; border: 4px solid;
       border-color: transparent transparent var(--primary) var(--primary);
-      width: 46px; height: 46px;
-      border-radius: 50%;
+      width: 46px; height: 46px; border-radius: 50%;
       animation: rotationBack 0.5s linear infinite;
     }
-
     .loader::before {
-      width: 36px; height: 36px;
-      border-color: #fff #fff transparent transparent;
+      width: 36px; height: 36px; border-color: #fff #fff transparent transparent;
       animation: rotation 1.5s linear infinite;
     }
-
     @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     @keyframes rotationBack { 0% { transform: rotate(0deg); } 100% { transform: rotate(-360deg); } }
 
     #loaderOverlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.4);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-      backdrop-filter: blur(8px);
-      display: none;
-    }
-
-    /* Section Title */
-    .section-title {
-      font-size: 1.75rem;
-      font-weight: 800;
-      background: linear-gradient(135deg, #e11d48, #be123c);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 1rem;
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6);
+      display: none; justify-content: center; align-items: center;
+      z-index: 9999; backdrop-filter: blur(4px);
     }
   </style>
 </head>
@@ -196,97 +321,173 @@
     <div class="loader"></div>
   </div>
 
-  <div class="max-w-4xl mx-auto p-6 space-y-10 relative">
-
-    <!-- Back Button -->
-    <div class="absolute top-4 left-4">
-      <button onclick="window.history.back()" class="btn btn-back">
-        <i class="fas fa-arrow-left"></i> Back
-      </button>
-    </div>
+  <div class="max-w-5xl mx-auto p-4 sm:p-6 space-y-8 relative">
 
     <!-- Header -->
-    <div class="text-center pt-8">
-      <h1 class="section-title">HSB Smart Card Generator</h1>
-      <p class="text-gray-600 text-lg">Generate digital ID cards for hemophilia patients</p>
+    <div class="text-center pt-6">
+      <h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-red-600 to-red-800 mb-2">HSB Smart Card Generator</h1>
+      <p class="text-gray-600">Generate and download official digital ID cards</p>
     </div>
 
-    <!-- Main Card -->
+    <!-- Main Container -->
     <div class="glass-container">
-      <div class="space-y-8">
+      
+      <!-- Search Form -->
+      <form id="searchForm" class="flex flex-col sm:flex-row gap-4 mb-8">
+        <input
+          type="text"
+          id="searchId"
+          placeholder="Enter Patient ID (e.g., HSB-001)"
+          required
+          class="flex-1 px-5 py-3 border border-gray-300 rounded-xl input-focus transition-all text-base font-medium"
+        />
+        <button type="submit" class="btn btn-primary text-lg px-8">
+          <i class="fas fa-search"></i> Search
+        </button>
+      </form>
 
-        <!-- Search Form -->
-        <form id="searchForm" class="flex flex-col sm:flex-row gap-4">
-          <input
-            type="text"
-            id="searchId"
-            placeholder="Enter Patient ID (e.g., HSB-001)"
-            required
-            class="flex-1 px-5 py-4 border border-gray-300 rounded-xl input-focus transition-all text-base font-medium"
-          />
-          <button type="submit" class="btn btn-primary text-lg">
-            <i class="fas fa-search"></i> Search Patient
-          </button>
-        </form>
+      <!-- Smart Card Preview -->
+      <div id="cardWrapper">
+        
+        <!-- Front Page -->
+        <div id="smartCardFront" class="id-card">
+          <!-- Background Watermark -->
+          <img src="https://i.ibb.co.com/rKmDL4LT/OIP-1.png" alt="Watermark" class="card-watermark" crossorigin="anonymous" />
+          
+          <!-- Top Borders -->
+          <div class="border-top-black"></div>
+          <div class="border-top-white"></div>
+          <div class="border-top-red"></div>
 
-        <!-- Smart Card Preview -->
-        <div class="flex justify-center items-center">
-          <div id="cardContainer" class="relative">
-            <div id="smartCard" class="relative">
-              <div class="card-glow"></div>
+          <!-- Bottom Borders -->
+          <div class="border-bottom-red"></div>
+          <div class="border-bottom-white"></div>
+          <div class="border-bottom-black"></div>
 
-              <!-- Header - Logo + Name on same line -->
-              <div class="absolute top-5 left-5 flex items-center gap-3 z-10">
-                <img src="https://i.ibb.co.com/rKmDL4LT/OIP-1.png" alt="HSB Logo" class="w-10 h-10 rounded-lg shadow-md flex-shrink-0" />
-                <div class="flex flex-col leading-tight">
-                  <div class="text-black font-bold text-base">Hemophilia Society of Bangladesh</div>
+          <!-- Top Right Decor -->
+          <div class="corner-shape-black"></div>
+          <div class="corner-shape-red"></div>
+
+          <!-- Card Content -->
+          <div class="card-content" style="top: 55px; bottom: 55px;">
+            <div class="terms-title" style="display:none;"></div> <!-- Keep content wrapper aligned -->
+            
+            <!-- Left Side Data -->
+            <div class="w-2/3" style="margin-top: -5px;">
+              <!-- Titles -->
+              <div class="card-title-red">HEMOPHILIA SOCIETY<br>OF BANGLADESH</div>
+              <div class="card-title-black">PATIENT ID CARD</div>
+
+              <!-- Info Grid -->
+              <div class="info-grid">
+                <div class="info-row">
+                  <span class="info-label">NAME</span>:
+                  <span class="info-value" id="patientName">-</span>
                 </div>
-              </div>
-
-              <!-- Content -->
-              <div class="flex px-6 pt-20">
-                <!-- Photo -->
-                <div class="flex justify-center items-start w-1/4">
-                  <img
-                    id="patientPhoto"
-                    src=""
-                    alt="Patient"
-                    class="w-20 h-20 rounded-full object-cover"
-                    crossorigin="anonymous"
-                  />
+                <div class="info-row">
+                  <span class="info-label">ID</span>:
+                  <span class="info-value" id="patientIdVal">-</span>
                 </div>
-
-                <!-- Info -->
-                <div class="ml-6 w-3/4 text-black">
-                  <h2 id="patientName" class="font-bold text-xl mb-1">Patient Name</h2>
-                  <p id="patientId" class="text-sm mb-0.5">ID: -</p>
-                  <p class="text-sm opacity-90">DOB: <span id="patientDob">-</span></p>
-                  <p class="text-sm mb-0.5">Blood Group: <span id="patientBloodGroup">-</span></p>
-                  <p class="text-sm">Deficiency Factor: <span id="patientFactor">-</span></p>
+                <div class="info-row">
+                  <span class="info-label">D.O.B</span>:
+                  <span class="info-value" id="patientDob">-</span>
                 </div>
-              </div>
-
-              <!-- QR Code -->
-              <div id="qrcode" class="absolute bottom-5 right-5">
+                <div class="info-row">
+                  <span class="info-label">BLOOD GROUP</span>:
+                  <span class="info-value" id="patientBloodGroup">-</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">DEFICIENCY FACTOR</span>:
+                  <span class="info-value" id="patientFactor">-</span>
+                </div>
               </div>
             </div>
+
+            <!-- Right Side (Photo & Barcode) -->
+            <div class="right-section">
+              <div class="photo-container">
+                <img id="patientPhoto" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTIwIDIxdi0yYTRgNCAwIDAgMC00LTRINThhNCA0IDAgMCAwLTQgNHYyIj48L3BhdGg+PGNpcmNsZSBjeD0iMTIiIGN5PSI3IiByPSI0Ij48L2NpcmNsZT48L3N2Zz4=" alt="Patient Photo" crossorigin="anonymous" />
+              </div>
+              
+              <div class="barcode-container">
+                <svg id="barcode"></svg>
+              </div>
+            </div>
+
           </div>
         </div>
 
-        <!-- Download Button -->
+        <!-- Back Page -->
+        <div id="smartCardBack" class="id-card">
+          <!-- Background Watermark -->
+          <img src="https://i.ibb.co.com/rKmDL4LT/OIP-1.png" alt="Watermark" class="card-watermark" crossorigin="anonymous" />
+          
+          <!-- Top Borders -->
+          <div class="border-top-black"></div>
+          <div class="border-top-white"></div>
+          <div class="border-top-red"></div>
+
+          <!-- Bottom Borders -->
+          <div class="border-bottom-red"></div>
+          <div class="border-bottom-white"></div>
+          <div class="border-bottom-black"></div>
+
+          <!-- Top Right Decor -->
+          <div class="corner-shape-black"></div>
+          <div class="corner-shape-red"></div>
+
+          <!-- Card Content -->
+          <div class="card-content" style="top: 55px; bottom: 55px;">
+            <div class="terms-title">TERMS AND CONDITIONS</div>
+            
+            <div class="terms-text">
+              This card holder is a <strong>hemophilia patient</strong>, Hemophilia is a rare heriditary <strong>bleeding disorder</strong> in which patient's <strong>blood does no clot normally</strong>.
+            </div>
+            
+            <div class="terms-text">
+              In the event of any <strong>internal</strong> or <strong>external hemorrahage</strong> or injury of this Patient kindly hospitalize and transfuse him immediately by <strong>whole Fresh Blood/Fresh Frozen Plasma (FFP)/Cryoprecipitate/Antihemophilic Factors</strong>
+            </div>
+
+            <div class="back-footer">
+              <div class="contact-info">
+                <div class="contact-row">
+                  <div class="contact-icon"><i class="fas fa-phone-alt"></i></div>
+                  <span>+880-1619-135-787</span>
+                </div>
+                <div class="contact-row">
+                  <div class="contact-icon"><i class="fas fa-map-marker-alt"></i></div>
+                  <span>52/1 Hasan Holdings, New Eskaton, Dhaka</span>
+                </div>
+                <div class="contact-row">
+                  <div class="contact-icon"><i class="fas fa-envelope"></i></div>
+                  <span>hemophiliabd@gmail.com</span>
+                </div>
+              </div>
+              
+              <img src="https://i.ibb.co.com/Gf3BKm3q/qr-code.png" alt="QR Code" class="qr-back" crossorigin="anonymous" />
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Download Button -->
+      <div class="mt-8">
         <button id="downloadBtn" class="w-full btn btn-primary text-lg py-4 justify-center">
-          <i class="fas fa-download"></i> Download Smart Card as PDF
+          <i class="fas fa-file-pdf"></i> Download Card as PDF
         </button>
       </div>
-    </div>
 
+    </div>
   </div>
 
-  <!-- Firebase & Logic -->
+  <!-- Firebase & Application Logic -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
     import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
 
+    // Initialize Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyB7QLBLarDiqdpYy5jw8_1e-gTR-aR1Wqc",
       authDomain: "hemophilia-society-of-bd.firebaseapp.com",
@@ -300,6 +501,29 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
+    // Initialize barcode safely after DOM is ready
+    const initBarcode = () => {
+      const barcodeElement = document.getElementById("barcode");
+      if (barcodeElement) {
+        JsBarcode(barcodeElement, "000000", {
+          format: "CODE128",
+          displayValue: false,
+          background: "transparent",
+          lineColor: "#000000",
+          height: 45,
+          width: 2,
+          margin: 0
+        });
+      }
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initBarcode);
+    } else {
+      initBarcode();
+    }
+
+    // Handle Form Submit
     document.getElementById("searchForm").addEventListener("submit", async function (e) {
       e.preventDefault();
       const id = document.getElementById("searchId").value.trim();
@@ -310,74 +534,111 @@
 
       try {
         const snapshot = await get(child(ref(db), `patients/${id}`));
+        
         if (snapshot.exists()) {
           const data = snapshot.val();
 
-          document.getElementById("patientName").innerText = data.name || "Unknown";
-          document.getElementById("patientId").innerText = "ID: " + id;
-         document.getElementById("patientDob").innerText = data.dob || "-";
-          document.getElementById("patientBloodGroup").innerText = data.bloodGroup || "-";
-          document.getElementById("patientFactor").innerText = data.factorType || "-";
+          // Populate Texts
+          document.getElementById("patientName").innerText = data.name || "N/A";
+          document.getElementById("patientIdVal").innerText = id;
+          document.getElementById("patientDob").innerText = data.dob || "N/A";
+          document.getElementById("patientBloodGroup").innerText = data.bloodGroup || "N/A";
+          document.getElementById("patientFactor").innerText = data.factorType || "N/A";
 
+          // Populate Photo (Fallback to default if empty)
           const photo = document.getElementById("patientPhoto");
-          photo.src = data.imageUrl || "";
+          photo.src = data.imageUrl || "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTIwIDIxdi0yYTRgNCAwIDAgMC00LTRINThhNCA0IDAgMCAwLTQgNHYyIj48L3BhdGg+PGNpcmNsZSBjeD0iMTIiIGN5PSI3IiByPSI0Ij48L2NpcmNsZT48L3N2Zz4=";
           photo.crossOrigin = "anonymous";
 
-          const qrContainer = document.getElementById("qrcode");
-          qrContainer.innerHTML = "";
-          const qr = qrcode(0, 'H');
-          qr.addData(id);
-          qr.make();
-          qrContainer.innerHTML = qr.createImgTag(4, 4);
+          // Generate Barcode dynamically safely
+          const barcodeElement = document.getElementById("barcode");
+          if (barcodeElement) {
+            JsBarcode(barcodeElement, id, {
+              format: "CODE128",
+              displayValue: false,
+              background: "transparent",
+              lineColor: "#000000",
+              height: 45,
+              width: 2,
+              margin: 0
+            });
+          }
+
         } else {
-          alert("Patient not found.");
+          alert("Patient not found in the database.");
         }
       } catch (error) {
         console.error("Fetch error:", error);
-        alert("Error fetching patient data.");
+        alert("Error fetching patient data. Check console for details.");
       } finally {
         loader.style.display = "none";
       }
     });
 
+    // Handle PDF Download
     document.getElementById("downloadBtn").addEventListener("click", async () => {
       const loader = document.getElementById("loaderOverlay");
       loader.style.display = "flex";
 
-      const card = document.getElementById("smartCard");
+      const frontCard = document.getElementById("smartCardFront");
+      const backCard = document.getElementById("smartCardBack");
       const img = document.getElementById("patientPhoto");
+      const watermarks = document.querySelectorAll('.card-watermark');
+      const staticQr = document.querySelector('.qr-back');
 
+      // Wait for images to load completely to avoid blank spaces in PDF
+      const imagePromises = [];
       if (img.src && !img.complete) {
-        await new Promise(resolve => {
-          img.onload = resolve;
-          img.onerror = resolve;
-        });
+        imagePromises.push(new Promise(resolve => { img.onload = resolve; img.onerror = resolve; }));
       }
-
-      html2canvas(card, {
-        useCORS: true,
-        scale: 4,
-        backgroundColor: null,
-        logging: false,
-      }).then(canvas => {
-        const imgData = canvas.toDataURL("image/png");
-        const { jsPDF } = window.jspdf;
-
-        const pdf = new jsPDF({
-          orientation: "landscape",
-          unit: "mm",
-          format: [86, 54],
-        });
-
-        pdf.addImage(imgData, "PNG", 0, 0, 86, 54);
-        pdf.save(`HSB_SmartCard_${document.getElementById("searchId").value || "Patient"}.pdf`);
-
-        loader.style.display = "none";
-      }).catch(err => {
-        console.error(err);
-        alert("Failed to generate PDF.");
-        loader.style.display = "none";
+      if (staticQr && staticQr.src && !staticQr.complete) {
+        imagePromises.push(new Promise(resolve => { staticQr.onload = resolve; staticQr.onerror = resolve; }));
+      }
+      watermarks.forEach(wm => {
+        if (wm.src && !wm.complete) {
+          imagePromises.push(new Promise(resolve => { wm.onload = resolve; wm.onerror = resolve; }));
+        }
       });
+
+      await Promise.all(imagePromises);
+
+      // Add a slight delay to ensure fonts/barcode are fully rendered
+      setTimeout(async () => {
+        try {
+          const [canvasFront, canvasBack] = await Promise.all([
+            html2canvas(frontCard, { useCORS: true, scale: 4, backgroundColor: "#ffffff", logging: false }),
+            html2canvas(backCard, { useCORS: true, scale: 4, backgroundColor: "#ffffff", logging: false })
+          ]);
+
+          const imgDataFront = canvasFront.toDataURL("image/png");
+          const imgDataBack = canvasBack.toDataURL("image/png");
+
+          const { jsPDF } = window.jspdf;
+
+          // Standard CR80 ID Card format (85.6mm x 53.98mm)
+          const pdf = new jsPDF({
+            orientation: "landscape",
+            unit: "mm",
+            format: [85.6, 54],
+          });
+
+          // Add Front Page
+          pdf.addImage(imgDataFront, "PNG", 0, 0, 85.6, 54);
+          
+          // Add Back Page
+          pdf.addPage([85.6, 54], "landscape");
+          pdf.addImage(imgDataBack, "PNG", 0, 0, 85.6, 54);
+          
+          const patientId = document.getElementById("patientIdVal").innerText || "000";
+          pdf.save(`HSB_SmartCard_${patientId}.pdf`);
+
+        } catch (err) {
+          console.error(err);
+          alert("Failed to generate PDF. Check console for details.");
+        } finally {
+          loader.style.display = "none";
+        }
+      }, 300);
     });
   </script>
 </body>

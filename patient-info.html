@@ -586,24 +586,81 @@
     
     skipScanBtn.addEventListener("click", () => {
       scannerModal.classList.add("hidden");
-      searchInput.focus();
-    });
-
-    searchInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        scannerModal.classList.add("hidden");
-        fetchPatientInfo(false);
+      if (window.innerWidth > 768) {
+          searchInput.focus();
+      } else {
+          searchInputMobile.focus();
       }
     });
 
-    searchInputMobile.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        fetchPatientInfo(true);
+    // Prevent focus loss if user accidentally clicks the modal background
+    scannerModal.addEventListener("click", (e) => {
+      if (e.target.id !== "skipScanBtn") {
+        // Refocus the correct input based on screen size
+        if (window.innerWidth > 768) {
+          searchInput.focus();
+        } else {
+          searchInputMobile.focus();
+        }
       }
     });
+
+    function setupScannerDetection(inputElement, isMobile) {
+        let lastInputTime = Date.now();
+        let lastValueLength = 0;
+        let typingTimer;
+        let isScannerBurst = false;
+
+        // Ensure manual "Enter" presses still submit the form normally
+        inputElement.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                scannerModal.classList.add("hidden");
+                fetchPatientInfo(isMobile);
+            }
+        });
+
+        inputElement.addEventListener('input', (e) => {
+            // 1. Instantly hide the modal whenever ANY input is received
+            scannerModal.classList.add("hidden");
+
+            const now = Date.now();
+            const currentLength = inputElement.value.length;
+            const timeDiff = now - lastInputTime;
+            const lengthDiff = currentLength - lastValueLength;
+
+            // 2. Detect Paste or Rapid Scanner Input (less than 40ms per keystroke)
+            if (lengthDiff > 1 || (lengthDiff === 1 && timeDiff < 40)) {
+                isScannerBurst = true;
+            } else if (timeDiff >= 40) {
+                isScannerBurst = false; // Flag as human typing
+            }
+
+            lastInputTime = now;
+            lastValueLength = currentLength;
+
+            clearTimeout(typingTimer);
+
+            // 3. Auto-submit if it was a scanner burst and typing has finished
+            typingTimer = setTimeout(() => {
+                if (isScannerBurst && inputElement.value.trim().length >= 1) {
+                    fetchPatientInfo(isMobile);
+                }
+                isScannerBurst = false; // Reset for next interactions
+            }, 250); 
+        });
+    }
+
+    // Apply the smart detection to both Desktop and Mobile search inputs
+    setupScannerDetection(searchInput, false);
+    setupScannerDetection(searchInputMobile, true);
 
     window.addEventListener('DOMContentLoaded', () => {
-      if (window.innerWidth > 768) searchInput.focus();
+      // Ensure mobile gets focused initially as well
+      if (window.innerWidth > 768) {
+          searchInput.focus();
+      } else {
+          searchInputMobile.focus();
+      }
       if (window.lucide) lucide.createIcons();
     });
   </script>

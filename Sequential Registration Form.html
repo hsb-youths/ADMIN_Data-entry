@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HSB Patient Membership Form (Sequential)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+      overflow-x: hidden;
+    }
+
+    /* Loader */
+    .loader {
+      width: 48px; height: 48px; border-radius: 50%; display: inline-block; position: relative;
+      border: 3px solid; border-color: #FFF #FFF transparent transparent; box-sizing: border-box;
+      animation: rotation 1s linear infinite; position: fixed; top: 50%; left: 50%;
+      margin-top: -24px; margin-left: -24px; z-index: 9999; background: transparent;
+    }
+    .loader::after, .loader::before {
+      content: ''; box-sizing: border-box; position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+      margin: auto; border: 3px solid; border-color: transparent transparent #FF3D00 #FF3D00;
+      width: 40px; height: 40px; border-radius: 50%; animation: rotationBack 0.5s linear infinite; transform-origin: center center;
+    }
+    .loader::before {
+      width: 32px; height: 32px; border-color: #FFF #FFF transparent transparent; animation: rotation 1.5s linear infinite;
+    }
+    @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } } 
+    @keyframes rotationBack { 0% { transform: rotate(0deg); } 100% { transform: rotate(-360deg); } }
+
+    #loaderOverlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9998; backdrop-filter: blur(4px); }
+
+    /* Sequential Step Animations */
+    .step-container {
+      display: none;
+      opacity: 0;
+      transform: translateX(50px);
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .step-container.active {
+      display: block;
+      opacity: 1;
+      transform: translateX(0);
+      animation: slideInRight 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    .step-container.exit-left {
+      display: block;
+      animation: slideOutLeft 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    .step-container.exit-right {
+      display: block;
+      animation: slideOutRight 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    .step-container.enter-left {
+      display: block;
+      animation: slideInLeft 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    @keyframes slideInRight {
+      from { opacity: 0; transform: translateY(20px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes slideOutLeft {
+      from { opacity: 1; transform: translateY(0) scale(1); }
+      to { opacity: 0; transform: translateY(-20px) scale(0.95); display: none; }
+    }
+    @keyframes slideInLeft {
+      from { opacity: 0; transform: translateY(-20px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes slideOutRight {
+      from { opacity: 1; transform: translateY(0) scale(1); }
+      to { opacity: 0; transform: translateY(20px) scale(0.95); display: none; }
+    }
+
+    /* Custom Input Styling */
+    .fancy-input {
+      font-size: 1.5rem;
+      border: none;
+      border-bottom: 2px solid #e5e7eb;
+      border-radius: 0;
+      background: transparent;
+      padding: 0.5rem 0;
+      box-shadow: none !important;
+      transition: border-color 0.3s;
+    }
+    .fancy-input:focus {
+      outline: none;
+      border-bottom: 2px solid #dc2626;
+    }
+    .fancy-select {
+      font-size: 1.25rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 0.75rem;
+      padding: 1rem;
+      background-color: white;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+    .fancy-select:focus {
+      border-color: #dc2626;
+      box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.1);
+    }
+    
+    /* Viewfinder Overlays */
+    .viewfinder-container { position: relative; width: 100%; aspect-ratio: 4 / 3; background: #000; overflow: hidden; }
+    .viewfinder-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+    .viewfinder-mask { position: absolute; inset: 0; box-shadow: inset 0 0 0 2000px rgba(0, 0, 0, 0.5); }
+    .viewfinder-box { position: relative; width: 250px; height: 250px; border: 2px solid #fff; box-shadow: 0 0 15px rgba(0,0,0,0.5); z-index: 10; }
+    .viewfinder-box::before { content: ''; position: absolute; top: -5px; left: -5px; width: 20px; height: 20px; border-top: 4px solid #ef4444; border-left: 4px solid #ef4444; }
+    .viewfinder-box::after { content: ''; position: absolute; bottom: -5px; right: -5px; width: 20px; height: 20px; border-bottom: 4px solid #ef4444; border-right: 4px solid #ef4444; }
+    @media (max-width: 640px) { .viewfinder-box { width: 180px; height: 180px; } }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Top Progress Bar & Header -->
+  <header class="fixed top-0 left-0 right-0 bg-white shadow-sm z-50">
+    <div class="h-1.5 w-full bg-gray-100">
+      <div id="progressBar" class="h-full bg-red-600 transition-all duration-500 ease-out" style="width: 0%"></div>
+    </div>
+    <div class="max-w-5xl mx-auto px-6 py-4 flex justify-between items-center">
+      <div class="flex items-center space-x-4">
+        <button id="backBtn" class="text-gray-400 hover:text-red-600 transition-colors hidden h-10 w-10 flex items-center justify-center rounded-full hover:bg-red-50">
+          <i class="fas fa-arrow-left text-xl"></i>
+        </button>
+        <h1 class="text-xl font-bold text-gray-800 tracking-tight">HSB Registration</h1>
+      </div>
+      <button type="button" id="moveToHoldBtn" class="text-sm bg-amber-100 hover:bg-amber-200 text-amber-800 px-4 py-2 rounded-full font-semibold transition-colors flex items-center border border-amber-300 shadow-sm">
+        <i class="fas fa-pause-circle mr-2"></i> Move to On-Hold
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Sequential Form Container -->
+  <main class="flex-grow flex items-center justify-center pt-24 pb-12 px-4">
+    <div class="w-full max-w-3xl">
+      <form id="patientForm" class="relative">
+
+        <!-- Step 1: Patient ID -->
+        <div class="step-container active" data-step="1">
+          <div class="bg-white p-8 md:p-12 rounded-3xl shadow-xl shadow-red-900/5 border border-red-50">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">Let's start with the <span class="text-red-600">Patient ID</span></h2>
+            <p class="text-gray-500 mb-10 text-lg">Please enter the unique identification number.</p>
+            
+            <div class="relative">
+              <input type="text" id="patientId" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required class="w-full fancy-input text-red-600 font-bold placeholder-gray-300" placeholder="e.g. 10452" autofocus />
+              <p id="patientIdError" class="text-red-600 text-sm mt-3 hidden font-medium flex items-center"><i class="fas fa-exclamation-circle mr-2"></i> This Patient ID is already registered.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: NID -->
+        <div class="step-container" data-step="2">
+          <div class="bg-white p-8 md:p-12 rounded-3xl shadow-xl shadow-red-900/5 border border-red-50">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">National ID or Birth No.</h2>
+            <p class="text-gray-500 mb-10 text-lg">Enter the NID or Birth Registration number.</p>
+            
+            <div class="relative">
+              <input type="text" id="nid" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required class="w-full fancy-input text-gray-800 placeholder-gray-300" placeholder="NID / Birth No." />
+              <p id="nidError" class="text-red-600 text-sm mt-3 hidden font-medium flex items-center"><i class="fas fa-exclamation-circle mr-2"></i> This NID is already registered.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: Personal Details -->
+        <div class="step-container" data-step="3">
+          <div class="bg-white p-8 md:p-12 rounded-3xl shadow-xl shadow-red-900/5 border border-red-50">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-8">Personal Details</h2>
+            
+            <div class="space-y-8">
+              <div>
+                <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Full Name</label>
+                <input type="text" id="name" required class="w-full fancy-input text-gray-800 placeholder-gray-300" placeholder="Enter patient's full name" />
+              </div>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Date of Birth</label>
+                  <input type="date" id="dob" required class="w-full fancy-input text-gray-800" />
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Calculated Age</label>
+                  <input type="number" id="age" readonly class="w-full fancy-input text-gray-500 bg-gray-50/50 cursor-not-allowed" placeholder="Auto-calculated" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4: Medical Diagnosis -->
+        <div class="step-container" data-step="4">
+          <div class="bg-white p-8 md:p-12 rounded-3xl shadow-xl shadow-red-900/5 border border-red-50">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-8">Medical Diagnosis</h2>
+            
+            <div class="space-y-8">
+              <div>
+                <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Factor Type</label>
+                <select id="factorType" required class="w-full fancy-select text-gray-800 outline-none">
+                  <option value="" disabled selected>Select Factor Type</option>
+                  <option value="VIII">Factor VIII (Hemophilia A)</option>
+                  <option value="IX">Factor IX (Hemophilia B)</option>
+                  <option value="VWD">VWD</option>
+                  <option value="Others">Others</option>
+                </select>
+              </div>
+              
+              <div>
+                <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Factor Level</label>
+                <input type="text" id="factorLevel" required class="w-full fancy-input text-gray-800 placeholder-gray-300" placeholder="e.g. 1.5, <1 (Numbers/Percentages only)" />
+                <p class="text-xs text-gray-400 mt-2">Do not put any kind of less than or greater than sign, just numbers and percentages.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 5: Secondary Medical Info -->
+        <div class="step-container" data-step="5">
+          <div class="bg-white p-8 md:p-12 rounded-3xl shadow-xl shadow-red-900/5 border border-red-50">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-8">Additional Medical Data</h2>
+            
+            <div class="space-y-8">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Disease Class</label>
+                  <select id="diseaseClass" class="w-full fancy-select text-gray-800 outline-none">
+                    <option>Hemophilia A</option>
+                    <option>Hemophilia B</option>
+                    <option>Von Willebrand Disease</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Blood Group</label>
+                  <select id="bloodGroup" class="w-full fancy-select text-gray-800 outline-none">
+                    <option value="">-- Select --</option>
+                    <option value="A+">A+</option><option value="A-">A-</option>
+                    <option value="B+">B+</option><option value="B-">B-</option>
+                    <option value="O+">O+</option><option value="O-">O-</option>
+                    <option value="AB+">AB+</option><option value="AB-">AB-</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Disease History</label>
+                  <input type="text" id="diseaseHistory" value="By Birth" class="w-full fancy-input text-gray-800" />
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Present Affected Organs</label>
+                  <input type="text" id="organsAffected" value="knee" class="w-full fancy-input text-gray-800" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 6: Contact Info -->
+        <div class="step-container" data-step="6">
+          <div class="bg-white p-8 md:p-12 rounded-3xl shadow-xl shadow-red-900/5 border border-red-50">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-8">Contact Information</h2>
+            
+            <div class="space-y-8">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Primary Phone</label>
+                  <input type="text" id="phone" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required class="w-full fancy-input text-gray-800 placeholder-gray-300" placeholder="Required" />
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Mobile No. (Alt)</label>
+                  <input type="text" id="mobile" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="w-full fancy-input text-gray-800 placeholder-gray-300" placeholder="Optional" />
+                </div>
+              </div>
+              
+              <div>
+                <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Email Address</label>
+                <input type="email" id="email" value="youths.hsb@gmail.com" class="w-full fancy-input text-gray-800 placeholder-gray-300" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 7: Address -->
+        <div class="step-container" data-step="7">
+          <div class="bg-white p-8 md:p-12 rounded-3xl shadow-xl shadow-red-900/5 border border-red-50">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-8">Location & Address</h2>
+            
+            <div class="space-y-8">
+              <div>
+                <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Home Town (District)</label>
+                <input type="text" id="hometown" list="districtList" required class="w-full fancy-input text-gray-800 placeholder-gray-300" placeholder="Type or select district..." autocomplete="off" />
+                <!-- Datalist from original form -->
+                <datalist id="districtList">
+                  <option value="Bagerhat"></option><option value="Bandarban"></option><option value="Barguna"></option><option value="Barishal"></option><option value="Bhola"></option><option value="Bogura"></option><option value="Brahmanbaria"></option><option value="Chandpur"></option><option value="Chapainawabganj"></option><option value="Chattogram"></option><option value="Chuadanga"></option><option value="Cox's Bazar"></option><option value="Cumilla"></option><option value="Dhaka"></option><option value="Dinajpur"></option><option value="Faridpur"></option><option value="Feni"></option><option value="Gaibandha"></option><option value="Gazipur"></option><option value="Gopalganj"></option><option value="Habiganj"></option><option value="Jamalpur"></option><option value="Jashore"></option><option value="Jhalokati"></option><option value="Jhenaidah"></option><option value="Joypurhat"></option><option value="Khagrachari"></option><option value="Khulna"></option><option value="Kishoreganj"></option><option value="Kurigram"></option><option value="Kushtia"></option><option value="Lakshmipur"></option><option value="Lalmonirhat"></option><option value="Madaripur"></option><option value="Magura"></option><option value="Manikganj"></option><option value="Meherpur"></option><option value="Moulvibazar"></option><option value="Munshiganj"></option><option value="Mymensingh"></option><option value="Naogaon"></option><option value="Narail"></option><option value="Narayanganj"></option><option value="Narsingdi"></option><option value="Natore"></option><option value="Netrokona"></option><option value="Nilphamari"></option><option value="Noakhali"></option><option value="Pabna"></option><option value="Panchagarh"></option><option value="Patuakhali"></option><option value="Pirojpur"></option><option value="Rajbari"></option><option value="Rajshahi"></option><option value="Rangamati"></option><option value="Rangpur"></option><option value="Satkhira"></option><option value="Shariatpur"></option><option value="Sherpur"></option><option value="Sirajganj"></option><option value="Sunamganj"></option><option value="Sylhet"></option><option value="Tangail"></option><option value="Thakurgaon"></option>
+                </datalist>
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Present Address</label>
+                <input type="text" id="presentAddress" class="w-full fancy-input text-gray-800 placeholder-gray-300" />
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Permanent Address</label>
+                <input type="text" id="permanentAddress" class="w-full fancy-input text-gray-800 placeholder-gray-300" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 8: Family Info -->
+        <div class="step-container" data-step="8">
+          <div class="bg-white p-8 md:p-12 rounded-3xl shadow-xl shadow-red-900/5 border border-red-50">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-8">Family Information</h2>
+            
+            <div class="space-y-8">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Father's Name</label>
+                  <input type="text" id="fatherName" class="w-full fancy-input text-gray-800 placeholder-gray-300" />
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Mother's Name</label>
+                  <input type="text" id="motherName" class="w-full fancy-input text-gray-800 placeholder-gray-300" />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Marital Status</label>
+                  <select id="maritalStatus" class="w-full fancy-select text-gray-800 outline-none text-base">
+                    <option>Single</option>
+                    <option>Married</option>
+                    <option>Divorced</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Spouse Name</label>
+                  <input type="text" id="spouse" value="N/A" class="w-full fancy-input text-gray-800 text-base" />
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Children</label>
+                  <input type="number" id="children" value="0" class="w-full fancy-input text-gray-800 text-base" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 9: Socio-Economic Info -->
+        <div class="step-container" data-step="9">
+          <div class="bg-white p-8 md:p-12 rounded-3xl shadow-xl shadow-red-900/5 border border-red-50">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-8">Socio-Economic Info</h2>
+            
+            <div class="space-y-8">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Occupation</label>
+                  <select id="occupation" class="w-full fancy-select text-gray-800 outline-none">
+                    <option value="Baby">Baby</option><option value="Student">Student</option>
+                    <option value="Businessmen">Businessmen</option><option value="Service">Service</option>
+                    <option value="Job">Job</option><option value="Unemployed">Unemployed</option><option value="Other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Annual Income</label>
+                  <input type="text" id="income" value="00" class="w-full fancy-input text-gray-800" />
+                </div>
+              </div>
+              
+              <div>
+                <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Nationality</label>
+                <input type="text" id="nationality" value="Bangladeshi" readonly class="w-full fancy-input text-gray-500 bg-gray-50/50 cursor-not-allowed" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 10: Membership Info -->
+        <div class="step-container" data-step="10">
+          <div class="bg-white p-8 md:p-12 rounded-3xl shadow-xl shadow-red-900/5 border border-red-50">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-8">Membership Info</h2>
+            
+            <div class="space-y-8">
+              <div>
+                <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Date of Membership</label>
+                <input type="date" id="membershipDate" class="w-full fancy-input text-gray-800" />
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Membership Type</label>
+                  <select id="membershipType" class="w-full fancy-select text-gray-800 outline-none">
+                    <option value="patient" selected>Patient Member</option>
+                    <option value="guardian_member">Guardian Member</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Membership Status</label>
+                  <select id="membershipStatus" class="w-full fancy-select text-gray-800 outline-none">
+                    <option>Annual Membership</option>
+                    <option>Life Membership</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 11: Photo Capture & Submit -->
+        <div class="step-container" data-step="11">
+          <div class="bg-white p-8 md:p-12 rounded-3xl shadow-xl shadow-red-900/5 border border-red-50 text-center">
+            <div class="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl">
+              <i class="fas fa-camera"></i>
+            </div>
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">Patient Photo</h2>
+            <p class="text-gray-500 mb-8 text-lg">Please capture or upload a photo of the patient to complete the profile.</p>
+            
+            <div class="max-w-md mx-auto space-y-4">
+              <div class="flex flex-col space-y-3">
+                <button type="button" id="openWebcamBtn" class="w-full bg-gray-900 text-white py-4 rounded-xl font-bold text-lg hover:bg-gray-800 transition-colors shadow-md flex items-center justify-center">
+                  <i class="fas fa-video mr-3"></i> Open Webcam
+                </button>
+                <div class="relative flex py-2 items-center">
+                  <div class="flex-grow border-t border-gray-200"></div>
+                  <span class="flex-shrink-0 mx-4 text-gray-400 font-medium">OR</span>
+                  <div class="flex-grow border-t border-gray-200"></div>
+                </div>
+                <div class="relative">
+                  <input type="file" id="imageUpload" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                  <div class="w-full bg-white border-2 border-dashed border-gray-300 text-gray-600 py-4 rounded-xl font-bold text-lg hover:border-red-500 hover:text-red-600 transition-colors flex items-center justify-center">
+                    <i class="fas fa-upload mr-3"></i> Upload Image File
+                  </div>
+                </div>
+              </div>
+              
+              <div id="photoStatusContainer" class="hidden bg-green-50 text-green-700 p-4 rounded-xl border border-green-200 flex items-center justify-center">
+                <i class="fas fa-check-circle mr-2 text-xl"></i>
+                <span id="photoStatus" class="font-bold">Photo successfully added!</span>
+              </div>
+              <p id="imageError" class="text-red-600 text-sm mt-1 hidden font-medium"><i class="fas fa-exclamation-triangle"></i> Please provide a photo (max 5MB) before submitting.</p>
+            </div>
+          </div>
+        </div>
+
+      </form>
+    </div>
+  </main>
+
+  <!-- Bottom Navigation -->
+  <footer class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-[0_-10px_30px_rgba(0,0,0,0.03)] z-40">
+    <div class="max-w-3xl mx-auto px-6 py-4 flex justify-between items-center">
+      <div class="text-gray-400 text-sm font-medium">
+        Step <span id="stepIndicator">1</span> of 11
+      </div>
+      <div class="flex items-center space-x-4">
+        <span class="hidden sm:inline text-gray-400 text-sm">Press <kbd class="px-2 py-1 bg-gray-100 rounded border border-gray-200 font-sans mx-1">Enter ↵</kbd></span>
+        <button id="nextBtn" class="bg-red-600 text-white px-8 py-3 rounded-full font-bold text-lg hover:bg-red-700 transition-all shadow-md shadow-red-600/20 active:transform active:scale-95 flex items-center">
+          Continue <i class="fas fa-arrow-right ml-2"></i>
+        </button>
+        <button id="realSubmitBtn" class="hidden bg-green-600 text-white px-8 py-3 rounded-full font-bold text-lg hover:bg-green-700 transition-all shadow-md shadow-green-600/20 active:transform active:scale-95 flex items-center">
+          Submit Profile <i class="fas fa-check ml-2"></i>
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Webcam Modal (Unchanged structurally, styled beautifully) -->
+  <div id="webcamModal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-sm z-[10000] flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl">
+      <h3 class="text-2xl font-bold text-gray-800 mb-4 text-center">Align Face in Frame</h3>
+      <div class="viewfinder-container rounded-2xl shadow-inner">
+        <video id="webcamVideo" autoplay playsinline class="w-full h-full object-cover"></video>
+        <div class="viewfinder-overlay">
+          <div class="viewfinder-mask"></div>
+          <div id="viewfinderBox" class="viewfinder-box rounded-lg"></div>
+        </div>
+      </div>
+      <canvas id="webcamCanvas" class="hidden"></canvas>
+      <div class="mt-6 flex justify-between space-x-4">
+        <button type="button" id="closeWebcamBtn" class="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-bold transition-colors">Cancel</button>
+        <button type="button" id="captureBtn" class="flex-1 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 font-bold transition-colors shadow-lg shadow-red-600/30 flex items-center justify-center">
+          <i class="fas fa-camera mr-2"></i> Capture
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Message Modal -->
+  <div id="messageModal" class="hidden fixed inset-0 bg-black/50 z-[10001] flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+    <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center transform transition-all">
+      <div id="messageIcon" class="w-16 h-16 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-4 text-3xl">
+        <i class="fas fa-info-circle"></i>
+      </div>
+      <h3 id="messageTitle" class="text-2xl font-bold mb-3 text-gray-800"></h3>
+      <p id="messageText" class="text-gray-500 mb-8 text-base"></p>
+      <button onclick="closeMessageModal()" class="w-full bg-red-600 text-white py-3 rounded-xl hover:bg-red-700 font-bold transition-colors shadow-md">Close</button>
+    </div>
+  </div>
+
+  <div id="loaderOverlay"><div class="loader"></div></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+    import { getDatabase, ref, set, get, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB7QLBLarDiqdpYy5jw8_1e-gTR-aR1Wqc",
+      authDomain: "hemophilia-society-of-bd.firebaseapp.com",
+      projectId: "hemophilia-society-of-bd",
+      storageBucket: "hemophilia-society-of-bd.firebasestorage.app",
+      messagingSenderId: "674332798483",
+      appId: "1:674332798483:web:cedb62cb05e03b5cadd9e6"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // --- Custom Alert ---
+    window.showMessage = function(title, text, type = 'info') {
+        const iconDiv = document.getElementById("messageIcon");
+        document.getElementById("messageTitle").innerText = title;
+        document.getElementById("messageText").innerText = text;
+        
+        if(type === 'success') {
+            iconDiv.className = "w-16 h-16 rounded-full bg-green-100 text-green-600 flex items-center justify-center mx-auto mb-4 text-3xl";
+            iconDiv.innerHTML = '<i class="fas fa-check"></i>';
+        } else if (type === 'error') {
+            iconDiv.className = "w-16 h-16 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-4 text-3xl";
+            iconDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+        } else {
+            iconDiv.className = "w-16 h-16 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mx-auto mb-4 text-3xl";
+            iconDiv.innerHTML = '<i class="fas fa-info-circle"></i>';
+        }
+
+        document.getElementById("messageModal").classList.remove("hidden");
+    };
+
+    window.closeMessageModal = function() {
+        document.getElementById("messageModal").classList.add("hidden");
+    };
+
+    // --- Sequential Wizard Logic ---
+    let currentStep = 1;
+    const totalSteps = 11;
+    
+    const steps = document.querySelectorAll('.step-container');
+    const nextBtn = document.getElementById('nextBtn');
+    const backBtn = document.getElementById('backBtn');
+    const realSubmitBtn = document.getElementById('realSubmitBtn');
+    const progressBar = document.getElementById('progressBar');
+    const stepIndicator = document.getElementById('stepIndicator');
+
+    function updateUI() {
+      // Update Progress
+      const percentage = ((currentStep - 1) / (totalSteps - 1)) * 100;
+      progressBar.style.width = `${percentage}%`;
+      stepIndicator.innerText = currentStep;
+
+      // Handle Buttons
+      if (currentStep === 1) {
+        backBtn.classList.add('hidden');
+      } else {
+        backBtn.classList.remove('hidden');
+      }
+
+      if (currentStep === totalSteps) {
+        nextBtn.classList.add('hidden');
+        realSubmitBtn.classList.remove('hidden');
+      } else {
+        nextBtn.classList.remove('hidden');
+        realSubmitBtn.classList.add('hidden');
+      }
+
+      // Focus first input of the active step
+      const activeStep = document.querySelector(`.step-container[data-step="${currentStep}"]`);
+      if(activeStep) {
+         const firstInput = activeStep.querySelector('input:not([readonly]), select');
+         if(firstInput) {
+             setTimeout(() => firstInput.focus(), 500); // Wait for transition
+         }
+      }
+    }
+
+    function changeStep(newStep, direction) {
+      const currentElement = document.querySelector(`.step-container[data-step="${currentStep}"]`);
+      const nextElement = document.querySelector(`.step-container[data-step="${newStep}"]`);
+
+      // Animate out current
+      currentElement.classList.remove('active', 'enter-left');
+      if (direction === 'next') {
+        currentElement.classList.add('exit-left');
+        nextElement.classList.remove('exit-left', 'exit-right');
+        nextElement.classList.add('active'); // which triggers slideInRight
+      } else {
+        currentElement.classList.add('exit-right');
+        nextElement.classList.remove('exit-left', 'exit-right', 'active');
+        nextElement.classList.add('enter-left'); // custom slide in from left
+      }
+
+      // Clean up classes after animation finishes
+      setTimeout(() => {
+        currentElement.classList.remove('exit-left', 'exit-right');
+      }, 500);
+
+      currentStep = newStep;
+      updateUI();
+    }
+
+    // --- Validation Logic for Wizard ---
+    function validateCurrentStep() {
+      const activeStep = document.querySelector(`.step-container[data-step="${currentStep}"]`);
+      const requiredInputs = activeStep.querySelectorAll('input[required], select[required]');
+      let isValid = true;
+
+      requiredInputs.forEach(input => {
+        if (!input.value.trim()) {
+          isValid = false;
+          input.classList.add('border-red-500');
+          input.classList.remove('border-gray-200');
+          // Add a little shake animation optionally
+        } else {
+          input.classList.remove('border-red-500');
+        }
+      });
+
+      // Special Firebase checks before proceeding
+      if (currentStep === 1 && !document.getElementById('patientIdError').classList.contains('hidden')) {
+        return false;
+      }
+      if (currentStep === 2 && !document.getElementById('nidError').classList.contains('hidden')) {
+        return false;
+      }
+
+      return isValid;
+    }
+
+    nextBtn.addEventListener('click', () => {
+      if (validateCurrentStep()) {
+        changeStep(currentStep + 1, 'next');
+      } else {
+        // Just visual feedback if invalid
+        const activeStep = document.querySelector(`.step-container[data-step="${currentStep}"]`);
+        activeStep.classList.add('animate-bounce'); // Assuming standard tailwind bounce for simple feedback
+        setTimeout(() => activeStep.classList.remove('animate-bounce'), 1000);
+      }
+    });
+
+    backBtn.addEventListener('click', () => {
+      if (currentStep > 1) {
+        changeStep(currentStep - 1, 'prev');
+      }
+    });
+
+    // Press Enter to continue
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault(); // Prevent accidental form submission
+        if (currentStep < totalSteps) {
+            nextBtn.click();
+        } else if (currentStep === totalSteps) {
+            realSubmitBtn.click();
+        }
+      }
+    });
+
+    // --- Existing Core Logic Maintained ---
+    
+    // Move to hold
+    document.getElementById("moveToHoldBtn").addEventListener("click", () => {
+      const formElements = document.getElementById("patientForm").elements;
+      const params = new URLSearchParams();
+      Array.from(formElements).forEach(el => {
+        if (el.id && el.type !== 'submit' && el.type !== 'button' && el.type !== 'file' && el.value) {
+          params.append(el.id, el.value);
+        }
+      });
+      const targetUrl = 'https://hsb-youths.github.io/ADMIN_Data-entry/On%20hold%20patients%20form.html';
+      window.location.href = params.toString() ? targetUrl + '?' + params.toString() : targetUrl;
+    });
+
+    // Auto mappings
+    document.getElementById("factorType").addEventListener("change", (e) => {
+      const mapping = { "VIII": "Hemophilia A", "IX": "Hemophilia B", "VWD": "Von Willebrand Disease", "Others": "Other" };
+      if (mapping[e.target.value]) document.getElementById("diseaseClass").value = mapping[e.target.value];
+    });
+
+    function calculateAge(dob) {
+      if (!dob) return "";
+      const birthDate = new Date(dob);
+      const currentDate = new Date();
+      let age = currentDate.getFullYear() - birthDate.getFullYear();
+      const monthDiff = currentDate.getMonth() - birthDate.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && currentDate.getDate() < birthDate.getDate())) age--;
+      return age >= 0 ? age : 0;
+    }
+    document.getElementById("dob").addEventListener("change", (e) => {
+      document.getElementById("age").value = calculateAge(e.target.value);
+    });
+
+    // Debounce Checkers
+    function debounce(func, wait) {
+      let timeout;
+      return function (...args) { clearTimeout(timeout); timeout = setTimeout(() => func.apply(this, args), wait); };
+    }
+
+    const debouncedCheckPatientId = debounce(async (patientId) => {
+      if (!patientId) return;
+      try {
+        const snapshot = await get(ref(db, `patients/${patientId}`));
+        if (snapshot.exists()) {
+          document.getElementById('patientIdError').classList.remove("hidden");
+        } else {
+          document.getElementById('patientIdError').classList.add("hidden");
+        }
+      } catch (err) { console.error(err); }
+    }, 500);
+    document.getElementById("patientId").addEventListener("input", (e) => debouncedCheckPatientId(e.target.value.trim()));
+
+    const debouncedCheckNid = debounce(async (nid) => {
+      if (!nid) return;
+      try {
+        const snapshot = await get(ref(db, 'patients'));
+        let exists = false;
+        if (snapshot.exists()) {
+          const patients = snapshot.val();
+          for (const pid in patients) { if (patients[pid].nid === nid) exists = true; }
+        }
+        if (exists) document.getElementById('nidError').classList.remove("hidden");
+        else document.getElementById('nidError').classList.add("hidden");
+      } catch (err) { console.error(err); }
+    }, 500);
+    document.getElementById("nid").addEventListener("input", (e) => debouncedCheckNid(e.target.value.trim()));
+
+    // --- Photo Logic ---
+    let videoStream = null;
+    let imageFileToUpload = null;
+    const photoStatusContainer = document.getElementById('photoStatusContainer');
+    const imageError = document.getElementById('imageError');
+
+    function updatePhotoUI(msg) {
+        photoStatusContainer.classList.remove('hidden');
+        document.getElementById('photoStatus').innerText = msg;
+        imageError.classList.add('hidden');
+    }
+
+    document.getElementById("imageUpload").addEventListener("change", (e) => {
+      if (e.target.files && e.target.files.length > 0) {
+        imageFileToUpload = e.target.files[0];
+        updatePhotoUI("Photo uploaded from device.");
+      }
+    });
+
+    document.getElementById("openWebcamBtn").addEventListener("click", async () => {
+      document.getElementById("webcamModal").classList.remove("hidden");
+      try {
+        videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } } });
+        document.getElementById("webcamVideo").srcObject = videoStream;
+      } catch (err) {
+        showMessage("Webcam Error", err.message, "error");
+        document.getElementById("webcamModal").classList.add("hidden");
+      }
+    });
+
+    function stopWebcam() {
+      if (videoStream) videoStream.getTracks().forEach(track => track.stop());
+      document.getElementById("webcamVideo").srcObject = null;
+      document.getElementById("webcamModal").classList.add("hidden");
+    }
+    document.getElementById("closeWebcamBtn").addEventListener("click", stopWebcam);
+
+    document.getElementById("captureBtn").addEventListener("click", () => {
+      const video = document.getElementById("webcamVideo");
+      const canvas = document.getElementById("webcamCanvas");
+      const context = canvas.getContext("2d");
+      const vBoxRect = document.getElementById("viewfinderBox").getBoundingClientRect();
+      const videoRect = video.getBoundingClientRect();
+      const scaleX = video.videoWidth / video.clientWidth;
+      const scaleY = video.videoHeight / video.clientHeight;
+      
+      canvas.width = 500;
+      canvas.height = 500;
+      context.drawImage(video, (vBoxRect.left - videoRect.left) * scaleX, (vBoxRect.top - videoRect.top) * scaleY, vBoxRect.width * scaleX, vBoxRect.height * scaleY, 0, 0, 500, 500);
+      
+      canvas.toBlob((blob) => {
+        imageFileToUpload = blob;
+        document.getElementById("imageUpload").value = "";
+        updatePhotoUI("Photo captured via webcam.");
+        document.getElementById("openWebcamBtn").innerHTML = '<i class="fas fa-redo mr-3"></i> Retake Photo';
+        stopWebcam();
+      }, "image/jpeg", 0.9);
+    });
+
+    // --- Final Submission ---
+    realSubmitBtn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      
+      if (!imageFileToUpload) {
+        imageError.classList.remove("hidden");
+        return; // Prevent submission
+      }
+      
+      document.getElementById("loaderOverlay").style.display = "block";
+      const patientId = document.getElementById("patientId").value.trim();
+
+      try {
+        const formData = new FormData();
+        formData.append("image", imageFileToUpload, `${patientId}.jpg`);
+        formData.append("key", "34586b2f49002bd441a1e6816d633fd9");
+
+        const imgResponse = await fetch("https://api.imgbb.com/1/upload", { method: "POST", body: formData });
+        const imgData = await imgResponse.json();
+
+        if (imgData.success) {
+          const patientData = { imageUrl: imgData.data.url, timestamp: serverTimestamp() };
+          Array.from(document.getElementById("patientForm").elements).forEach(el => {
+            if (el.id && el.type !== "submit" && el.type !== "button" && el.type !== "file") patientData[el.id] = el.value;
+          });
+
+          await set(ref(db, 'patients/' + patientId), patientData);
+          
+          showMessage("Success", "Patient Profile registered beautifully and successfully!", "success");
+          
+          // Reset form completely
+          setTimeout(() => {
+              document.getElementById("patientForm").reset();
+              photoStatusContainer.classList.add("hidden");
+              imageFileToUpload = null;
+              changeStep(1, 'prev'); // Reset UI back to start
+          }, 3000);
+
+        } else {
+          showMessage("Error", "Image upload failed. Please try again.", "error");
+        }
+      } catch (err) {
+        showMessage("Error", err.message, "error");
+      } finally {
+        document.getElementById("loaderOverlay").style.display = "none";
+      }
+    });
+
+    // Initialization
+    updateUI();
+  </script>
+</body>
+</html>

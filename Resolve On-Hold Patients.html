@@ -338,7 +338,7 @@
           </div>
           <div class="input-group">
             <label for="nationality" class="block text-sm font-medium text-gray-700">Nationality</label>
-            <input type="text" id="nationality" value="Bangladeshi" readonly class="mt-1 block w-full p-3 border border-gray-300 rounded-md bg-gray-100" />
+            <input type="text" id="nationality" value="Bangladeshi" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" />
           </div>
         </div>
 
@@ -520,7 +520,12 @@
         if (!excludeFields.includes(key)) {
           const element = document.getElementById(key);
           if (element) {
-            element.value = data[key];
+            // Prevent empty database values from overwriting the default Nationality
+            if (key === 'nationality' && (!data[key] || data[key].trim() === "")) {
+              element.value = "Bangladeshi";
+            } else {
+              element.value = data[key];
+            }
           }
         }
       }

@@ -662,7 +662,13 @@
         // Saving to the 'patients_on_hold' directory in Firebase Realtime Database
         await set(ref(db, 'patients_on_hold/' + patientId), patientData);
         
-        showMessage("Success", "Patient Profile saved to the Hold List Successfully! Redirecting to main form...", "https://hsb-youths.github.io/ADMIN_Data-entry/form.html");
+        // Smart redirect: Go back to the specific form the user came from
+        let redirectUrl = "https://hsb-youths.github.io/ADMIN_Data-entry/form.html";
+        if (document.referrer && document.referrer.includes("Sequential")) {
+            redirectUrl = "https://hsb-youths.github.io/ADMIN_Data-entry/Sequential%20Registration%20Form.html";
+        }
+        
+        showMessage("Success", "Patient Profile saved to the Hold List Successfully! Redirecting...", redirectUrl);
         
         e.target.reset();
         photoStatus.classList.add("hidden");

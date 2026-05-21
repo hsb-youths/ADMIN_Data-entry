@@ -686,7 +686,33 @@
         }
       });
       const targetUrl = 'https://hsb-youths.github.io/ADMIN_Data-entry/On%20hold%20patients%20form.html';
-      window.location.href = params.toString() ? targetUrl + '?' + params.toString() : targetUrl;
+      const finalUrl = params.toString() ? targetUrl + '?' + params.toString() : targetUrl;
+      
+      // Clear form locally before redirecting so data doesn't get carried forward on 'back' nav
+      document.getElementById("patientForm").reset();
+      
+      // Reset wizard UI to step 1
+      document.querySelectorAll('.step-container').forEach(el => {
+          el.classList.remove('active', 'enter-left', 'exit-left', 'exit-right');
+      });
+      currentStep = 1;
+      document.querySelector(`.step-container[data-step="1"]`).classList.add('active');
+      updateUI();
+      
+      window.location.href = finalUrl;
+    });
+
+    // Handle browser back-forward cache to ensure form is always clean
+    window.addEventListener('pageshow', (event) => {
+      if (event.persisted) {
+        document.getElementById("patientForm").reset();
+        document.querySelectorAll('.step-container').forEach(el => {
+          el.classList.remove('active', 'enter-left', 'exit-left', 'exit-right');
+        });
+        currentStep = 1;
+        document.querySelector(`.step-container[data-step="1"]`).classList.add('active');
+        updateUI();
+      }
     });
 
     // Auto mappings

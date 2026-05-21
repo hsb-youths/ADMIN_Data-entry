@@ -429,6 +429,22 @@
     let videoStream = null;
     let imageFileToUpload = null;
 
+    // --- Parse URL Parameters (Auto-Fill from main form) ---
+    window.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      params.forEach((value, key) => {
+        const el = document.getElementById(key);
+        if (el) {
+          el.value = value;
+          // If a DOB was passed, trigger the age calculation visually
+          if (key === 'dob') {
+            const event = new Event('change');
+            el.dispatchEvent(event);
+          }
+        }
+      });
+    });
+
     // --- Automatic Selection Logic ---
     factorTypeSelect.addEventListener("change", () => {
       const mapping = {

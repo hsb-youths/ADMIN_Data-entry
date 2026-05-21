@@ -654,7 +654,7 @@
 
         // Loop through elements and save values (empty strings are fine for optional fields)
         Array.from(e.target.elements).forEach(el => {
-          if (el.id && el.type !== "submit" && el.type !== "button") {
+          if (el.id && el.type !== "submit" && el.type !== "button" && el.type !== "file") {
             patientData[el.id] = el.value;
           }
         });

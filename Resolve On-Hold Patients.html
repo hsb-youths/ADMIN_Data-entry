@@ -515,11 +515,12 @@
       }
 
       // Fill text/select fields (excluding specific ones handled manually)
-      const excludeFields = ['patientId', 'holdNote', 'imageUrl', 'timestamp'];
+      const excludeFields = ['patientId', 'holdNote', 'imageUrl', 'timestamp', 'imageUpload'];
       for (const key in data) {
         if (!excludeFields.includes(key)) {
           const element = document.getElementById(key);
-          if (element) {
+          // Ensure we do not try to programmatically set the value of a file input
+          if (element && element.type !== 'file') {
             // Prevent empty database values from overwriting the default Nationality
             if (key === 'nationality' && (!data[key] || data[key].trim() === "")) {
               element.value = "Bangladeshi";

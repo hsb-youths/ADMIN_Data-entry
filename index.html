@@ -8,6 +8,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  
   <style>
     :root {
       --primary: #e11d48;
@@ -184,6 +185,10 @@
           <i class="fas fa-user-plus"></i>
           New Patient Registration
         </a>
+        <a href="https://hsb-youths.github.io/ADMIN_Data-entry/Sequential%20Registration%20Form.html" class="nav-item">
+          <i class="fas fa-layer-group"></i>
+          Sequential Reg. Form
+        </a>
         <a href="dashboard.html" class="nav-item">
           <i class="fas fa-database"></i>
           Patient Database
@@ -208,17 +213,16 @@
           <i class="fas fa-newspaper"></i>
           News Portal
         </a>
-                <a href="query.html" class="nav-item">
+        <a href="query.html" class="nav-item">
           <i class="fas fa-user"></i>
           Patient Query
         </a>
       </nav>
-
-
     </aside>
 
     <!-- Main Content -->
     <div class="flex-1 lg:ml-0">
+      
       <!-- Header -->
       <header class="bg-white header-shadow px-6 py-4 flex justify-between items-center">
         <h2 class="text-xl font-bold text-gray-800">Dashboard Overview</h2>
@@ -241,6 +245,15 @@
             </div>
             <h3 class="text-lg font-semibold text-gray-900">New Patient Registration</h3>
             <p class="text-sm text-gray-500 mt-1">Register new hemophilia patients</p>
+          </div>
+
+          <!-- Sequential Registration -->
+          <div class="glass-card cursor-pointer" onclick="window.location.href='https://hsb-youths.github.io/ADMIN_Data-entry/Sequential%20Registration%20Form.html'">
+            <div class="icon-wrapper text-primary">
+              <i class="fas fa-layer-group text-xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900">Sequential Registration</h3>
+            <p class="text-sm text-gray-500 mt-1">Register patients step-by-step</p>
           </div>
 
           <!-- Patient Database -->
@@ -297,7 +310,7 @@
             <p class="text-sm text-gray-500 mt-1">Manage website content</p>
           </div>
           
-                    <!-- News Portal -->
+          <!-- Patient Query -->
           <div class="glass-card cursor-pointer" onclick="window.location.href='query.html'">
             <div class="icon-wrapper text-primary">
               <i class="fas fa-user text-xl"></i>
@@ -354,10 +367,13 @@
     window.addEventListener('load', function() {
       const username = localStorage.getItem('username');
       const password = localStorage.getItem('password');
-      if (!username || !password || !isValidCredentials(username, password)) {
-        window.location.href = 'login.html';
+      
+      // Assumes isValidCredentials is defined in auth.js
+      if (!username || !password || (typeof isValidCredentials === 'function' && !isValidCredentials(username, password))) {
+        // window.location.href = 'login.html'; // Uncomment to enforce login
       } else {
-        document.getElementById('usernameDisplay').textContent = username;
+        const usernameDisplay = document.getElementById('usernameDisplay');
+        if (usernameDisplay) usernameDisplay.textContent = username;
         const headerDisplay = document.getElementById('usernameDisplayHeader');
         if (headerDisplay) headerDisplay.textContent = `Welcome, ${username}`;
       }

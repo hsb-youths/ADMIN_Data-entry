@@ -416,14 +416,30 @@
     const photoStatus = document.getElementById("photoStatus");
     
     // Custom Alert Logic
-    window.showMessage = function(title, text) {
+    let redirectTimer = null;
+    let redirectTargetUrl = null;
+
+    window.showMessage = function(title, text, url = null) {
         document.getElementById("messageTitle").innerText = title;
         document.getElementById("messageText").innerText = text;
         document.getElementById("messageModal").classList.remove("hidden");
+        
+        if (url) {
+            redirectTargetUrl = url;
+            redirectTimer = setTimeout(() => {
+                window.location.href = url;
+            }, 2500); // Automatically redirect after 2.5 seconds
+        } else {
+            redirectTargetUrl = null;
+        }
     };
 
     window.closeMessageModal = function() {
         document.getElementById("messageModal").classList.add("hidden");
+        if (redirectTargetUrl) {
+            clearTimeout(redirectTimer);
+            window.location.href = redirectTargetUrl;
+        }
     };
 
     let videoStream = null;
@@ -646,7 +662,7 @@
         // Saving to the 'patients_on_hold' directory in Firebase Realtime Database
         await set(ref(db, 'patients_on_hold/' + patientId), patientData);
         
-        showMessage("Success", "Patient Profile saved to the Hold List Successfully!");
+        showMessage("Success", "Patient Profile saved to the Hold List Successfully! Redirecting to main form...", "https://hsb-youths.github.io/ADMIN_Data-entry/form.html");
         
         e.target.reset();
         photoStatus.classList.add("hidden");

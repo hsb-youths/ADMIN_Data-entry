@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Resolve On-Hold Patients</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .loader {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: inline-block;
+      position: relative;
+      border: 3px solid;
+      border-color: #FFF #FFF transparent transparent;
+      box-sizing: border-box;
+      animation: rotation 1s linear infinite;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      margin-top: -24px;
+      margin-left: -24px;
+      z-index: 9999;
+      background: transparent;
+    }
+    .loader::after,
+    .loader::before {
+      content: '';  
+      box-sizing: border-box;
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      margin: auto;
+      border: 3px solid;
+      border-color: transparent transparent #FF3D00 #FF3D00;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      animation: rotationBack 0.5s linear infinite;
+      transform-origin: center center;
+    }
+    .loader::before {
+      width: 32px;
+      height: 32px;
+      border-color: #FFF #FFF transparent transparent;
+      animation: rotation 1.5s linear infinite;
+    }
+        
+    @keyframes rotation {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    } 
+    @keyframes rotationBack {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(-360deg); }
+    }
+
+    #loaderOverlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 9998;
+      backdrop-filter: blur(2px);
+    }
+
+    .viewfinder-container {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      background: #000;
+      overflow: hidden;
+    }
+
+    .viewfinder-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .viewfinder-mask {
+      position: absolute;
+      inset: 0;
+      box-shadow: inset 0 0 0 2000px rgba(0, 0, 0, 0.5);
+    }
+
+    .viewfinder-box {
+      position: relative;
+      width: 250px;
+      height: 250px;
+      border: 2px solid #fff;
+      box-shadow: 0 0 15px rgba(0,0,0,0.5);
+      z-index: 10;
+    }
+    
+    .viewfinder-box::before {
+      content: '';
+      position: absolute;
+      top: -5px; left: -5px; width: 20px; height: 20px;
+      border-top: 4px solid #ef4444; border-left: 4px solid #ef4444;
+    }
+    .viewfinder-box::after {
+      content: '';
+      position: absolute;
+      bottom: -5px; right: -5px; width: 20px; height: 20px;
+      border-bottom: 4px solid #ef4444; border-right: 4px solid #ef4444;
+    }
+
+    @media (max-width: 640px) {
+      .viewfinder-box {
+        width: 180px;
+        height: 180px;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-100 font-sans leading-normal tracking-normal min-h-screen flex flex-col items-center py-8">
+
+  <div class="w-full max-w-4xl px-4">
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8 border-t-4 border-red-600">
+      <div class="text-center mb-4">
+        <h2 class="text-2xl font-bold text-gray-800">Resolve On-Hold Patients</h2>
+        <p class="text-gray-500 text-sm mt-1">Search for a patient on the hold list to update and move them to the main database.</p>
+      </div>
+      
+      <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4">
+        <div class="w-full md:w-1/2">
+          <input type="text" id="searchId" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="Enter Patient ID..." class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm" />
+        </div>
+        <button id="searchBtn" class="w-full md:w-auto px-6 py-3 bg-red-600 text-white font-bold rounded-md hover:bg-red-700 focus:ring-2 focus:ring-red-500 transition-colors shadow-sm whitespace-nowrap">
+          Search Hold List
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="formContainer" class="w-full max-w-6xl px-4 hidden">
+    <div class="bg-white rounded-lg shadow-xl p-6 md:p-8 mb-12">
+      <div class="mb-6 flex justify-between items-center border-b pb-4">
+        <h3 class="text-xl font-bold text-red-600">Update Patient Information</h3>
+        <span class="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-bold rounded-full border border-yellow-200">Currently On Hold</span>
+      </div>
+
+      <!-- Display the Hold Note -->
+      <div id="holdNoteDisplayContainer" class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-r-md hidden">
+        <h4 class="text-red-700 font-bold text-sm mb-1">Reason for Hold / Missing Info:</h4>
+        <p id="holdNoteDisplay" class="text-gray-700 text-sm italic"></p>
+      </div>
+
+      <form id="patientForm" class="space-y-6">
+
+        <!-- Row 1: Patient ID, Name, Age -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="input-group">
+            <label for="patientId" class="block text-sm font-medium text-gray-700">Patient ID</label>
+            <input type="text" id="patientId" readonly class="mt-1 block w-full p-3 border border-gray-300 rounded-md bg-gray-100 font-bold text-gray-700" />
+          </div>
+          <div class="input-group">
+            <label for="name" class="block text-sm font-medium text-gray-700">Name <span class="text-red-500">*</span></label>
+            <input type="text" id="name" required class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" />
+          </div>
+          <div class="input-group">
+            <label for="age" class="block text-sm font-medium text-gray-700">Age</label>
+            <input type="number" id="age" readonly class="mt-1 block w-full p-3 border border-gray-300 rounded-md bg-gray-100" />
+          </div>
+        </div>
+
+        <!-- Row 2: Factor Type, Factor Level, Phone Number -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="input-group">
+            <label for="factorType" class="block text-sm font-medium text-gray-700">Factor Type <span class="text-red-500">*</span></label>
+            <select id="factorType" required class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
+              <option value="" disabled selected>Select Factor Type</option>
+              <option value="VIII">Factor VIII</option>
+              <option value="IX">Factor IX</option>
+              <option value="VWD">VWD</option>
+              <option value="Others">Others</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label for="factorLevel" class="block text-sm font-medium text-gray-700">Factor Level <span class="text-red-500">*</span></label>
+            <input type="text" id="factorLevel" required class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" />
+          </div>
+          <div class="input-group">
+            <label for="phone" class="block text-sm font-medium text-gray-700">Phone Number <span class="text-red-500">*</span></label>
+            <input type="text" id="phone" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" />
+          </div>
+        </div>
+
+        <!-- Row 3: Home Town, NID, and Photo -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="input-group">
+            <label for="hometown" class="block text-sm font-medium text-gray-700">Home Town <span class="text-red-500">*</span></label>
+            <input type="text" id="hometown" list="districtList" required placeholder="Type or select a district..." autocomplete="off" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" />
+            <datalist id="districtList">
+              <option value="Bagerhat"></option><option value="Bandarban"></option><option value="Barguna"></option><option value="Barishal"></option><option value="Bhola"></option><option value="Bogura"></option><option value="Brahmanbaria"></option><option value="Chandpur"></option><option value="Chapainawabganj"></option><option value="Chattogram"></option><option value="Chuadanga"></option><option value="Cox's Bazar"></option><option value="Cumilla"></option><option value="Dhaka"></option><option value="Dinajpur"></option><option value="Faridpur"></option><option value="Feni"></option><option value="Gaibandha"></option><option value="Gazipur"></option><option value="Gopalganj"></option><option value="Habiganj"></option><option value="Jamalpur"></option><option value="Jashore"></option><option value="Jhalokati"></option><option value="Jhenaidah"></option><option value="Joypurhat"></option><option value="Khagrachari"></option><option value="Khulna"></option><option value="Kishoreganj"></option><option value="Kurigram"></option><option value="Kushtia"></option><option value="Lakshmipur"></option><option value="Lalmonirhat"></option><option value="Madaripur"></option><option value="Magura"></option><option value="Manikganj"></option><option value="Meherpur"></option><option value="Moulvibazar"></option><option value="Munshiganj"></option><option value="Mymensingh"></option><option value="Naogaon"></option><option value="Narail"></option><option value="Narayanganj"></option><option value="Narsingdi"></option><option value="Natore"></option><option value="Netrokona"></option><option value="Nilphamari"></option><option value="Noakhali"></option><option value="Pabna"></option><option value="Panchagarh"></option><option value="Patuakhali"></option><option value="Pirojpur"></option><option value="Rajbari"></option><option value="Rajshahi"></option><option value="Rangamati"></option><option value="Rangpur"></option><option value="Satkhira"></option><option value="Shariatpur"></option><option value="Sherpur"></option><option value="Sirajganj"></option><option value="Sunamganj"></option><option value="Sylhet"></option><option value="Tangail"></option><option value="Thakurgaon"></option>
+            </datalist>
+          </div>
+          <div class="input-group">
+            <label for="nid" class="block text-sm font-medium text-gray-700">NID/Birth No. <span class="text-red-500">*</span></label>
+            <input type="text" id="nid" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" />
+          </div>
+          <div class="input-group">
+            <label class="block text-sm font-medium text-gray-700">Patient Photo</label>
+            <div class="flex items-center space-x-3 mt-1">
+              <!-- Display existing photo if any -->
+              <img id="existingPhotoPreview" class="hidden w-12 h-12 rounded-md object-cover border border-gray-300" src="" alt="Existing photo">
+              
+              <div class="flex flex-col w-full space-y-2">
+                <div class="flex flex-col xl:flex-row items-start xl:items-center space-y-2 xl:space-y-0 xl:space-x-2">
+                  <input type="file" id="imageUpload" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 border border-gray-300 p-1 rounded-md focus:ring-red-500" />
+                  <button type="button" id="openWebcamBtn" class="w-full xl:w-auto px-3 py-1.5 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 focus:ring-red-500 text-sm whitespace-nowrap">📷 Webcam</button>
+                </div>
+              </div>
+            </div>
+            <p id="photoStatus" class="text-green-600 text-xs mt-1 hidden">New photo selected.</p>
+            <input type="hidden" id="existingImageUrl" value="" />
+          </div>
+        </div>
+
+        <!-- Row 4: Membership Dates and DOB -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="input-group">
+            <label for="membershipDate" class="block text-sm font-medium text-gray-700">Date of Membership</label>
+            <input type="date" id="membershipDate" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" />
+          </div>
+          <div class="input-group">
+            <label for="membershipType" class="block text-sm font-medium text-gray-700">Membership Type</label>
+            <select id="membershipType" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
+              <option value="patient" selected>Patient Member</option>
+              <option value="guardian_member">Guardian Member</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label for="dob" class="block text-sm font-medium text-gray-700">Date of Birth <span class="text-red-500">*</span></label>
+            <input type="date" id="dob" required class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" />
+          </div>
+        </div>
+
+        <!-- Row 5: Parents -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="input-group">
+            <label for="fatherName" class="block text-sm font-medium text-gray-700">Father's Name</label>
+            <input type="text" id="fatherName" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" />
+          </div>
+          <div class="input-group">
+            <label for="motherName" class="block text-sm font-medium text-gray-700">Mother's Name</label>
+            <input type="text" id="motherName" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" />
+          </div>
+        </div>
+
+        <!-- Row 6: Addresses -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="input-group">
+            <label for="presentAddress" class="block text-sm font-medium text-gray-700">Present Address</label>
+            <input type="text" id="presentAddress" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" />
+          </div>
+          <div class="input-group">
+            <label for="permanentAddress" class="block text-sm font-medium text-gray-700">Permanent Address</label>
+            <input type="text" id="permanentAddress" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" />
+          </div>
+        </div>
+
+        <!-- Row 7: Email -->
+        <div class="grid grid-cols-1 gap-4">
+          <div class="input-group">
+            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+            <input type="email" id="email" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" />
+          </div>
+        </div>
+
+        <!-- Row 8: History, Blood Group, Occupation -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="input-group">
+            <label for="diseaseHistory" class="block text-sm font-medium text-gray-700">Disease History</label>
+            <input type="text" id="diseaseHistory" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" />
+          </div>
+          <div class="input-group">
+            <label for="bloodGroup" class="block text-sm font-medium text-gray-700">Blood Group</label>
+            <select id="bloodGroup" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
+              <option value="">-- Select Blood Group --</option>
+              <option value="A+">A+</option><option value="A-">A-</option><option value="B+">B+</option><option value="B-">B-</option>
+              <option value="O+">O+</option><option value="O-">O-</option><option value="AB+">AB+</option><option value="AB-">AB-</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label for="occupation" class="block text-sm font-medium text-gray-700">Occupation</label>
+            <select id="occupation" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
+              <option value="" disabled selected>-- Select --</option>
+              <option value="Baby">Baby</option><option value="Student">Student</option><option value="Businessmen">Businessmen</option>
+              <option value="Service">Service</option><option value="Job">Job</option><option value="Unemployed">Unemployed</option><option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Row 9: Income, Disease Class, Marital Status -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="input-group">
+            <label for="income" class="block text-sm font-medium text-gray-700">Annual Income</label>
+            <input type="text" id="income" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" />
+          </div>
+          <div class="input-group">
+            <label for="diseaseClass" class="block text-sm font-medium text-gray-700">Disease Class</label>
+            <select id="diseaseClass" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
+              <option value="" disabled selected>-- Select --</option>
+              <option>Hemophilia A</option>
+              <option>Hemophilia B</option>
+              <option>Von Willebrand Disease</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label for="maritalStatus" class="block text-sm font-medium text-gray-700">Marital Status</label>
+            <select id="maritalStatus" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
+              <option value="" disabled selected>-- Select --</option>
+              <option>Single</option>
+              <option>Married</option>
+              <option>Divorced</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Row 10: Spouse, Children, Nationality -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="input-group">
+            <label for="spouse" class="block text-sm font-medium text-gray-700">Spouse Name</label>
+            <input type="text" id="spouse" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" />
+          </div>
+          <div class="input-group">
+            <label for="children" class="block text-sm font-medium text-gray-700">No. of Children</label>
+            <input type="number" id="children" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" />
+          </div>
+          <div class="input-group">
+            <label for="nationality" class="block text-sm font-medium text-gray-700">Nationality</label>
+            <input type="text" id="nationality" value="Bangladeshi" readonly class="mt-1 block w-full p-3 border border-gray-300 rounded-md bg-gray-100" />
+          </div>
+        </div>
+
+        <!-- Row 11: Status & Organs -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="input-group">
+            <label for="membershipStatus" class="block text-sm font-medium text-gray-700">Membership Status</label>
+            <select id="membershipStatus" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
+              <option value="" disabled selected>-- Select --</option>
+              <option>Annual Membership</option>
+              <option>Life Membership</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label for="organsAffected" class="block text-sm font-medium text-gray-700">Present Affected Organs</label>
+            <input type="text" id="organsAffected" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" />
+          </div>
+        </div>
+
+        <div class="border-t pt-6 mt-8">
+          <button type="submit" id="submitBtn" class="w-full bg-green-600 text-white py-4 rounded-md text-lg font-bold hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors shadow-lg flex justify-center items-center">
+            <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            Save to Main Database & Remove from Hold
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- Webcam Modal -->
+  <div id="webcamModal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-[10000] flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg p-6 w-full max-w-lg shadow-xl">
+      <h3 class="text-xl font-bold text-gray-800 mb-4">Capture Patient Photo</h3>
+      <div class="viewfinder-container rounded-lg">
+        <video id="webcamVideo" autoplay playsinline class="w-full h-full object-cover"></video>
+        <div class="viewfinder-overlay">
+          <div class="viewfinder-mask"></div>
+          <div id="viewfinderBox" class="viewfinder-box"></div>
+        </div>
+      </div>
+      <canvas id="webcamCanvas" class="hidden"></canvas>
+      <div class="mt-6 flex justify-end space-x-3">
+        <button type="button" id="closeWebcamBtn" class="px-5 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 font-medium transition-colors">Cancel</button>
+        <button type="button" id="captureBtn" class="px-5 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 font-medium transition-colors">Capture Photo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Message Modal (Replaces JS alerts) -->
+  <div id="messageModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[10001] flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+    <div class="bg-white rounded-lg p-6 max-w-sm w-full shadow-2xl text-center transform transition-all">
+      <h3 id="messageTitle" class="text-xl font-bold mb-3 text-gray-800"></h3>
+      <p id="messageText" class="text-gray-600 mb-6 text-sm"></p>
+      <button onclick="closeMessageModal()" class="w-full bg-red-600 text-white py-2.5 rounded-md hover:bg-red-700 font-medium transition-colors">Close</button>
+    </div>
+  </div>
+
+  <div id="loaderOverlay"><div class="loader"></div></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+    import { getDatabase, ref, set, get, remove, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB7QLBLarDiqdpYy5jw8_1e-gTR-aR1Wqc",
+      authDomain: "hemophilia-society-of-bd.firebaseapp.com",
+      projectId: "hemophilia-society-of-bd",
+      storageBucket: "hemophilia-society-of-bd.firebasestorage.app",
+      messagingSenderId: "674332798483",
+      appId: "1:674332798483:web:cedb62cb05e03b5cadd9e6"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // Modals & UI Utils
+    window.showMessage = function(title, text) {
+        document.getElementById("messageTitle").innerText = title;
+        document.getElementById("messageText").innerText = text;
+        document.getElementById("messageModal").classList.remove("hidden");
+    };
+    window.closeMessageModal = function() {
+        document.getElementById("messageModal").classList.add("hidden");
+    };
+
+    const loaderOverlay = document.getElementById("loaderOverlay");
+    function showLoader() { loaderOverlay.style.display = "block"; }
+    function hideLoader() { loaderOverlay.style.display = "none"; }
+
+    // Elements
+    const searchBtn = document.getElementById("searchBtn");
+    const searchIdInput = document.getElementById("searchId");
+    const formContainer = document.getElementById("formContainer");
+    const patientForm = document.getElementById("patientForm");
+    const holdNoteDisplayContainer = document.getElementById("holdNoteDisplayContainer");
+    const holdNoteDisplay = document.getElementById("holdNoteDisplay");
+    
+    const factorTypeSelect = document.getElementById("factorType");
+    const diseaseClassSelect = document.getElementById("diseaseClass");
+    const dobInput = document.getElementById("dob");
+    const ageInput = document.getElementById("age");
+    
+    // Photo Elements
+    const imageUpload = document.getElementById("imageUpload");
+    const openWebcamBtn = document.getElementById("openWebcamBtn");
+    const webcamModal = document.getElementById("webcamModal");
+    const webcamVideo = document.getElementById("webcamVideo");
+    const webcamCanvas = document.getElementById("webcamCanvas");
+    const viewfinderBox = document.getElementById("viewfinderBox");
+    const closeWebcamBtn = document.getElementById("closeWebcamBtn");
+    const captureBtn = document.getElementById("captureBtn");
+    const photoStatus = document.getElementById("photoStatus");
+    const existingPhotoPreview = document.getElementById("existingPhotoPreview");
+    const existingImageUrlInput = document.getElementById("existingImageUrl");
+
+    let videoStream = null;
+    let imageFileToUpload = null;
+
+    searchBtn.addEventListener("click", async () => {
+      const patientId = searchIdInput.value.trim();
+      if (!patientId) {
+        showMessage("Validation Error", "Please enter a Patient ID to search.");
+        return;
+      }
+
+      showLoader();
+      try {
+        const snapshot = await get(ref(db, `patients_on_hold/${patientId}`));
+        if (snapshot.exists()) {
+          const patientData = snapshot.val();
+          populateForm(patientId, patientData);
+          formContainer.classList.remove("hidden");
+          // Scroll to form smoothly
+          formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+          formContainer.classList.add("hidden");
+          showMessage("Not Found", `No patient found on the Hold List with ID: ${patientId}`);
+        }
+      } catch (err) {
+        showMessage("Database Error", "Failed to search patient: " + err.message);
+      } finally {
+        hideLoader();
+      }
+    });
+
+    // Populate Form Helper
+    function populateForm(id, data) {
+      // Reset any previous state
+      patientForm.reset();
+      imageFileToUpload = null;
+      photoStatus.classList.add("hidden");
+      openWebcamBtn.textContent = "📷 Webcam";
+
+      // Set ID
+      document.getElementById("patientId").value = id;
+
+      // Handle Note Display
+      if (data.holdNote && data.holdNote.trim() !== "") {
+        holdNoteDisplay.innerText = data.holdNote;
+        holdNoteDisplayContainer.classList.remove("hidden");
+      } else {
+        holdNoteDisplayContainer.classList.add("hidden");
+      }
+
+      // Handle Existing Image
+      if (data.imageUrl) {
+        existingPhotoPreview.src = data.imageUrl;
+        existingPhotoPreview.classList.remove("hidden");
+        existingImageUrlInput.value = data.imageUrl;
+      } else {
+        existingPhotoPreview.classList.add("hidden");
+        existingImageUrlInput.value = "";
+      }
+
+      // Fill text/select fields (excluding specific ones handled manually)
+      const excludeFields = ['patientId', 'holdNote', 'imageUrl', 'timestamp'];
+      for (const key in data) {
+        if (!excludeFields.includes(key)) {
+          const element = document.getElementById(key);
+          if (element) {
+            element.value = data[key];
+          }
+        }
+      }
+
+      // Trigger recalculations if needed
+      if(data.dob) {
+        ageInput.value = calculateAge(data.dob);
+      }
+    }
+
+    // Automatic Selection Logic
+    factorTypeSelect.addEventListener("change", () => {
+      const mapping = {
+        "VIII": "Hemophilia A",
+        "IX": "Hemophilia B",
+        "VWD": "Von Willebrand Disease",
+        "Others": "Other"
+      };
+      const selectedValue = factorTypeSelect.value;
+      if (mapping[selectedValue]) {
+        diseaseClassSelect.value = mapping[selectedValue];
+      }
+    });
+
+    // Age Calculation
+    function calculateAge(dob) {
+      if (!dob) return "";
+      const birthDate = new Date(dob);
+      const currentDate = new Date();
+      let age = currentDate.getFullYear() - birthDate.getFullYear();
+      const monthDiff = currentDate.getMonth() - birthDate.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && currentDate.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      return age >= 0 ? age : 0;
+    }
+
+    dobInput.addEventListener("change", () => {
+      ageInput.value = calculateAge(dobInput.value);
+    });
+
+    // Photo Handling (Updating)
+    imageUpload.addEventListener("change", () => {
+      if (imageUpload.files && imageUpload.files.length > 0) {
+        imageFileToUpload = imageUpload.files[0];
+        photoStatus.textContent = "✅ New photo selected from device.";
+        photoStatus.classList.remove("hidden");
+        openWebcamBtn.textContent = "📷 Webcam";
+      }
+    });
+
+    openWebcamBtn.addEventListener("click", async () => {
+      webcamModal.classList.remove("hidden");
+      try {
+        videoStream = await navigator.mediaDevices.getUserMedia({ 
+          video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } } 
+        });
+        webcamVideo.srcObject = videoStream;
+      } catch (err) {
+        showMessage("Webcam Error", err.message);
+        webcamModal.classList.add("hidden");
+      }
+    });
+
+    function stopWebcam() {
+      if (videoStream) videoStream.getTracks().forEach(track => track.stop());
+      webcamVideo.srcObject = null;
+      webcamModal.classList.add("hidden");
+    }
+
+    closeWebcamBtn.addEventListener("click", stopWebcam);
+
+    captureBtn.addEventListener("click", () => {
+      const context = webcamCanvas.getContext("2d");
+      const videoWidth = webcamVideo.videoWidth;
+      const videoHeight = webcamVideo.videoHeight;
+      const displayWidth = webcamVideo.clientWidth;
+      const displayHeight = webcamVideo.clientHeight;
+      const vBoxRect = viewfinderBox.getBoundingClientRect();
+      const videoRect = webcamVideo.getBoundingClientRect();
+      const scaleX = videoWidth / displayWidth;
+      const scaleY = videoHeight / displayHeight;
+      const cropX = (vBoxRect.left - videoRect.left) * scaleX;
+      const cropY = (vBoxRect.top - videoRect.top) * scaleY;
+      const cropWidth = vBoxRect.width * scaleX;
+      const cropHeight = vBoxRect.height * scaleY;
+      
+      webcamCanvas.width = 500;
+      webcamCanvas.height = 500;
+      context.drawImage(webcamVideo, cropX, cropY, cropWidth, cropHeight, 0, 0, 500, 500);
+      
+      webcamCanvas.toBlob((blob) => {
+        imageFileToUpload = blob;
+        imageUpload.value = "";
+        photoStatus.textContent = "✅ New photo captured via viewfinder.";
+        photoStatus.classList.remove("hidden");
+        openWebcamBtn.textContent = "✅ Captured (Retake)";
+        stopWebcam();
+      }, "image/jpeg", 0.9);
+    });
+
+    // Form Submission
+    patientForm.addEventListener("submit", async function(e) {
+      e.preventDefault();
+      
+      showLoader();
+      const patientId = document.getElementById("patientId").value.trim();
+
+      try {
+        let finalImageUrl = existingImageUrlInput.value; // default to existing photo if any
+
+        // If user uploaded/captured a NEW photo, upload it to ImgBB
+        if (imageFileToUpload) {
+            const formData = new FormData();
+            formData.append("image", imageFileToUpload, `${patientId}_updated.jpg`);
+            formData.append("key", "34586b2f49002bd441a1e6816d633fd9");
+
+            const imgResponse = await fetch("https://api.imgbb.com/1/upload", { method: "POST", body: formData });
+            const imgData = await imgResponse.json();
+
+            if (imgData.success) {
+                finalImageUrl = imgData.data.url;
+            } else {
+                console.warn("New image upload failed. Using previous image if available.");
+            }
+        }
+
+        // Build the complete patient data object
+        const patientData = { 
+            timestamp: serverTimestamp() 
+        };
+        
+        if (finalImageUrl) {
+            patientData.imageUrl = finalImageUrl;
+        }
+
+        // Loop through elements and save values 
+        Array.from(e.target.elements).forEach(el => {
+          if (el.id && el.type !== "submit" && el.type !== "button" && el.id !== "imageUpload" && el.id !== "existingImageUrl") {
+            patientData[el.id] = el.value;
+          }
+        });
+
+        // 1. Save to the main 'patients' directory
+        await set(ref(db, 'patients/' + patientId), patientData);
+        
+        // 2. Delete from 'patients_on_hold' directory
+        await remove(ref(db, 'patients_on_hold/' + patientId));
+        
+        // Cleanup UI on success
+        showMessage("Success!", "Patient Profile successfully updated, moved to the Main Database, and removed from the Hold List.");
+        
+        patientForm.reset();
+        formContainer.classList.add("hidden");
+        searchIdInput.value = "";
+        
+      } catch (err) {
+        showMessage("Migration Error", err.message);
+      } finally {
+        hideLoader();
+      }
+    });
+  </script>
+</body>
+</html>

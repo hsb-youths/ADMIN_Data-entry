@@ -6,7 +6,6 @@
   <title>Patient Info Dashboard | HSB</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Added html2pdf.js for PDF Generation -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
@@ -143,7 +142,7 @@
 
   <!-- Scanner Modal -->
   <div id="scannerModal" class="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4">
-    <div class="glass rounded-2xl shadow-2xl p-8 w-full max-md text-center relative">
+    <div class="glass rounded-2xl shadow-2xl p-8 w-full max-w-md text-center relative">
       <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-red-500/10 to-rose-500/10 pointer-events-none"></div>
       <h3 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-700 mb-6">
         Scan Patient QR Code
@@ -156,7 +155,7 @@
           <p class="text-sm opacity-70 mt-1">or enter Patient ID manually</p>
         </div>
       </div>
-      <button id="skipScanBtn" class="mt-6 btn bg-yellow-500 hover:bg-yellow-600 text-white w-full py-3 text-lg font-semibold">
+      <button id="skipScanBtn" class="mt-6 btn bg-yellow-500 hover:bg-yellow-600 text-white w-full py-3 text-lg font-semibold justify-center">
         Skip Scanning
       </button>
     </div>
@@ -213,7 +212,7 @@
             placeholder="Enter Patient ID"
             class="flex-1 px-4 py-3 rounded-xl border border-red-200 bg-white shadow-sm focus:outline-none focus:border-red-500"
             />
-            <button id="searchBtnMobile" class="btn btn-primary px-4 py-3 rounded-xl">
+            <button id="searchBtnMobile" class="btn btn-primary px-4 py-3 rounded-xl justify-center">
             <i data-lucide="search"></i>
             </button>
         </div>
@@ -281,7 +280,14 @@
     const fetchPatientInfo = async (isMobile = false) => {
       const patientId = isMobile ? searchInputMobile.value.trim() : searchInput.value.trim();
       if (!patientId) {
-        alert("Please enter a Patient ID.");
+        // Fallback to basic alert inside iframe boundary
+        const modalHtml = `<div class="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
+            <div class="bg-white rounded-lg p-6 max-w-sm w-full text-center shadow-xl">
+                <p class="text-gray-800 font-semibold mb-4">Please enter a Patient ID.</p>
+                <button onclick="this.parentElement.parentElement.remove()" class="bg-red-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-red-700">Close</button>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
         return;
       }
 
@@ -292,33 +298,68 @@
 
       try {
         const patientSnapshot = await get(ref(db, 'patients/' + patientId));
+        let isHold = false;
+        let patientData = null;
+
+        // 1. Check main database first
+        if (patientSnapshot.exists()) {
+          patientData = patientSnapshot.val();
+        } else {
+          // 2. Check hold database if not found
+          const holdSnapshot = await get(ref(db, 'patients_on_hold/' + patientId));
+          if (holdSnapshot.exists()) {
+            patientData = holdSnapshot.val();
+            isHold = true;
+          }
+        }
+
         loader.classList.add("hidden");
 
-        if (patientSnapshot.exists()) {
-          const patientData = patientSnapshot.val();
+        if (patientData) {
+          // Add patientId explicitly just in case missing in payload
+          if (!patientData.patientId) patientData.patientId = patientId;
+
+          // Badges and conditionally rendered text for On Hold
+          const holdBadge = isHold ? `<span class="ml-3 inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-yellow-100 text-yellow-800 border border-yellow-300 shadow-sm"><i class="fas fa-exclamation-triangle mr-1"></i> Patient On Hold</span>` : '';
+          const holdNoteHtml = (isHold && patientData.holdNote) ? `<div class="mt-4 p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-r-md"><p class="text-sm text-yellow-800"><strong>Reason for Hold:</strong> ${patientData.holdNote}</p></div>` : '';
+          
+          const actionButtons = isHold 
+            ? `
+                <button onclick='showDetails(${JSON.stringify(patientData).replace(/'/g, "&apos;")})' class="btn btn-success flex-1 md:flex-none justify-center">
+                  <i data-lucide="eye"></i> View Details
+                </button>
+                <a href="https://hsb-youths.github.io/ADMIN_Data-entry/Resolve%20On-Hold%20Patients.html" class="btn bg-orange-500 hover:bg-orange-600 text-white flex-1 md:flex-none justify-center flex items-center">
+                  <i data-lucide="wrench" class="mr-2"></i> Resolve Profile
+                </a>
+              `
+            : `
+                <button onclick='showDetails(${JSON.stringify(patientData).replace(/'/g, "&apos;")})' class="btn btn-success flex-1 md:flex-none justify-center">
+                  <i data-lucide="eye"></i> Full Details
+                </button>
+                <button onclick="window.location.href='/update/${patientData.patientId}'" class="btn btn-edit flex-1 md:flex-none justify-center">
+                  <i data-lucide="edit"></i> Update
+                </button>
+                <button id="pdfDownloadTrigger" class="btn bg-purple-600 hover:bg-purple-700 text-white w-full md:w-auto justify-center">
+                  <i data-lucide="download"></i> Download Form PDF
+                </button>
+              `;
+
           resultContainer.innerHTML = `
-            <div class="patient-card p-6 md:p-8">
+            <div class="patient-card p-6 md:p-8 ${isHold ? 'border-2 border-yellow-400 ring-4 ring-yellow-50' : ''}">
               <div class="grid md:grid-cols-2 gap-8">
                 <div class="space-y-6">
-                  <h3 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-700">
-                    Patient Summary
+                  <h3 class="text-3xl font-bold flex flex-wrap items-center ${isHold ? 'text-yellow-600' : 'text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-700'}">
+                    ${isHold ? 'Attention Required' : 'Patient Summary'} ${holdBadge}
                   </h3>
                   <div class="space-y-3 text-lg">
-                    <div><strong class="text-red-600">ID:</strong> ${patientData.patientId || 'N/A'}</div>
-                    <div><strong class="text-red-600">Name:</strong> ${patientData.name || 'N/A'}</div>
-                    <div><strong class="text-red-600">DOB:</strong> ${patientData.dob || 'N/A'}</div>
-                    <div><strong class="text-red-600">Phone:</strong> ${patientData.phone || 'N/A'}</div>
+                    <div><strong class="${isHold ? 'text-yellow-700' : 'text-red-600'}">ID:</strong> ${patientData.patientId || 'N/A'}</div>
+                    <div><strong class="${isHold ? 'text-yellow-700' : 'text-red-600'}">Name:</strong> ${patientData.name || 'N/A'}</div>
+                    <div><strong class="${isHold ? 'text-yellow-700' : 'text-red-600'}">DOB:</strong> ${patientData.dob || 'N/A'}</div>
+                    <div><strong class="${isHold ? 'text-yellow-700' : 'text-red-600'}">Phone:</strong> ${patientData.phone || 'N/A'}</div>
                   </div>
-                  <div class="flex flex-wrap gap-3">
-                    <button onclick='showDetails(${JSON.stringify(patientData).replace(/'/g, "&apos;")})' class="btn btn-success flex-1 md:flex-none justify-center">
-                      <i data-lucide="eye"></i> Full Details
-                    </button>
-                    <button onclick="window.location.href='/update/${patientData.patientId}'" class="btn btn-edit flex-1 md:flex-none justify-center">
-                      <i data-lucide="edit"></i> Update
-                    </button>
-                    <button id="pdfDownloadTrigger" class="btn bg-purple-600 hover:bg-purple-700 text-white w-full md:w-auto justify-center">
-                      <i data-lucide="download"></i> Download Form PDF
-                    </button>
+                  ${holdNoteHtml}
+                  <div class="flex flex-wrap gap-3 mt-4">
+                    ${actionButtons}
                   </div>
                 </div>
                 <div class="flex justify-center items-center">
@@ -331,8 +372,11 @@
             </div>
           `;
 
-          document.getElementById('pdfDownloadTrigger').onclick = () => downloadPatientPDF(patientData);
+          if (!isHold) {
+             document.getElementById('pdfDownloadTrigger').onclick = () => downloadPatientPDF(patientData);
+          }
 
+          // Fetch injections (Only fetch these if not on hold, or attempt anyway if data is somehow there)
           const injectionsSnapshot = await get(ref(db, 'injections/' + patientId));
           if (injectionsSnapshot.exists()) {
             const injectionsData = injectionsSnapshot.val();
@@ -360,6 +404,7 @@
             `;
           }
 
+          // Fetch Subscriptions
           const subsSnapshot = await get(ref(db, `subscriptions/${patientId}/yearly`));
           if (subsSnapshot.exists()) {
             const subsData = subsSnapshot.val();
@@ -391,14 +436,14 @@
                 </div>
               </div>
             `;
-          } else {
+          } else if (!isHold) {
             subscriptionTransactionsContainer.innerHTML = `<div class="text-center text-red-500 font-semibold py-8">No subscription transactions found.</div>`;
           }
 
           if (window.lucide) lucide.createIcons();
 
         } else {
-          resultContainer.innerHTML = `<div class="text-center text-red-600 font-bold text-xl mt-8">Patient not found.</div>`;
+          resultContainer.innerHTML = `<div class="text-center text-red-600 font-bold text-xl mt-8">Patient not found in active or hold list.</div>`;
         }
 
       } catch (error) {
@@ -431,13 +476,10 @@
     };
 
     window.downloadPatientPDF = function(data) {
-      // Create a temporary element strictly sized to A4 proportions in pixels.
-      // This guarantees mobile devices won't squash the flexbox layout.
       const element = document.createElement('div');
       const currentDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric' });
       const currentTimestamp = Date.now();
       
-      // Define specifically requested pairs from the text
       const gridPairs = [
         ['Phone', 'Nid'],
         ['Dob', 'Age'],
@@ -452,7 +494,6 @@
         ['Organs Affected', 'Spouse']
       ];
 
-      // Convert data keys to a standardized lookup format (camelCase handling)
       const getVal = (keyStr) => {
         const camelKey = keyStr.charAt(0).toLowerCase() + keyStr.slice(1).replace(/ ([A-Za-z])/g, (m, c) => c.toUpperCase());
         return data[camelKey] || data[keyStr] || data[keyStr.toLowerCase()] || '';
@@ -553,30 +594,26 @@
         </div>
       `;
 
-      // Essential options to ensure formatting ignores viewport size (Mobile proof)
       const opt = {
-        margin: 0, // Set strictly to 0, managed entirely by padding inside #pdf-root
+        margin: 0,
         filename: `${data.patientId || 'HSB'}_Record.pdf`,
         image: { type: 'jpeg', quality: 1.0 },
         html2canvas: { 
           scale: 2, 
           useCORS: true, 
           logging: false,
-          // CRITICAL: Explicitly set the width and height of the virtual window 
-          // to prevent vertical/horizontal cut-offs regardless of actual screen size
           windowWidth: 794, 
           windowHeight: 1122,
           width: 794,
           height: 1122,
-          x: 0, // Locks the camera to the far-left
-          y: 0, // Locks the camera to the top
+          x: 0,
+          y: 0,
           scrollY: 0,
           scrollX: 0
         },
         jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' }
       };
 
-      // Generate PDF directly from detached element (No DOM append hacks needed)
       html2pdf().set(opt).from(element.querySelector('#pdf-root')).save();
     };
 
@@ -596,7 +633,6 @@
     // Prevent focus loss if user accidentally clicks the modal background
     scannerModal.addEventListener("click", (e) => {
       if (e.target.id !== "skipScanBtn") {
-        // Refocus the correct input based on screen size
         if (window.innerWidth > 768) {
           searchInput.focus();
         } else {
@@ -611,7 +647,6 @@
         let typingTimer;
         let isScannerBurst = false;
 
-        // Ensure manual "Enter" presses still submit the form normally
         inputElement.addEventListener("keydown", (e) => {
             if (e.key === "Enter") {
                 scannerModal.classList.add("hidden");
@@ -620,7 +655,6 @@
         });
 
         inputElement.addEventListener('input', (e) => {
-            // 1. Instantly hide the modal whenever ANY input is received
             scannerModal.classList.add("hidden");
 
             const now = Date.now();
@@ -628,34 +662,29 @@
             const timeDiff = now - lastInputTime;
             const lengthDiff = currentLength - lastValueLength;
 
-            // 2. Detect Paste or Rapid Scanner Input (less than 40ms per keystroke)
             if (lengthDiff > 1 || (lengthDiff === 1 && timeDiff < 40)) {
                 isScannerBurst = true;
             } else if (timeDiff >= 40) {
-                isScannerBurst = false; // Flag as human typing
+                isScannerBurst = false;
             }
 
             lastInputTime = now;
             lastValueLength = currentLength;
-
             clearTimeout(typingTimer);
 
-            // 3. Auto-submit if it was a scanner burst and typing has finished
             typingTimer = setTimeout(() => {
                 if (isScannerBurst && inputElement.value.trim().length >= 1) {
                     fetchPatientInfo(isMobile);
                 }
-                isScannerBurst = false; // Reset for next interactions
+                isScannerBurst = false;
             }, 250); 
         });
     }
 
-    // Apply the smart detection to both Desktop and Mobile search inputs
     setupScannerDetection(searchInput, false);
     setupScannerDetection(searchInputMobile, true);
 
     window.addEventListener('DOMContentLoaded', () => {
-      // Ensure mobile gets focused initially as well
       if (window.innerWidth > 768) {
           searchInput.focus();
       } else {

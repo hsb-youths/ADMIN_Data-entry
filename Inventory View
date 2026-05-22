@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inventory Management | HSB</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    body { font-family: 'Inter', sans-serif; background: #f8fafc; }
+    .glass-card { background: white; border: 1px solid #e2e8f0; }
+  </style>
+</head>
+<body class="p-4 md:p-8">
+
+  <div class="max-w-7xl mx-auto space-y-8">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Inventory Portal</h1>
+        <p class="text-gray-500">Track, monitor, and report stock levels.</p>
+      </div>
+      <button onclick="generateReport()" class="px-6 py-3 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 shadow-md transition-all flex items-center gap-2">
+        <i class="fas fa-file-pdf"></i> Generate Full Report
+      </button>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="glass-card p-6 rounded-2xl shadow-sm border-l-4 border-green-500">
+        <div class="text-sm text-gray-500 uppercase font-bold tracking-wider">Total Items</div>
+        <div id="statTotal" class="text-4xl font-bold text-gray-900 mt-1">0</div>
+      </div>
+      <div class="glass-card p-6 rounded-2xl shadow-sm border-l-4 border-yellow-500">
+        <div class="text-sm text-gray-500 uppercase font-bold tracking-wider">Low Stock</div>
+        <div id="statLow" class="text-4xl font-bold text-gray-900 mt-1">0</div>
+      </div>
+      <div class="glass-card p-6 rounded-2xl shadow-sm border-l-4 border-red-500">
+        <div class="text-sm text-gray-500 uppercase font-bold tracking-wider">Out of Stock</div>
+        <div id="statOut" class="text-4xl font-bold text-gray-900 mt-1">0</div>
+      </div>
+    </div>
+
+    <!-- Inventory Table -->
+    <div class="glass-card rounded-2xl shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table id="inventoryTable" class="w-full text-left">
+          <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Factor Type</th>
+              <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Brand</th>
+              <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Dosage</th>
+              <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Lot/Vial</th>
+              <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Quantity</th>
+              <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Status</th>
+            </tr>
+          </thead>
+          <tbody id="inventoryBody" class="divide-y divide-gray-100"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB7QLBLarDiqdpYy5jw8_1e-gTR-aR1Wqc",
+      authDomain: "hemophilia-society-of-bd.firebaseapp.com",
+      projectId: "hemophilia-society-of-bd",
+      storageBucket: "hemophilia-society-of-bd.appspot.com",
+      messagingSenderId: "674332798483",
+      appId: "1:674332798483:web:cedb62cb05e03b5cadd9e6"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    onValue(ref(db, 'inventory_transactions/stock_in'), (snapshot) => {
+      const data = snapshot.val() || {};
+      const tbody = document.getElementById("inventoryBody");
+      tbody.innerHTML = '';
+      
+      let total = 0, low = 0, out = 0;
+
+      Object.values(data).forEach(item => {
+        total++;
+        if(item.quantity === 0) out++;
+        else if(item.quantity < 5) low++;
+
+        const statusClass = item.quantity === 0 ? 'bg-red-100 text-red-700' : 
+                            item.quantity < 5 ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700';
+        
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="px-6 py-4 font-semibold">${item.factorType}</td>
+          <td class="px-6 py-4">${item.brand}</td>
+          <td class="px-6 py-4">${item.dosage} IU</td>
+          <td class="px-6 py-4 text-gray-500">${item.vialInfo}</td>
+          <td class="px-6 py-4 font-bold">${item.quantity}</td>
+          <td class="px-6 py-4"><span class="px-3 py-1 rounded-full text-xs font-bold ${statusClass}">${item.quantity === 0 ? 'OUT' : item.quantity < 5 ? 'LOW' : 'GOOD'}</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById("statTotal").textContent = total;
+      document.getElementById("statLow").textContent = low;
+      document.getElementById("statOut").textContent = out;
+    });
+
+    window.generateReport = function() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFontSize(18);
+      doc.text("Inventory Status Report", 14, 20);
+      doc.setFontSize(10);
+      doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 28);
+      doc.autoTable({ html: '#inventoryTable', startY: 35 });
+      doc.save("HSB_Inventory_Report.pdf");
+    };
+  </script>
+</body>
+</html>

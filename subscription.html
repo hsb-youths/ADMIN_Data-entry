@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Subscription Panel</title>
+  <title>Subscription Panel | HSB Dashboard</title>
 
   <!-- Tailwind + Inter Font -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -13,210 +13,168 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
   <style>
-    * { font-family: 'Inter', sans-serif; }
-    body { background: linear-gradient(135deg, #e0eafc, #cfdef3); }
-
-    /* Glassmorphism Card */
-    .glass-card {
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    }
-
-    /* Neumorphic Input */
-    .neumorphic-input {
-      background: #e0e7ff;
-      box-shadow: 
-        inset 6px 6px 12px #c9d1f0,
-        inset -6px -6px 12px #f7fdff,
-        0 4px 6px rgba(0, 0, 0, 0.05);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .neumorphic-input:focus {
-      box-shadow: 
-        inset 4px 4px 8px #c9d1f0,
-        inset -4px -4px 8px #f7fdff,
-        0 0 0 3px rgba(99, 102, 241, 0.4);
-      transform: translateY(-2px);
-    }
-
-    /* Sidebar Glow */
-    .sidebar-glow {
-      box-shadow: 
-        0 0 40px rgba(79, 70, 229, 0.4),
-        0 20px 40px rgba(0, 0, 0, 0.15);
-    }
-
-    /* Button 3D Press */
-    .btn-3d {
-      transition: all 0.2s ease;
-      transform: translateY(0);
-    }
-    .btn-3d:active {
-      transform: translateY(2px);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-
-    /* Table Row Hover */
-    tbody tr {
-      transition: all 0.25s ease;
-    }
-    tbody tr:hover {
-      background: rgba(99, 102, 241, 0.08);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    }
+    body { font-family: 'Inter', sans-serif; }
+    
+    /* Smooth Transitions */
+    .transition-all { transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 300ms; }
 
     /* Sticky Header */
     thead th {
       position: sticky;
       top: 0;
-      background: linear-gradient(to bottom, #eef2ff, #e0e7ff);
       z-index: 10;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     }
 
     /* Mobile Drawer */
-    #sidebarDrawer {
-      transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
-    }
-    #sidebarDrawerOverlay {
-      transition: opacity 0.3s ease;
-    }
+    #sidebarDrawer { transition: transform 0.3s ease-in-out; }
+    #sidebarDrawerOverlay { transition: opacity 0.3s ease-in-out; }
 
     /* PDF Button Pulse */
-    .pulse-on-download {
-      animation: pulse 1.5s ease-in-out;
-    }
+    .pulse-on-download { animation: pulse 1.5s ease-in-out; }
     @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.7; }
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(0.95); }
     }
   </style>
 </head>
-<body class="min-h-screen flex text-gray-800">
+<body class="bg-gray-100 min-h-screen flex text-gray-800 tracking-normal">
 
   <!-- Mobile Hamburger -->
-  <div class="lg:hidden fixed top-4 left-4 z-50">
-    <button id="hamburgerBtn" class="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-xl border border-white/30 text-indigo-700 hover:bg-white/30 transition-all duration-300 btn-3d">
+  <div class="lg:hidden fixed top-4 left-4 z-40">
+    <button id="hamburgerBtn" class="w-12 h-12 bg-white rounded-md flex items-center justify-center shadow-md border border-gray-200 text-red-600 hover:bg-gray-50 transition-colors">
       <i class="fas fa-bars text-xl"></i>
     </button>
   </div>
 
   <!-- Desktop Sidebar -->
-  <aside class="hidden lg:flex w-80 flex-col p-8 bg-gradient-to-b from-indigo-900/95 to-purple-900/95 text-white glass-card sidebar-glow rounded-r-3xl">
-    <div class="flex items-center space-x-3 mb-10">
-      <div class="w-12 h-12 bg-gradient-to-br from-pink-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-        <i class="fas fa-heartbeat text-white"></i>
+  <aside class="hidden lg:flex w-72 flex-col bg-white border-r border-gray-200 shadow-lg z-10 h-screen sticky top-0">
+    <div class="p-6 flex items-center space-x-3 mb-4 border-b border-gray-100">
+      <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center text-red-600 shadow-sm">
+        <i class="fas fa-heartbeat text-xl"></i>
       </div>
-      <h1 class="text-3xl font-bold tracking-tight">Subscription</h1>
+      <div>
+        <h1 class="text-xl font-bold tracking-tight text-gray-800">Subscription</h1>
+        <p class="text-xs text-gray-500 font-medium">HSB Admin Panel</p>
+      </div>
     </div>
 
-    <button id="yearlyBtn" class="group mb-4 w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 py-4 px-6 rounded-2xl shadow-xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 btn-3d flex items-center justify-center space-x-3">
-      <i class="fas fa-calendar-alt"></i>
-      <span class="font-semibold text-lg">Yearly</span>
-    </button>
-    <button id="lifeBtn" class="group w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 py-4 px-6 rounded-2xl shadow-xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 btn-3d flex items-center justify-center space-x-3">
-      <i class="fas fa-infinity"></i>
-      <span class="font-semibold text-lg">Life Member</span>
-    </button>
+    <div class="px-4 space-y-2 flex-1">
+      <button id="yearlyBtn" class="w-full text-left px-4 py-3 rounded-md flex items-center space-x-3 transition-colors bg-red-50 text-red-700 font-semibold border border-red-100 shadow-sm">
+        <i class="fas fa-calendar-alt w-5 text-center"></i>
+        <span>Yearly Members</span>
+      </button>
+      <button id="lifeBtn" class="w-full text-left px-4 py-3 rounded-md flex items-center space-x-3 transition-colors bg-transparent text-gray-600 hover:bg-gray-50 font-medium border border-transparent">
+        <i class="fas fa-infinity w-5 text-center"></i>
+        <span>Life Members</span>
+      </button>
+    </div>
 
-    <div class="mt-auto pt-8 border-t border-white/20">
-      <p class="text-xs opacity-70 text-center">Powered by Firebase</p>
+    <div class="p-6 border-t border-gray-100">
+      <p class="text-xs text-center text-gray-400 font-medium">Powered by Firebase</p>
     </div>
   </aside>
 
   <!-- Mobile Drawer -->
   <div id="sidebarDrawerOverlay" class="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40 hidden"></div>
-  <aside id="sidebarDrawer" class="lg:hidden fixed left-0 top-0 w-80 h-full bg-gradient-to-b from-indigo-900/95 to-purple-900/95 text-white glass-card sidebar-glow p-8 transform -translate-x-full z-50 rounded-r-3xl flex flex-col">
-    <div class="flex items-center justify-between mb-10">
+  <aside id="sidebarDrawer" class="lg:hidden fixed left-0 top-0 w-72 h-full bg-white shadow-2xl transform -translate-x-full z-50 flex flex-col">
+    <div class="p-6 flex items-center justify-between border-b border-gray-100 mb-4">
       <div class="flex items-center space-x-3">
-        <div class="w-12 h-12 bg-gradient-to-br from-pink-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-          <i class="fas fa-heartbeat text-white"></i>
+        <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center text-red-600">
+          <i class="fas fa-heartbeat text-lg"></i>
         </div>
-        <h1 class="text-3xl font-bold">Subscription</h1>
+        <h1 class="text-xl font-bold text-gray-800">Subscription</h1>
       </div>
-      <button id="closeDrawer" class="text-white/80 hover:text-white">
+      <button id="closeDrawer" class="text-gray-400 hover:text-red-600 transition-colors">
         <i class="fas fa-times text-xl"></i>
       </button>
     </div>
 
-    <button id="yearlyBtnDrawer" class="group mb-4 w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 py-4 px-6 rounded-2xl shadow-xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 btn-3d flex items-center justify-center space-x-3">
-      <i class="fas fa-calendar-alt"></i>
-      <span class="font-semibold text-lg">Yearly</span>
-    </button>
-    <button id="lifeBtnDrawer" class="group w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 py-4 px-6 rounded-2xl shadow-xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 btn-3d flex items-center justify-center space-x-3">
-      <i class="fas fa-infinity"></i>
-      <span class="font-semibold text-lg">Life Member</span>
-    </button>
+    <div class="px-4 space-y-2 flex-1">
+      <button id="yearlyBtnDrawer" class="w-full text-left px-4 py-3 rounded-md flex items-center space-x-3 transition-colors bg-red-50 text-red-700 font-semibold border border-red-100">
+        <i class="fas fa-calendar-alt w-5 text-center"></i>
+        <span>Yearly Members</span>
+      </button>
+      <button id="lifeBtnDrawer" class="w-full text-left px-4 py-3 rounded-md flex items-center space-x-3 transition-colors bg-transparent text-gray-600 hover:bg-gray-50 font-medium">
+        <i class="fas fa-infinity w-5 text-center"></i>
+        <span>Life Members</span>
+      </button>
+    </div>
   </aside>
 
   <!-- Main Content -->
-  <main class="flex-1 p-6 lg:p-10 overflow-y-auto">
+  <main class="flex-1 p-4 md:p-8 overflow-y-auto w-full max-w-6xl mx-auto pt-20 lg:pt-8 relative">
 
     <!-- Yearly Section -->
-    <section id="yearlySection" class="space-y-8">
-
+    <section id="yearlySection" class="space-y-6">
       <!-- Patient ID + Fetch -->
-      <div class="glass-card p-6 rounded-3xl shadow-xl border border-white/30">
+      <div class="bg-white rounded-lg shadow-md p-6 border-t-4 border-red-600">
+        <h2 class="text-lg font-bold text-gray-800 mb-4">Find Patient</h2>
         <div class="flex flex-col md:flex-row gap-4 items-center">
-          <input id="yearlyPatientId" type="text" placeholder="Enter Patient ID"
-                 class="neumorphic-input border-0 rounded-2xl p-5 w-full md:w-80 text-gray-800 placeholder-gray-500 focus:outline-none text-lg"/>
-          <button id="fetchYearly" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white py-4 px-10 rounded-2xl shadow-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 btn-3d flex items-center space-x-2">
+          <input id="yearlyPatientId" type="text" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="Enter Patient ID..."
+                 class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm"/>
+          <button id="fetchYearly" class="w-full md:w-auto px-8 py-3 bg-red-600 text-white font-bold rounded-md hover:bg-red-700 focus:ring-2 focus:ring-red-500 transition-colors shadow-sm flex items-center justify-center space-x-2 whitespace-nowrap">
             <i class="fas fa-search"></i>
-            <span>Fetch</span>
+            <span>Fetch Data</span>
           </button>
         </div>
       </div>
 
       <!-- Add Fee -->
-      <div class="glass-card p-6 rounded-3xl shadow-xl border border-white/30">
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-lg font-bold text-gray-800 mb-4">Add Subscription Fee</h2>
         <div class="flex flex-col sm:flex-row gap-4 items-center">
-          <input id="subAmount" type="number" placeholder="Amount" class="neumorphic-input border-0 rounded-2xl p-5 w-full sm:w-40 text-gray-800 placeholder-gray-500 focus:outline-none text-lg"/>
-          <input id="subYear" type="number" placeholder="Year" class="neumorphic-input border-0 rounded-2xl p-5 w-full sm:w-40 text-gray-800 placeholder-gray-500 focus:outline-none text-lg"/>
-          <button id="addYearlyFee" class="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white py-4 px-10 rounded-2xl shadow-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 btn-3d flex items-center space-x-2">
-            <i class="fas fa-plus-circle"></i>
-            <span>Add Fee</span>
-          </button>
+          <div class="w-full sm:w-1/2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+            <input id="subAmount" type="number" placeholder="e.g. 500" class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm"/>
+          </div>
+          <div class="w-full sm:w-1/2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Subscription Year</label>
+            <input id="subYear" type="number" placeholder="e.g. 2024" class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm"/>
+          </div>
+          <div class="w-full sm:w-auto sm:self-end">
+            <button id="addYearlyFee" class="w-full px-8 py-3 bg-green-600 text-white font-bold rounded-md hover:bg-green-700 focus:ring-2 focus:ring-green-500 transition-colors shadow-sm flex items-center justify-center space-x-2 whitespace-nowrap">
+              <i class="fas fa-plus-circle"></i>
+              <span>Add Fee</span>
+            </button>
+          </div>
         </div>
       </div>
 
       <!-- Patient Info Card -->
-      <div id="patientInfoCard" class="glass-card p-6 rounded-3xl shadow-xl border-l-8 border-indigo-500 hidden transform transition-all duration-500 scale-95 opacity-0">
-        <h3 class="text-2xl font-bold mb-5 text-indigo-700 flex items-center">
-          <i class="fas fa-user-circle mr-3"></i> Patient Info
+      <div id="patientInfoCard" class="hidden bg-red-50 border-l-4 border-red-500 p-6 rounded-r-md shadow-sm transform transition-all duration-300">
+        <h3 class="text-lg font-bold text-red-700 flex items-center mb-3">
+          <i class="fas fa-user-circle mr-2"></i> Patient Information
         </h3>
-        <div class="space-y-3 text-lg">
-          <p class="text-gray-700"><strong>ID:</strong> <span id="infoId" class="font-mono"></span></p>
-          <p class="text-gray-700"><strong>Name:</strong> <span id="infoName"></span></p>
-          <p class="text-gray-700"><strong>Phone:</strong> <span id="infoPhone"></span></p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-800">
+          <p><strong>ID:</strong> <span id="infoId" class="font-bold text-red-600"></span></p>
+          <p><strong>Name:</strong> <span id="infoName" class="font-medium"></span></p>
+          <p><strong>Phone:</strong> <span id="infoPhone" class="font-medium"></span></p>
         </div>
       </div>
 
       <!-- Transaction History -->
-      <div class="glass-card rounded-3xl shadow-xl border border-white/30 overflow-hidden">
-        <div class="p-6 border-b border-white/20">
-          <h3 class="text-2xl font-bold text-indigo-700 flex items-center">
-            <i class="fas fa-history mr-3"></i> Transaction History
+      <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="p-5 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+          <h3 class="text-lg font-bold text-gray-800 flex items-center">
+            <i class="fas fa-history mr-2 text-red-600"></i> Transaction History
           </h3>
         </div>
         <div class="overflow-x-auto">
-          <table id="yearlyTransactionTable" class="w-full text-sm">
-            <thead>
-              <tr class="text-indigo-800 font-semibold">
-                <th class="px-6 py-5 text-left">Txn ID</th>
-                <th class="px-6 py-5 text-left">Date</th>
-                <th class="px-6 py-5 text-left">Year</th>
-                <th class="px-6 py-5 text-left">Amount</th>
+          <table id="yearlyTransactionTable" class="w-full text-sm text-left">
+            <thead class="bg-red-50 text-red-700 text-xs uppercase font-bold border-b border-red-100">
+              <tr>
+                <th class="px-6 py-4">Txn ID</th>
+                <th class="px-6 py-4">Date</th>
+                <th class="px-6 py-4">Year</th>
+                <th class="px-6 py-4">Amount</th>
               </tr>
             </thead>
-            <tbody class="text-gray-700"></tbody>
+            <tbody class="text-gray-700 divide-y divide-gray-100"></tbody>
           </table>
-          <div class="p-6">
-            <p id="yearlyTotalAmount" class="text-xl font-bold text-indigo-700"></p>
-            <button onclick="downloadYearlyTransactionPDF()" class="mt-4 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500 text-white px-6 py-3 rounded-2xl shadow-lg font-semibold transition-all duration-300 transform hover:scale-105 btn-3d flex items-center space-x-2">
+          
+          <div class="p-6 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <p id="yearlyTotalAmount" class="text-xl font-bold text-gray-800"></p>
+            <button onclick="downloadYearlyTransactionPDF()" class="px-6 py-2.5 bg-gray-800 text-white font-medium rounded-md hover:bg-gray-900 focus:ring-2 focus:ring-gray-500 transition-colors shadow-sm flex items-center space-x-2">
               <i class="fas fa-file-pdf"></i>
               <span>Download PDF</span>
             </button>
@@ -225,62 +183,150 @@
       </div>
 
       <!-- Date to Date Report -->
-      <div class="glass-card rounded-3xl shadow-xl border border-white/30 overflow-hidden">
-        <div class="p-6 border-b border-white/20">
-          <h3 class="text-2xl font-bold text-indigo-700 flex items-center">
-            <i class="fas fa-chart-line mr-3"></i> Date to Date Report
+      <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="p-5 border-b border-gray-200 bg-gray-50">
+          <h3 class="text-lg font-bold text-gray-800 flex items-center">
+            <i class="fas fa-chart-line mr-2 text-red-600"></i> General Subscription Report
           </h3>
         </div>
         <div class="p-6 space-y-6">
-          <div class="flex flex-col md:flex-row gap-4 items-center">
-            <input id="fromDate" type="date" class="neumorphic-input border-0 rounded-2xl p-5 w-full md:w-48 text-gray-800 text-lg"/>
-            <input id="toDate" type="date" class="neumorphic-input border-0 rounded-2xl p-5 w-full md:w-48 text-gray-800 text-lg"/>
-            <button id="fetchDateRange" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white py-4 px-10 rounded-2xl shadow-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 btn-3d flex items-center space-x-2">
-              <i class="fas fa-search-dollar"></i>
-              <span>Fetch Report</span>
-            </button>
-          </div>
-
-          <div class="overflow-x-auto">
-            <table id="dateRangeTable" class="w-full text-sm">
-              <thead>
-                <tr class="text-indigo-800 font-semibold">
-                  <th class="px-6 py-5 text-left">Txn ID</th>
-                  <th class="px-6 py-5 text-left">Patient ID</th>
-                  <th class="px-6 py-5 text-left">Name</th>
-                  <th class="px-6 py-5 text-left">Date</th>
-                  <th class="px-6 py-5 text-left">Year</th>
-                  <th class="px-6 py-5 text-left">Amount</th>
-                </tr>
-              </thead>
-              <tbody class="text-gray-700"></tbody>
-            </table>
-            <div class="mt-4">
-              <p id="dateRangeTotalAmount" class="text-xl font-bold text-indigo-700"></p>
+          <div class="flex flex-col md:flex-row gap-4 items-end">
+            <div class="w-full md:w-1/3">
+              <label class="block text-sm font-medium text-gray-700 mb-1">From Date</label>
+              <input id="fromDate" type="date" class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm"/>
+            </div>
+            <div class="w-full md:w-1/3">
+              <label class="block text-sm font-medium text-gray-700 mb-1">To Date</label>
+              <input id="toDate" type="date" class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm"/>
+            </div>
+            <div class="w-full md:w-auto">
+              <button id="fetchDateRange" class="w-full px-8 py-3 bg-red-600 text-white font-bold rounded-md hover:bg-red-700 focus:ring-2 focus:ring-red-500 transition-colors shadow-sm flex items-center justify-center space-x-2">
+                <i class="fas fa-filter"></i>
+                <span>Generate Report</span>
+              </button>
             </div>
           </div>
 
-          <button id="downloadReport" class="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white py-4 px-10 rounded-2xl shadow-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 btn-3d flex items-center space-x-2 hidden">
-            <i class="fas fa-download"></i>
-            <span>Download PDF Report</span>
-          </button>
+          <div class="overflow-x-auto border border-gray-200 rounded-md">
+            <table id="dateRangeTable" class="w-full text-sm text-left">
+              <thead class="bg-red-50 text-red-700 text-xs uppercase font-bold border-b border-red-100">
+                <tr>
+                  <th class="px-6 py-4">Txn ID</th>
+                  <th class="px-6 py-4">Patient ID</th>
+                  <th class="px-6 py-4">Name</th>
+                  <th class="px-6 py-4">Date</th>
+                  <th class="px-6 py-4">Year</th>
+                  <th class="px-6 py-4">Amount</th>
+                </tr>
+              </thead>
+              <tbody class="text-gray-700 divide-y divide-gray-100"></tbody>
+            </table>
+          </div>
+          
+          <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <p id="dateRangeTotalAmount" class="text-xl font-bold text-gray-800"></p>
+            <button id="downloadReport" class="hidden px-6 py-2.5 bg-gray-800 text-white font-medium rounded-md hover:bg-gray-900 focus:ring-2 focus:ring-gray-500 transition-colors shadow-sm flex items-center space-x-2">
+              <i class="fas fa-download"></i>
+              <span>Download PDF Report</span>
+            </button>
+          </div>
         </div>
       </div>
     </section>
 
     <!-- Life Section -->
-    <section id="lifeSection" class="hidden flex items-center justify-center h-full">
-      <div class="text-center">
-        <div class="w-32 h-32 mx-auto mb-6 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center shadow-2xl">
-          <i class="fas fa-infinity text-white text-5xl"></i>
+    <section id="lifeSection" class="hidden space-y-6">
+      <!-- Find Patient for Life Membership -->
+      <div class="bg-white rounded-lg shadow-md p-6 border-t-4 border-red-600">
+        <h2 class="text-lg font-bold text-gray-800 mb-4">Find Patient</h2>
+        <div class="flex flex-col md:flex-row gap-4 items-center">
+          <input id="lifePatientId" type="text" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="Enter Patient ID..."
+                 class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm"/>
+          <button id="fetchLife" class="w-full md:w-auto px-8 py-3 bg-red-600 text-white font-bold rounded-md hover:bg-red-700 focus:ring-2 focus:ring-red-500 transition-colors shadow-sm flex items-center justify-center space-x-2 whitespace-nowrap">
+            <i class="fas fa-search"></i>
+            <span>Fetch Data</span>
+          </button>
         </div>
-        <h2 class="text-4xl font-bold text-indigo-700 mb-2">Life Membership</h2>
-        <p class="text-xl text-gray-600">Coming Soon...</p>
+      </div>
+
+      <!-- Life Patient Actions Card (Hidden initially) -->
+      <div id="lifePatientActionsCard" class="hidden space-y-6">
+        <!-- Patient Info Display -->
+        <div class="bg-red-50 border-l-4 border-red-500 p-6 rounded-r-md shadow-sm">
+          <h3 class="text-lg font-bold text-red-700 flex items-center mb-3">
+            <i class="fas fa-user-circle mr-2"></i> Patient Information
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-800">
+            <p><strong>ID:</strong> <span id="lifeInfoId" class="font-bold text-red-600"></span></p>
+            <p><strong>Name:</strong> <span id="lifeInfoName" class="font-medium"></span></p>
+            <p><strong>Phone:</strong> <span id="lifeInfoPhone" class="font-medium"></span></p>
+            <p><strong>Current Status:</strong> <span id="lifeInfoStatus" class="font-medium uppercase px-2 py-1 bg-white rounded shadow-sm border border-red-100"></span></p>
+          </div>
+        </div>
+
+        <!-- Update Membership Interface -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+          <h2 class="text-lg font-bold text-gray-800 mb-4">Change Membership Status</h2>
+          <div class="flex flex-col sm:flex-row gap-4 items-end">
+            <div class="w-full sm:w-1/2">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Membership Type</label>
+              <select id="membershipTypeSelect" class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm">
+                <option value="Annual Membership">Annual Membership</option>
+                <option value="Life Membership">Life Membership</option>
+              </select>
+            </div>
+            <div class="w-full sm:w-auto">
+              <button id="openLifeModalBtn" class="w-full px-8 py-3 bg-red-600 text-white font-bold rounded-md hover:bg-red-700 focus:ring-2 focus:ring-red-500 transition-colors shadow-sm flex items-center justify-center space-x-2 whitespace-nowrap">
+                <i class="fas fa-edit"></i>
+                <span>Set Membership Type</span>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
+
+    <!-- Modal Overlay for Life/Membership Payment -->
+    <div id="lifePaymentModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden transform transition-all">
+        <div class="bg-red-600 p-4 flex justify-between items-center">
+          <h3 class="text-lg font-bold text-white flex items-center">
+            <i class="fas fa-file-invoice-dollar mr-2"></i> Payment Details
+          </h3>
+          <button id="closeLifeModalBtn" class="text-white/80 hover:text-white transition-colors">
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+        <div class="p-6 space-y-4">
+          <p class="text-sm text-gray-600 mb-4">Please enter the payment details to update the membership status.</p>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Amount (BDT)</label>
+            <input id="lifeModalAmount" type="number" placeholder="e.g. 5000" class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm"/>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Subscription Year</label>
+            <input id="lifeModalYear" type="number" placeholder="e.g. 2024" class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm"/>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Receipt No.</label>
+            <input id="lifeModalReceipt" type="text" placeholder="e.g. REC-12345" class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm"/>
+          </div>
+        </div>
+        <div class="bg-gray-50 p-4 border-t border-gray-200 flex justify-end space-x-3">
+          <button id="cancelLifeModalBtn" class="px-5 py-2.5 bg-white border border-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-50 focus:ring-2 focus:ring-gray-200 transition-colors">
+            Cancel
+          </button>
+          <button id="confirmLifeModalBtn" class="px-5 py-2.5 bg-green-600 text-white font-bold rounded-md hover:bg-green-700 focus:ring-2 focus:ring-green-500 transition-colors shadow-sm">
+            Confirm & Update
+          </button>
+        </div>
+      </div>
+    </div>
+
   </main>
 
-  <!-- Firebase + JS Logic (Unchanged) -->
+  <!-- Firebase + JS Logic -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
     import { getDatabase, ref, set, push, onValue, get } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
@@ -298,11 +344,19 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
+    // Styling configurations for Tabs
+    const activeTabClass = ['bg-red-50', 'text-red-700', 'font-semibold', 'border-red-100', 'shadow-sm'];
+    const inactiveTabClass = ['bg-transparent', 'text-gray-600', 'font-medium', 'border-transparent', 'hover:bg-gray-50'];
+
     // UI Elements
     const yearlyBtn = document.getElementById('yearlyBtn');
     const lifeBtn = document.getElementById('lifeBtn');
+    const yearlyBtnDrawer = document.getElementById('yearlyBtnDrawer');
+    const lifeBtnDrawer = document.getElementById('lifeBtnDrawer');
+    
     const yearlySection = document.getElementById('yearlySection');
     const lifeSection = document.getElementById('lifeSection');
+    
     const patientInfoCard = document.getElementById('patientInfoCard');
     const infoId = document.getElementById('infoId');
     const infoName = document.getElementById('infoName');
@@ -314,9 +368,43 @@
     const hamburgerBtn = document.getElementById("hamburgerBtn");
     const closeDrawer = document.getElementById("closeDrawer");
 
-    yearlyBtn.onclick = () => { yearlySection.classList.remove('hidden'); lifeSection.classList.add('hidden'); };
-    lifeBtn.onclick = () => { lifeSection.classList.remove('hidden'); yearlySection.classList.add('hidden'); };
+    // Tab Switching Logic
+    const setTabActive = (isYearly) => {
+      if(isYearly) {
+        yearlySection.classList.remove('hidden'); 
+        lifeSection.classList.add('hidden');
+        
+        yearlyBtn.classList.remove(...inactiveTabClass);
+        yearlyBtn.classList.add(...activeTabClass);
+        lifeBtn.classList.remove(...activeTabClass);
+        lifeBtn.classList.add(...inactiveTabClass);
+        
+        yearlyBtnDrawer.classList.remove(...inactiveTabClass);
+        yearlyBtnDrawer.classList.add(...activeTabClass);
+        lifeBtnDrawer.classList.remove(...activeTabClass);
+        lifeBtnDrawer.classList.add(...inactiveTabClass);
+      } else {
+        lifeSection.classList.remove('hidden'); 
+        yearlySection.classList.add('hidden');
+        
+        lifeBtn.classList.remove(...inactiveTabClass);
+        lifeBtn.classList.add(...activeTabClass);
+        yearlyBtn.classList.remove(...activeTabClass);
+        yearlyBtn.classList.add(...inactiveTabClass);
+        
+        lifeBtnDrawer.classList.remove(...inactiveTabClass);
+        lifeBtnDrawer.classList.add(...activeTabClass);
+        yearlyBtnDrawer.classList.remove(...activeTabClass);
+        yearlyBtnDrawer.classList.add(...inactiveTabClass);
+      }
+    }
 
+    yearlyBtn.onclick = () => setTabActive(true);
+    lifeBtn.onclick = () => setTabActive(false);
+    yearlyBtnDrawer.onclick = () => { setTabActive(true); toggleDrawer(false); };
+    lifeBtnDrawer.onclick = () => { setTabActive(false); toggleDrawer(false); };
+
+    // Drawer Logic
     const toggleDrawer = (open) => {
       sidebarDrawer.classList.toggle("-translate-x-full", !open);
       sidebarDrawerOverlay.classList.toggle("hidden", !open);
@@ -325,27 +413,23 @@
     closeDrawer.onclick = () => toggleDrawer(false);
     sidebarDrawerOverlay.onclick = () => toggleDrawer(false);
 
-    document.getElementById("yearlyBtnDrawer").onclick = () => { yearlySection.classList.remove('hidden'); lifeSection.classList.add('hidden'); toggleDrawer(false); };
-    document.getElementById("lifeBtnDrawer").onclick = () => { lifeSection.classList.remove('hidden'); yearlySection.classList.add('hidden'); toggleDrawer(false); };
-
     // Enter key support
-    ["yearlyPatientId", "fromDate", "toDate"].forEach(id => {
-      document.getElementById(id).addEventListener("keydown", e => {
+    ["yearlyPatientId", "lifePatientId", "fromDate", "toDate"].forEach(id => {
+      document.getElementById(id)?.addEventListener("keydown", e => {
         if (e.key === "Enter") {
           e.preventDefault();
           if (id === "yearlyPatientId") document.getElementById("fetchYearly").click();
+          else if (id === "lifePatientId") document.getElementById("fetchLife").click();
           else document.getElementById("fetchDateRange").click();
         }
       });
     });
 
-    // Show patient card with animation
     const showPatientCard = () => {
-      patientInfoCard.classList.remove('hidden', 'scale-95', 'opacity-0');
-      patientInfoCard.classList.add('scale-100', 'opacity-100');
+      patientInfoCard.classList.remove('hidden');
     };
 
-    // Fetch Yearly Transactions
+    // --- YEARLY SECTION LOGIC ---
     document.getElementById("fetchYearly").onclick = async () => {
       const patientId = document.getElementById("yearlyPatientId").value.trim();
       if (!patientId) return alert("Enter Patient ID");
@@ -355,47 +439,80 @@
       if (patientSnap.exists()) {
         const p = patientSnap.val();
         showPatientCard();
-        infoId.textContent = p.id ?? patientId;
+        infoId.textContent = p.patientId ?? patientId;
         infoName.textContent = p.name ?? "";
         infoPhone.textContent = p.phone ?? "";
       } else {
         patientInfoCard.classList.add('hidden');
-        alert("Patient not found.");
+        alert("Patient not found in Main Database.");
+        return; // Stops execution if patient isn't found
       }
 
-      const transRef = ref(db, `subscriptions/${patientId}/yearly`);
-      onValue(transRef, snap => {
+      const transRef = ref(db, `subscriptions/${patientId}`);
+      
+      try {
+        const snap = await get(transRef); 
         const tbody = document.querySelector("#yearlyTransactionTable tbody");
         tbody.innerHTML = "";
         const txns = [];
 
-        snap.forEach(child => {
-          const d = child.val();
-          txns.push({
-            transactionNumber: d.transactionNumber,
-            date: d.date,
-            year: d.year,
-            amount: d.amount
-          });
-        });
+        if (snap.exists()) {
+          const subsData = snap.val();
+          
+          // Parse regular yearly fees
+          if (subsData.yearly) {
+            Object.keys(subsData.yearly).forEach(key => {
+              const d = subsData.yearly[key];
+              txns.push({
+                transactionNumber: d.transactionNumber || key, 
+                date: d.date || new Date().toISOString(),
+                year: d.year || 'N/A',
+                amount: d.amount || 0
+              });
+            });
+          }
+
+          // Parse membership status update fees (from the Life Members tab)
+          if (subsData.statusUpdates) {
+            Object.keys(subsData.statusUpdates).forEach(key => {
+              const d = subsData.statusUpdates[key];
+              txns.push({
+                transactionNumber: d.receiptNo ? `REC-${d.receiptNo}` : (d.transactionNumber || key),
+                date: d.date || new Date().toISOString(),
+                year: d.year || 'N/A',
+                amount: d.amount || 0
+              });
+            });
+          }
+        }
 
         txns.sort((a, b) => new Date(a.date) - new Date(b.date));
         const total = txns.reduce((s, t) => s + parseFloat(t.amount || 0), 0);
-        document.getElementById("yearlyTotalAmount").textContent = `Total Amount: ${total.toFixed(2)}`;
+        document.getElementById("yearlyTotalAmount").textContent = `Total Amount: ৳${total.toFixed(2)}`;
 
-        txns.forEach(t => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td class="px-6 py-4 border-b">${t.transactionNumber}</td>
-            <td class="px-6 py-4 border-b">${new Date(t.date).toLocaleDateString()}</td>
-            <td class="px-6 py-4 border-b">${t.year}</td>
-            <td class="px-6 py-4 border-b font-medium">${t.amount}</td>`;
-          tbody.appendChild(tr);
-        });
-      }, err => alert("Error: " + err.message));
+        if (txns.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500 italic border-b border-gray-100">No transactions found for this patient.</td></tr>`;
+        } else {
+          txns.forEach(t => {
+            const tr = document.createElement("tr");
+            tr.className = "hover:bg-red-50/50 transition-colors";
+            
+            let formattedDate = 'N/A';
+            try { formattedDate = new Date(t.date).toLocaleDateString(); } catch(e) {}
+
+            tr.innerHTML = `
+              <td class="px-6 py-4 font-mono text-xs text-gray-500 border-b border-gray-100">${t.transactionNumber}</td>
+              <td class="px-6 py-4 border-b border-gray-100">${formattedDate}</td>
+              <td class="px-6 py-4 border-b border-gray-100">${t.year}</td>
+              <td class="px-6 py-4 font-semibold text-gray-800 border-b border-gray-100">৳${t.amount}</td>`;
+            tbody.appendChild(tr);
+          });
+        }
+      } catch (err) {
+        alert("Error fetching transactions: " + err.message);
+      }
     };
 
-    // Add Yearly Fee
     document.getElementById("addYearlyFee").onclick = async () => {
       const patientId = document.getElementById("yearlyPatientId").value.trim();
       const amount = document.getElementById("subAmount").value;
@@ -404,7 +521,7 @@
 
       const patientRef = ref(db, `patients/${patientId}`);
       const snap = await get(patientRef);
-      if (!snap.exists()) return alert("Patient not found.");
+      if (!snap.exists()) return alert("Patient not found in Database. Please register them first.");
 
       const newRef = push(ref(db, `subscriptions/${patientId}/yearly`));
       await set(newRef, {
@@ -419,7 +536,104 @@
       document.getElementById("fetchYearly").click();
     };
 
-    // Date to Date Report
+
+    // --- LIFE / MEMBERSHIP STATUS SECTION LOGIC ---
+    let currentLifePatientId = null;
+
+    document.getElementById("fetchLife").onclick = async () => {
+      const patientId = document.getElementById("lifePatientId").value.trim();
+      if (!patientId) return alert("Enter Patient ID");
+
+      const patientRef = ref(db, `patients/${patientId}`);
+      const patientSnap = await get(patientRef);
+      
+      if (patientSnap.exists()) {
+        const p = patientSnap.val();
+        currentLifePatientId = patientId;
+        
+        document.getElementById('lifePatientActionsCard').classList.remove('hidden');
+        document.getElementById('lifeInfoId').textContent = p.patientId ?? patientId;
+        document.getElementById('lifeInfoName').textContent = p.name ?? "N/A";
+        document.getElementById('lifeInfoPhone').textContent = p.phone ?? "N/A";
+        
+        const currentStatus = p.membershipStatus || "Annual Membership";
+        document.getElementById('lifeInfoStatus').textContent = currentStatus;
+        document.getElementById('membershipTypeSelect').value = currentStatus;
+        
+      } else {
+        currentLifePatientId = null;
+        document.getElementById('lifePatientActionsCard').classList.add('hidden');
+        alert("Patient not found in Main Database.");
+      }
+    };
+
+    // Modal Control
+    const lifeModal = document.getElementById('lifePaymentModal');
+    const openLifeModalBtn = document.getElementById('openLifeModalBtn');
+    const closeLifeModalBtn = document.getElementById('closeLifeModalBtn');
+    const cancelLifeModalBtn = document.getElementById('cancelLifeModalBtn');
+    const confirmLifeModalBtn = document.getElementById('confirmLifeModalBtn');
+
+    const toggleLifeModal = (show) => {
+      if (show) {
+        lifeModal.classList.remove('hidden');
+      } else {
+        lifeModal.classList.add('hidden');
+        // Reset modal inputs
+        document.getElementById('lifeModalAmount').value = '';
+        document.getElementById('lifeModalYear').value = '';
+        document.getElementById('lifeModalReceipt').value = '';
+      }
+    };
+
+    openLifeModalBtn.onclick = () => {
+      if (!currentLifePatientId) return alert("Please fetch a patient first.");
+      toggleLifeModal(true);
+    };
+    closeLifeModalBtn.onclick = () => toggleLifeModal(false);
+    cancelLifeModalBtn.onclick = () => toggleLifeModal(false);
+
+    confirmLifeModalBtn.onclick = async () => {
+      if (!currentLifePatientId) return;
+
+      const newMembershipStatus = document.getElementById('membershipTypeSelect').value;
+      const amount = document.getElementById('lifeModalAmount').value.trim();
+      const year = document.getElementById('lifeModalYear').value.trim();
+      const receipt = document.getElementById('lifeModalReceipt').value.trim();
+
+      if (!amount || !year || !receipt) {
+        return alert("Please fill in Amount, Subscription Year, and Receipt No.");
+      }
+
+      try {
+        // 1. Update the patient's membershipStatus property
+        const statusRef = ref(db, `patients/${currentLifePatientId}/membershipStatus`);
+        await set(statusRef, newMembershipStatus);
+
+        // 2. Save the transaction record for this update
+        const txnRef = push(ref(db, `subscriptions/${currentLifePatientId}/statusUpdates`));
+        await set(txnRef, {
+          transactionNumber: txnRef.key,
+          receiptNo: receipt,
+          newStatus: newMembershipStatus,
+          amount: amount,
+          year: year,
+          date: new Date().toISOString()
+        });
+
+        alert("Membership status updated and payment recorded successfully!");
+        toggleLifeModal(false);
+        
+        // Refresh patient view
+        document.getElementById("fetchLife").click();
+
+      } catch (err) {
+        alert("Error updating membership: " + err.message);
+      }
+    };
+
+
+    // --- DATE TO DATE REPORT LOGIC ---
     document.getElementById("fetchDateRange").onclick = async () => {
       const fromStr = document.getElementById("fromDate").value;
       const toStr = document.getElementById("toDate").value;
@@ -443,8 +657,10 @@
 
         for (const pid in subs) {
           const yearly = subs[pid].yearly || {};
+          const statusUpdates = subs[pid].statusUpdates || {}; // Also include status update payments
           const name = pats[pid]?.name || "Unknown";
 
+          // Parse yearly
           for (const tid in yearly) {
             const rec = yearly[tid];
             const recDate = new Date(rec.date);
@@ -461,42 +677,75 @@
               });
             }
           }
+          
+          // Parse status updates/life payments
+          for (const tid in statusUpdates) {
+            const rec = statusUpdates[tid];
+            const recDate = new Date(rec.date);
+            if (isNaN(recDate)) continue;
+
+            if (recDate >= from && recDate <= to) {
+              rows.push({
+                txnId: rec.receiptNo ? `REC-${rec.receiptNo}` : (rec.transactionNumber ?? tid),
+                patientId: pid,
+                patientName: name,
+                date: rec.date,
+                year: rec.year,
+                amount: rec.amount
+              });
+            }
+          }
         }
 
         rows.sort((a, b) => new Date(b.date) - new Date(a.date));
 
         const total = rows.reduce((s, r) => s + parseFloat(r.amount || 0), 0);
-        document.getElementById("dateRangeTotalAmount").textContent = `Total Amount: ${total.toFixed(2)}`;
+        document.getElementById("dateRangeTotalAmount").textContent = `Total Amount: ৳${total.toFixed(2)}`;
 
         rows.forEach(r => {
           const tr = document.createElement("tr");
+          tr.className = "hover:bg-red-50/50 transition-colors";
           tr.innerHTML = `
-            <td class="px-6 py-4 border-b">${r.txnId}</td>
-            <td class="px-6 py-4 border-b font-mono">${r.patientId}</td>
-            <td class="px-6 py-4 border-b">${r.patientName}</td>
-            <td class="px-6 py-4 border-b">${new Date(r.date).toLocaleDateString()}</td>
-            <td class="px-6 py-4 border-b">${r.year}</td>
-            <td class="px-6 py-4 border-b font-medium">${r.amount}</td>`;
+            <td class="px-6 py-4 font-mono text-xs text-gray-500">${r.txnId}</td>
+            <td class="px-6 py-4 font-bold text-red-600">${r.patientId}</td>
+            <td class="px-6 py-4 font-medium">${r.patientName}</td>
+            <td class="px-6 py-4">${new Date(r.date).toLocaleDateString()}</td>
+            <td class="px-6 py-4">${r.year}</td>
+            <td class="px-6 py-4 font-semibold text-gray-800">৳${r.amount}</td>`;
           tbody.appendChild(tr);
         });
 
         const downloadBtn = document.getElementById("downloadReport");
-        downloadBtn.classList.toggle("hidden", rows.length === 0);
+        if(rows.length === 0) {
+            downloadBtn.classList.add("hidden");
+        } else {
+            downloadBtn.classList.remove("hidden");
+        }
 
         downloadBtn.onclick = () => {
           const { jsPDF } = window.jspdf;
           const doc = new jsPDF();
           doc.setFontSize(16);
-          doc.text("Date Range Subscription Report", 14, 20);
-          doc.setFontSize(12);
+          doc.setTextColor(220, 38, 38); // Tailwind Red-600
+          doc.text("Subscription Report (Date Range)", 14, 20);
+          
+          doc.setFontSize(11);
+          doc.setTextColor(80, 80, 80);
           doc.text(`From: ${fromStr}  To: ${toStr}`, 14, 30);
 
-          doc.autoTable({ html: "#dateRangeTable", startY: 40, theme: "grid" });
+          doc.autoTable({ 
+            html: "#dateRangeTable", 
+            startY: 40, 
+            theme: "grid",
+            headStyles: { fillColor: [254, 242, 242], textColor: [185, 28, 28] }, // Red-50 bg, Red-700 text
+            alternateRowStyles: { fillColor: [255, 255, 255] }
+          });
 
           const finalY = doc.lastAutoTable.finalY || 40;
           doc.setFontSize(14);
-          doc.text(`Total Amount: ${total.toFixed(2)}`, 14, finalY + 15);
-          doc.save(`report_${fromStr}_to_${toStr}.pdf`);
+          doc.setTextColor(30, 30, 30);
+          doc.text(`Total Amount: BDT ${total.toFixed(2)}`, 14, finalY + 15);
+          doc.save(`Subscription_Report_${fromStr}_to_${toStr}.pdf`);
 
           downloadBtn.classList.add('pulse-on-download');
           setTimeout(() => downloadBtn.classList.remove('pulse-on-download'), 1500);
@@ -515,21 +764,30 @@
       const pid = document.getElementById("yearlyPatientId").value.trim() || "N/A";
       const name = infoName.textContent || "Unknown";
       const phone = infoPhone.textContent || "N/A";
-      const total = document.getElementById("yearlyTotalAmount").textContent.replace('Total Amount: ', '') || "0.00";
+      const total = document.getElementById("yearlyTotalAmount").textContent.replace('Total Amount: ৳', '') || "0.00";
 
-      doc.setFontSize(16);
+      doc.setFontSize(18);
+      doc.setTextColor(220, 38, 38); // Tailwind Red-600
       doc.text("Yearly Transaction History", 14, 20);
-      doc.setFontSize(12);
+      
+      doc.setFontSize(11);
+      doc.setTextColor(80, 80, 80);
       doc.text(`Patient ID: ${pid}`, 14, 32);
-      doc.text(`Name: ${name}`, 14, 40);
-      doc.text(`Phone: ${phone}`, 14, 48);
+      doc.text(`Name: ${name}`, 14, 38);
+      doc.text(`Phone: ${phone}`, 14, 44);
 
-      doc.autoTable({ html: "#yearlyTransactionTable", startY: 58, theme: "grid" });
+      doc.autoTable({ 
+        html: "#yearlyTransactionTable", 
+        startY: 52, 
+        theme: "grid",
+        headStyles: { fillColor: [254, 242, 242], textColor: [185, 28, 28] }, 
+      });
 
-      const finalY = doc.lastAutoTable.finalY || 58;
+      const finalY = doc.lastAutoTable.finalY || 52;
       doc.setFontSize(14);
-      doc.text(`Total Amount: ${total}`, 14, finalY + 15);
-      doc.save(`yearly_${pid}.pdf`);
+      doc.setTextColor(30, 30, 30);
+      doc.text(`Total Amount: BDT ${total}`, 14, finalY + 15);
+      doc.save(`Yearly_Subscription_${pid}.pdf`);
     };
   </script>
 </body>

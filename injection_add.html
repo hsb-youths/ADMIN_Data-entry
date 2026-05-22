@@ -140,12 +140,8 @@
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Injection Brand</label>
             <select id="injectionBrand" class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm bg-white" required>
-              <option value="" disabled selected>Select Brand</option>
-              <option value="Afstyla">Afstyla</option>
-              <option value="Eloctate">Eloctate</option>
-              <option value="Kovaltry">Kovaltry</option>
-              <option value="Xyntha">Xyntha</option>
-              <option value="Alprolix">Alprolix</option>
+              <option value="" disabled selected>Loading Brands...</option>
+              <!-- Populated dynamically via JS -->
             </select>
           </div>
 
@@ -313,6 +309,41 @@
     const loader = document.getElementById("loaderContainer");
     function showLoader() { loader.style.display = "flex"; }
     function hideLoader() { loader.style.display = "none"; }
+
+    // Load Brands from Inventory Settings
+    async function loadInjectionBrands() {
+      const brandsRef = ref(db, 'inventory_settings/brands');
+      try {
+        const snapshot = await get(brandsRef);
+        const select = document.getElementById("injectionBrand");
+        select.innerHTML = '<option value="" disabled selected>Select Brand</option>';
+        
+        if (snapshot.exists()) {
+          const brands = Object.keys(snapshot.val()).sort();
+          brands.forEach(b => {
+            const opt = document.createElement("option");
+            opt.value = b;
+            opt.textContent = b;
+            select.appendChild(opt);
+          });
+        } else {
+          // Fallback defaults if nothing in DB
+          ["Afstyla", "Eloctate", "Kovaltry", "Xyntha", "Alprolix"].forEach(b => {
+            const opt = document.createElement("option");
+            opt.value = b;
+            opt.textContent = b;
+            select.appendChild(opt);
+          });
+        }
+      } catch (e) {
+        console.error("Error loading brands:", e);
+      }
+    }
+
+    // Call on load
+    window.addEventListener("DOMContentLoaded", () => {
+      loadInjectionBrands();
+    });
 
     // Helper function to build Tailwind styled table rows
     function createRow(dataArray) {

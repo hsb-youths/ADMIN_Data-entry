@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Inventory Management | HSB Dashboard</title>
   
-  <!-- Tailwind + Inter Font -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
@@ -46,12 +45,10 @@
 </head>
 <body class="bg-gray-100 min-h-screen text-gray-800 tracking-normal pb-12">
 
-  <!-- Loader -->
   <div id="loaderContainer"><span class="loader"></span></div>
 
-  <div class="max-w-6xl mx-auto p-4 md:p-8 space-y-8 relative">
+  <div class="max-w-7xl mx-auto p-4 md:p-8 space-y-8 relative">
 
-    <!-- Back Button & Header -->
     <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-8 pt-4">
       <button onclick="window.history.back()" class="self-start md:self-auto px-4 py-2 bg-white border border-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-50 focus:ring-2 focus:ring-gray-200 transition-colors shadow-sm flex items-center">
         <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
@@ -62,36 +59,56 @@
       </div>
     </div>
 
-    <!-- Manage Brands / Configurations -->
-    <div class="bg-white rounded-lg shadow-md p-6 border-t-4 border-blue-600">
-      <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
-        <i class="fas fa-tags mr-2 text-blue-600"></i> Manage Injection Brands
-      </h2>
-      <p class="text-sm text-gray-600 mb-4">Add new injection brands to the system here. They will automatically appear in the dropdowns below.</p>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       
-      <div class="flex flex-col sm:flex-row gap-4 items-end">
-        <div class="w-full sm:w-2/3">
-          <label class="block text-sm font-medium text-gray-700 mb-1">New Brand Name</label>
-          <input type="text" id="newBrandInput" placeholder="e.g. Advate, Hemlibra"
-                 class="w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-colors"/>
+      <div class="bg-white rounded-lg shadow-md p-6 border-t-4 border-blue-600 flex flex-col">
+        <h2 class="text-lg font-bold text-gray-800 mb-2 flex items-center">
+          <i class="fas fa-tags mr-2 text-blue-600"></i> Manage Injection Brands
+        </h2>
+        <p class="text-sm text-gray-500 mb-4 flex-1">Add new injection brands to the system here.</p>
+        
+        <div class="flex flex-col sm:flex-row gap-3 items-end">
+          <div class="w-full sm:w-2/3">
+            <input type="text" id="newBrandInput" placeholder="e.g. Advate, Hemlibra"
+                   class="w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-colors"/>
+          </div>
+          <div class="w-full sm:w-1/3">
+            <button id="addBrandBtn" class="w-full px-4 py-3 bg-blue-600 text-white font-bold rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 transition-colors shadow-sm flex items-center justify-center space-x-2">
+              <i class="fas fa-plus"></i> <span>Add Brand</span>
+            </button>
+          </div>
         </div>
-        <div class="w-full sm:w-1/3">
-          <button id="addBrandBtn" class="w-full px-8 py-3 bg-blue-600 text-white font-bold rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 transition-colors shadow-sm flex items-center justify-center space-x-2">
-            <i class="fas fa-plus"></i>
-            <span>Add Brand</span>
-          </button>
+        <div class="mt-4 pt-4 border-t border-gray-100">
+          <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Available Brands:</p>
+          <div id="brandListContainer" class="flex flex-wrap gap-2"></div>
         </div>
       </div>
-      <!-- Brand List display -->
-      <div class="mt-4 pt-4 border-t border-gray-100">
-        <p class="text-xs font-semibold text-gray-500 uppercase mb-2">Currently Available Brands:</p>
-        <div id="brandListContainer" class="flex flex-wrap gap-2">
-          <!-- Brands will load here dynamically as badges -->
+
+      <div class="bg-white rounded-lg shadow-md p-6 border-t-4 border-purple-600 flex flex-col">
+        <h2 class="text-lg font-bold text-gray-800 mb-2 flex items-center">
+          <i class="fas fa-hospital mr-2 text-purple-600"></i> Manage HTCs & Places
+        </h2>
+        <p class="text-sm text-gray-500 mb-4 flex-1">Add Hemophilia Treatment Centers or distribution points.</p>
+        
+        <div class="flex flex-col sm:flex-row gap-3 items-end">
+          <div class="w-full sm:w-2/3">
+            <input type="text" id="newPlaceInput" placeholder="e.g. HTC - BSMMU"
+                   class="w-full p-3 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500 shadow-sm transition-colors"/>
+          </div>
+          <div class="w-full sm:w-1/3">
+            <button id="addPlaceBtn" class="w-full px-4 py-3 bg-purple-600 text-white font-bold rounded-md hover:bg-purple-700 focus:ring-2 focus:ring-purple-500 transition-colors shadow-sm flex items-center justify-center space-x-2">
+              <i class="fas fa-plus"></i> <span>Add Place</span>
+            </button>
+          </div>
+        </div>
+        <div class="mt-4 pt-4 border-t border-gray-100">
+          <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Available Places:</p>
+          <div id="placeListContainer" class="flex flex-wrap gap-2"></div>
         </div>
       </div>
+
     </div>
 
-    <!-- Receive New Stock Form -->
     <form id="addStockForm" class="bg-white rounded-lg shadow-md p-6 border-t-4 border-green-600 transition-all">
       <h2 class="text-lg font-bold text-gray-800 mb-6 flex items-center">
         <i class="fas fa-boxes mr-2 text-green-600"></i> Log Incoming Stock
@@ -118,8 +135,7 @@
           <label class="block text-sm font-medium text-gray-700 mb-1">Injection Brand</label>
           <select id="stockBrand" class="w-full p-3 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 shadow-sm bg-white" required>
             <option value="" disabled selected>Select Brand</option>
-            <!-- Dynamically populated via JS -->
-          </select>
+            </select>
         </div>
 
         <div>
@@ -136,7 +152,7 @@
           </select>
         </div>
 
-        <div class="lg:col-span-2">
+        <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Vial/Lot Number</label>
           <input type="text" id="stockVial" placeholder="e.g. Lot 1234AB" class="w-full p-3 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 shadow-sm" required/>
         </div>
@@ -147,20 +163,26 @@
         </div>
 
         <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Utilization Place</label>
+          <select id="stockUtilizationPlace" class="w-full p-3 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 shadow-sm bg-white" required>
+            <option value="" disabled selected>Select Location</option>
+            </select>
+        </div>
+
+        <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
           <input type="date" id="stockExpiry" class="w-full p-3 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 shadow-sm" required/>
         </div>
       </div>
       
-      <div class="flex justify-end">
-        <button type="submit" class="w-full sm:w-auto px-8 py-3 bg-green-600 text-white font-bold rounded-md hover:bg-green-700 focus:ring-2 focus:ring-green-500 transition-colors shadow-sm flex items-center justify-center space-x-2">
+      <div class="flex justify-end pt-2">
+        <button type="submit" class="w-full md:w-auto px-10 py-3 bg-green-600 text-white font-bold rounded-md hover:bg-green-700 focus:ring-2 focus:ring-green-500 transition-colors shadow-sm flex items-center justify-center space-x-2">
           <i class="fas fa-save"></i>
           <span>Save Stock Entry</span>
         </button>
       </div>
     </form>
 
-    <!-- Stock In History Table -->
     <div class="bg-white rounded-lg shadow-md overflow-hidden">
       <div class="p-5 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
         <h2 class="text-lg font-bold text-gray-800 flex items-center">
@@ -181,22 +203,21 @@
               <th class="px-6 py-4 whitespace-nowrap">Dosage</th>
               <th class="px-6 py-4 whitespace-nowrap">Vial/Lot No</th>
               <th class="px-6 py-4 whitespace-nowrap">Qty Added</th>
+              <th class="px-6 py-4 whitespace-nowrap">Location</th>
               <th class="px-6 py-4 whitespace-nowrap">Expiry Date</th>
             </tr>
           </thead>
           <tbody id="stockTableBody" class="text-gray-700 divide-y divide-gray-100">
-            <!-- Data will load here -->
-          </tbody>
+            </tbody>
         </table>
       </div>
     </div>
 
   </div>
 
-  <!-- ==================== FIREBASE & LOGIC ==================== -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-    import { getDatabase, ref, set, get, push, query, orderByChild } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
+    import { getDatabase, ref, set, get, push, remove } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyB7QLBLarDiqdpYy5jw8_1e-girl-aR1Wqc",
@@ -204,15 +225,15 @@
       projectId: "hemophilia-society-of-bd",
       storageBucket: "hemophilia-society-of-bd.appspot.com",
       messagingSenderId: "674332798483",
-      appId: "1:674332798483:web:cedb62cb05e03b5cadd9e6",
-      measurementId: "G-J5D8R7P18D"
+      appId: "1:674332798483:web:cedb62cb05e03b5cadd9e6"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // Default configuration for injection brands if DB is empty
+    // Default configuration arrays
     const defaultBrands = ["Afstyla", "Eloctate", "Kovaltry", "Xyntha", "Alprolix"];
+    const defaultPlaces = ["Hemophilia Society of Bangladesh", "Dhaka Medical college Hospital"];
 
     // UI Loading functions
     const loader = document.getElementById("loaderContainer");
@@ -228,18 +249,28 @@
     
     async function loadBrands() {
       const brandsRef = ref(db, 'inventory_settings/brands');
+      const setupRef = ref(db, 'inventory_settings/setup_brands_complete');
       try {
-        const snapshot = await get(brandsRef);
+        const setupSnap = await get(setupRef);
         let brands = [];
 
-        if (snapshot.exists()) {
-          brands = Object.keys(snapshot.val()); // Assuming we store them as keys: { "Afstyla": true }
+        if (!setupSnap.exists()) {
+          const snapshot = await get(brandsRef);
+          if (snapshot.exists()) {
+            brands = Object.keys(snapshot.val());
+            await set(setupRef, true);
+          } else {
+            let updates = {};
+            defaultBrands.forEach(b => updates[b] = true);
+            await set(brandsRef, updates);
+            await set(setupRef, true);
+            brands = defaultBrands;
+          }
         } else {
-          // Seed defaults if empty
-          let updates = {};
-          defaultBrands.forEach(b => updates[b] = true);
-          await set(brandsRef, updates);
-          brands = defaultBrands;
+          const snapshot = await get(brandsRef);
+          if (snapshot.exists()) {
+            brands = Object.keys(snapshot.val());
+          }
         }
 
         updateBrandUI(brands.sort());
@@ -249,7 +280,6 @@
     }
 
     function updateBrandUI(brands) {
-      // Update Dropdown
       const select = document.getElementById("stockBrand");
       select.innerHTML = '<option value="" disabled selected>Select Brand</option>';
       brands.forEach(b => {
@@ -259,13 +289,36 @@
         select.appendChild(opt);
       });
 
-      // Update Badge List
       const container = document.getElementById("brandListContainer");
       container.innerHTML = '';
       brands.forEach(b => {
         const badge = document.createElement("span");
-        badge.className = "px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full border border-gray-200";
-        badge.textContent = b;
+        badge.className = "inline-flex items-center gap-2 px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full border border-gray-200 shadow-sm";
+        
+        const textSpan = document.createElement("span");
+        textSpan.textContent = b;
+        badge.appendChild(textSpan);
+
+        const removeBtn = document.createElement("button");
+        removeBtn.className = "text-gray-400 hover:text-red-600 transition-colors focus:outline-none";
+        removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+        removeBtn.title = "Remove Brand";
+        removeBtn.onclick = async (e) => {
+          e.preventDefault();
+          if (confirm(`Are you sure you want to remove "${b}" from the available brands list?`)) {
+            showLoader();
+            try {
+              await remove(ref(db, `inventory_settings/brands/${b}`));
+              await loadBrands();
+            } catch (err) {
+              alert("Error removing brand: " + err.message);
+            } finally {
+              hideLoader();
+            }
+          }
+        };
+
+        badge.appendChild(removeBtn);
         container.appendChild(badge);
       });
     }
@@ -278,11 +331,9 @@
 
       showLoader();
       try {
-        const brandRef = ref(db, `inventory_settings/brands/${newBrand}`);
-        await set(brandRef, true);
+        await set(ref(db, `inventory_settings/brands/${newBrand}`), true);
         input.value = '';
         await loadBrands();
-        alert(`Successfully added ${newBrand} to the system!`);
       } catch (e) {
         alert("Error adding brand: " + e.message);
       } finally {
@@ -291,7 +342,105 @@
     });
 
     // ==========================================
-    // 2. RECEIVE NEW STOCK ENTRY
+    // 2. MANAGE UTILIZATION PLACES (HTCs)
+    // ==========================================
+
+    async function loadUtilizationPlaces() {
+      const placesRef = ref(db, 'inventory_settings/utilization_places');
+      const setupRef = ref(db, 'inventory_settings/setup_places_complete');
+      try {
+        const setupSnap = await get(setupRef);
+        let places = [];
+
+        if (!setupSnap.exists()) {
+          const snapshot = await get(placesRef);
+          if (snapshot.exists()) {
+            places = Object.keys(snapshot.val());
+            await set(setupRef, true);
+          } else {
+            let updates = {};
+            defaultPlaces.forEach(p => updates[p] = true);
+            await set(placesRef, updates);
+            await set(setupRef, true);
+            places = defaultPlaces;
+          }
+        } else {
+          const snapshot = await get(placesRef);
+          if (snapshot.exists()) {
+            places = Object.keys(snapshot.val());
+          }
+        }
+
+        updatePlaceUI(places.sort());
+      } catch (e) {
+        console.error("Error loading places:", e);
+      }
+    }
+
+    function updatePlaceUI(places) {
+      const select = document.getElementById("stockUtilizationPlace");
+      select.innerHTML = '<option value="" disabled selected>Select Location</option>';
+      places.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p;
+        opt.textContent = p;
+        select.appendChild(opt);
+      });
+
+      const container = document.getElementById("placeListContainer");
+      container.innerHTML = '';
+      places.forEach(p => {
+        const badge = document.createElement("span");
+        badge.className = "inline-flex items-center gap-2 px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full border border-gray-200 shadow-sm";
+        
+        const textSpan = document.createElement("span");
+        textSpan.textContent = p;
+        badge.appendChild(textSpan);
+
+        const removeBtn = document.createElement("button");
+        removeBtn.className = "text-gray-400 hover:text-red-600 transition-colors focus:outline-none";
+        removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+        removeBtn.title = "Remove Place";
+        removeBtn.onclick = async (e) => {
+          e.preventDefault();
+          if (confirm(`Are you sure you want to remove "${p}" from the utilization places list?`)) {
+            showLoader();
+            try {
+              await remove(ref(db, `inventory_settings/utilization_places/${p}`));
+              await loadUtilizationPlaces();
+            } catch (err) {
+              alert("Error removing place: " + err.message);
+            } finally {
+              hideLoader();
+            }
+          }
+        };
+
+        badge.appendChild(removeBtn);
+        container.appendChild(badge);
+      });
+    }
+
+    document.getElementById("addPlaceBtn").addEventListener("click", async () => {
+      const input = document.getElementById("newPlaceInput");
+      const newPlace = input.value.trim();
+      
+      if (!newPlace) return alert("Please enter a Place or HTC name.");
+
+      showLoader();
+      try {
+        await set(ref(db, `inventory_settings/utilization_places/${newPlace}`), true);
+        input.value = '';
+        await loadUtilizationPlaces();
+      } catch (e) {
+        alert("Error adding place: " + e.message);
+      } finally {
+        hideLoader();
+      }
+    });
+
+    // ==========================================
+    // 3. RECEIVE NEW STOCK ENTRY
     // ==========================================
 
     document.getElementById("addStockForm").addEventListener("submit", async function (e) {
@@ -304,8 +453,9 @@
         dosage: document.getElementById("stockDosage").value,
         vialInfo: document.getElementById("stockVial").value.trim(),
         quantity: parseInt(document.getElementById("stockQuantity").value, 10),
+        utilizationPlace: document.getElementById("stockUtilizationPlace").value,
         expiryDate: document.getElementById("stockExpiry").value,
-        timestamp: Date.now() // for sorting
+        timestamp: Date.now() 
       };
 
       showLoader();
@@ -315,9 +465,9 @@
         
         alert("Incoming stock logged successfully!");
         this.reset();
-        document.getElementById("stockDate").valueAsDate = new Date(); // Reset date to today
+        document.getElementById("stockDate").valueAsDate = new Date(); 
         
-        loadStockHistory(); // Refresh table
+        loadStockHistory(); 
       } catch (err) {
         alert("Error saving stock entry: " + err.message);
       } finally {
@@ -326,21 +476,21 @@
     });
 
     // ==========================================
-    // 3. LOAD STOCK HISTORY
+    // 4. LOAD STOCK HISTORY
     // ==========================================
 
     async function loadStockHistory() {
       const tbody = document.getElementById("stockTableBody");
-      tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-8 text-center text-gray-500">Loading history...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan=\"8\" class=\"px-6 py-8 text-center text-gray-500\">Loading history...</td></tr>';
       
       try {
         const historyRef = ref(db, 'inventory_transactions/stock_in');
         const snapshot = await get(historyRef);
         
-        tbody.innerHTML = ''; // clear
+        tbody.innerHTML = ''; 
 
         if (!snapshot.exists()) {
-          tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-4 text-center text-gray-500 italic border-b border-gray-100">No stock history found.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan=\"8\" class=\"px-6 py-4 text-center text-gray-500 italic border-b border-gray-100\">No stock history found.</td></tr>';
           return;
         }
 
@@ -368,6 +518,7 @@
             <td class="px-6 py-4 font-medium border-b border-gray-100 whitespace-nowrap">${item.dosage}</td>
             <td class="px-6 py-4 font-mono text-sm text-gray-600 border-b border-gray-100 whitespace-nowrap">${item.vialInfo}</td>
             <td class="px-6 py-4 font-bold text-green-600 border-b border-gray-100 whitespace-nowrap">+${item.quantity}</td>
+            <td class="px-6 py-4 border-b border-gray-100 whitespace-nowrap text-purple-700 font-medium">${item.utilizationPlace || 'N/A'}</td>
             <td class="px-6 py-4 text-sm text-red-600 border-b border-gray-100 whitespace-nowrap">${formattedExpiry}</td>
           `;
           tbody.appendChild(tr);
@@ -375,7 +526,7 @@
 
       } catch (e) {
         console.error("Error loading history:", e);
-        tbody.innerHTML = `<tr><td colspan="7" class="px-6 py-4 text-center text-red-500 border-b border-gray-100">Failed to load history.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan=\"8\" class=\"px-6 py-4 text-center text-red-500 border-b border-gray-100\">Failed to load history.</td></tr>`;
       }
     }
 
@@ -384,6 +535,7 @@
     // Initialize Page Data
     window.addEventListener("DOMContentLoaded", () => {
       loadBrands();
+      loadUtilizationPlaces();
       loadStockHistory();
     });
 

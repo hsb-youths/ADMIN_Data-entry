@@ -1,794 +1,1039 @@
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Subscription Panel | HSB Dashboard</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Subscription Panel | HSB Dashboard</title>
 
-  <!-- Tailwind + Inter Font -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <!-- Tailwind + Inter Font -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
-  <style>
-    body { font-family: 'Inter', sans-serif; }
-    
-    /* Smooth Transitions */
-    .transition-all { transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 300ms; }
+    <style>
+        body { font-family: 'Inter', sans-serif; }
 
-    /* Sticky Header */
-    thead th {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
+        /* Smooth Transitions */
+        .transition-all { transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 300ms; }
 
-    /* Mobile Drawer */
-    #sidebarDrawer { transition: transform 0.3s ease-in-out; }
-    #sidebarDrawerOverlay { transition: opacity 0.3s ease-in-out; }
+        /* Sticky Header */
+        thead th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
 
-    /* PDF Button Pulse */
-    .pulse-on-download { animation: pulse 1.5s ease-in-out; }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.8; transform: scale(0.95); }
-    }
-  </style>
+        /* Mobile Drawer */
+        #sidebarDrawer { transition: transform 0.3s ease-in-out; }
+        #sidebarDrawerOverlay { transition: opacity 0.3s ease-in-out; }
+
+        /* PDF Button Pulse */
+        .pulse-on-download { animation: pulse 1.5s ease-in-out; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(0.95); }
+        }
+    </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex text-gray-800 tracking-normal">
 
-  <!-- Mobile Hamburger -->
-  <div class="lg:hidden fixed top-4 left-4 z-40">
-    <button id="hamburgerBtn" class="w-12 h-12 bg-white rounded-md flex items-center justify-center shadow-md border border-gray-200 text-red-600 hover:bg-gray-50 transition-colors">
-      <i class="fas fa-bars text-xl"></i>
-    </button>
-  </div>
-
-  <!-- Desktop Sidebar -->
-  <aside class="hidden lg:flex w-72 flex-col bg-white border-r border-gray-200 shadow-lg z-10 h-screen sticky top-0">
-    <div class="p-6 flex items-center space-x-3 mb-4 border-b border-gray-100">
-      <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center text-red-600 shadow-sm">
-        <i class="fas fa-heartbeat text-xl"></i>
-      </div>
-      <div>
-        <h1 class="text-xl font-bold tracking-tight text-gray-800">Subscription</h1>
-        <p class="text-xs text-gray-500 font-medium">HSB Admin Panel</p>
-      </div>
+    <!-- Mobile Hamburger -->
+    <div class="lg:hidden fixed top-4 left-4 z-40">
+        <button id="hamburgerBtn" class="w-12 h-12 bg-white rounded-md flex items-center justify-center shadow-md border border-gray-200 text-red-600 hover:bg-gray-50 transition-colors">
+            <i class="fas fa-bars text-xl"></i>
+        </button>
     </div>
 
-    <div class="px-4 space-y-2 flex-1">
-      <button id="yearlyBtn" class="w-full text-left px-4 py-3 rounded-md flex items-center space-x-3 transition-colors bg-red-50 text-red-700 font-semibold border border-red-100 shadow-sm">
-        <i class="fas fa-calendar-alt w-5 text-center"></i>
-        <span>Yearly Members</span>
-      </button>
-      <button id="lifeBtn" class="w-full text-left px-4 py-3 rounded-md flex items-center space-x-3 transition-colors bg-transparent text-gray-600 hover:bg-gray-50 font-medium border border-transparent">
-        <i class="fas fa-infinity w-5 text-center"></i>
-        <span>Life Members</span>
-      </button>
-    </div>
-
-    <div class="p-6 border-t border-gray-100">
-      <p class="text-xs text-center text-gray-400 font-medium">Powered by Firebase</p>
-    </div>
-  </aside>
-
-  <!-- Mobile Drawer -->
-  <div id="sidebarDrawerOverlay" class="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40 hidden"></div>
-  <aside id="sidebarDrawer" class="lg:hidden fixed left-0 top-0 w-72 h-full bg-white shadow-2xl transform -translate-x-full z-50 flex flex-col">
-    <div class="p-6 flex items-center justify-between border-b border-gray-100 mb-4">
-      <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center text-red-600">
-          <i class="fas fa-heartbeat text-lg"></i>
+    <!-- Desktop Sidebar -->
+    <aside class="hidden lg:flex w-72 flex-col bg-white border-r border-gray-200 shadow-lg z-10 h-screen sticky top-0">
+        <div class="p-6 flex items-center space-x-3 mb-4 border-b border-gray-100">
+            <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center text-red-600 shadow-sm">
+                <i class="fas fa-heartbeat text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight text-gray-800">Subscription</h1>
+                <p class="text-xs text-gray-500 font-medium">HSB Admin Panel</p>
+            </div>
         </div>
-        <h1 class="text-xl font-bold text-gray-800">Subscription</h1>
-      </div>
-      <button id="closeDrawer" class="text-gray-400 hover:text-red-600 transition-colors">
-        <i class="fas fa-times text-xl"></i>
-      </button>
-    </div>
 
-    <div class="px-4 space-y-2 flex-1">
-      <button id="yearlyBtnDrawer" class="w-full text-left px-4 py-3 rounded-md flex items-center space-x-3 transition-colors bg-red-50 text-red-700 font-semibold border border-red-100">
-        <i class="fas fa-calendar-alt w-5 text-center"></i>
-        <span>Yearly Members</span>
-      </button>
-      <button id="lifeBtnDrawer" class="w-full text-left px-4 py-3 rounded-md flex items-center space-x-3 transition-colors bg-transparent text-gray-600 hover:bg-gray-50 font-medium">
-        <i class="fas fa-infinity w-5 text-center"></i>
-        <span>Life Members</span>
-      </button>
-    </div>
-  </aside>
-
-  <!-- Main Content -->
-  <main class="flex-1 p-4 md:p-8 overflow-y-auto w-full max-w-6xl mx-auto pt-20 lg:pt-8 relative">
-
-    <!-- Yearly Section -->
-    <section id="yearlySection" class="space-y-6">
-      <!-- Patient ID + Fetch -->
-      <div class="bg-white rounded-lg shadow-md p-6 border-t-4 border-red-600">
-        <h2 class="text-lg font-bold text-gray-800 mb-4">Find Patient</h2>
-        <div class="flex flex-col md:flex-row gap-4 items-center">
-          <input id="yearlyPatientId" type="text" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="Enter Patient ID..."
-                 class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm"/>
-          <button id="fetchYearly" class="w-full md:w-auto px-8 py-3 bg-red-600 text-white font-bold rounded-md hover:bg-red-700 focus:ring-2 focus:ring-red-500 transition-colors shadow-sm flex items-center justify-center space-x-2 whitespace-nowrap">
-            <i class="fas fa-search"></i>
-            <span>Fetch Data</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Add Fee -->
-      <div class="bg-white rounded-lg shadow-md p-6">
-        <h2 class="text-lg font-bold text-gray-800 mb-4">Add Subscription Fee</h2>
-        <div class="flex flex-col sm:flex-row gap-4 items-center">
-          <div class="w-full sm:w-1/2">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
-            <input id="subAmount" type="number" placeholder="e.g. 500" class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm"/>
-          </div>
-          <div class="w-full sm:w-1/2">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Subscription Year</label>
-            <input id="subYear" type="number" placeholder="e.g. 2024" class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm"/>
-          </div>
-          <div class="w-full sm:w-auto sm:self-end">
-            <button id="addYearlyFee" class="w-full px-8 py-3 bg-green-600 text-white font-bold rounded-md hover:bg-green-700 focus:ring-2 focus:ring-green-500 transition-colors shadow-sm flex items-center justify-center space-x-2 whitespace-nowrap">
-              <i class="fas fa-plus-circle"></i>
-              <span>Add Fee</span>
+        <div class="px-4 space-y-2 flex-1">
+            <button id="yearlyBtn" class="w-full text-left px-4 py-3 rounded-md flex items-center space-x-3 transition-colors bg-red-50 text-red-700 font-semibold border border-red-100 shadow-sm">
+                <i class="fas fa-calendar-alt w-5 text-center"></i>
+                <span>Yearly Members</span>
             </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Patient Info Card -->
-      <div id="patientInfoCard" class="hidden bg-red-50 border-l-4 border-red-500 p-6 rounded-r-md shadow-sm transform transition-all duration-300">
-        <h3 class="text-lg font-bold text-red-700 flex items-center mb-3">
-          <i class="fas fa-user-circle mr-2"></i> Patient Information
-        </h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-800">
-          <p><strong>ID:</strong> <span id="infoId" class="font-bold text-red-600"></span></p>
-          <p><strong>Name:</strong> <span id="infoName" class="font-medium"></span></p>
-          <p><strong>Phone:</strong> <span id="infoPhone" class="font-medium"></span></p>
-        </div>
-      </div>
-
-      <!-- Transaction History -->
-      <div class="bg-white rounded-lg shadow-md overflow-hidden">
-        <div class="p-5 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
-          <h3 class="text-lg font-bold text-gray-800 flex items-center">
-            <i class="fas fa-history mr-2 text-red-600"></i> Transaction History
-          </h3>
-        </div>
-        <div class="overflow-x-auto">
-          <table id="yearlyTransactionTable" class="w-full text-sm text-left">
-            <thead class="bg-red-50 text-red-700 text-xs uppercase font-bold border-b border-red-100">
-              <tr>
-                <th class="px-6 py-4">Txn ID</th>
-                <th class="px-6 py-4">Date</th>
-                <th class="px-6 py-4">Year</th>
-                <th class="px-6 py-4">Amount</th>
-              </tr>
-            </thead>
-            <tbody class="text-gray-700 divide-y divide-gray-100"></tbody>
-          </table>
-          
-          <div class="p-6 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <p id="yearlyTotalAmount" class="text-xl font-bold text-gray-800"></p>
-            <button onclick="downloadYearlyTransactionPDF()" class="px-6 py-2.5 bg-gray-800 text-white font-medium rounded-md hover:bg-gray-900 focus:ring-2 focus:ring-gray-500 transition-colors shadow-sm flex items-center space-x-2">
-              <i class="fas fa-file-pdf"></i>
-              <span>Download PDF</span>
+            <button id="lifeBtn" class="w-full text-left px-4 py-3 rounded-md flex items-center space-x-3 transition-colors bg-transparent text-gray-600 hover:bg-gray-50 font-medium border border-transparent">
+                <i class="fas fa-infinity w-5 text-center"></i>
+                <span>Life Members</span>
             </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Date to Date Report -->
-      <div class="bg-white rounded-lg shadow-md overflow-hidden">
-        <div class="p-5 border-b border-gray-200 bg-gray-50">
-          <h3 class="text-lg font-bold text-gray-800 flex items-center">
-            <i class="fas fa-chart-line mr-2 text-red-600"></i> General Subscription Report
-          </h3>
-        </div>
-        <div class="p-6 space-y-6">
-          <div class="flex flex-col md:flex-row gap-4 items-end">
-            <div class="w-full md:w-1/3">
-              <label class="block text-sm font-medium text-gray-700 mb-1">From Date</label>
-              <input id="fromDate" type="date" class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm"/>
-            </div>
-            <div class="w-full md:w-1/3">
-              <label class="block text-sm font-medium text-gray-700 mb-1">To Date</label>
-              <input id="toDate" type="date" class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm"/>
-            </div>
-            <div class="w-full md:w-auto">
-              <button id="fetchDateRange" class="w-full px-8 py-3 bg-red-600 text-white font-bold rounded-md hover:bg-red-700 focus:ring-2 focus:ring-red-500 transition-colors shadow-sm flex items-center justify-center space-x-2">
-                <i class="fas fa-filter"></i>
-                <span>Generate Report</span>
-              </button>
-            </div>
-          </div>
-
-          <div class="overflow-x-auto border border-gray-200 rounded-md">
-            <table id="dateRangeTable" class="w-full text-sm text-left">
-              <thead class="bg-red-50 text-red-700 text-xs uppercase font-bold border-b border-red-100">
-                <tr>
-                  <th class="px-6 py-4">Txn ID</th>
-                  <th class="px-6 py-4">Patient ID</th>
-                  <th class="px-6 py-4">Name</th>
-                  <th class="px-6 py-4">Date</th>
-                  <th class="px-6 py-4">Year</th>
-                  <th class="px-6 py-4">Amount</th>
-                </tr>
-              </thead>
-              <tbody class="text-gray-700 divide-y divide-gray-100"></tbody>
-            </table>
-          </div>
-          
-          <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <p id="dateRangeTotalAmount" class="text-xl font-bold text-gray-800"></p>
-            <button id="downloadReport" class="hidden px-6 py-2.5 bg-gray-800 text-white font-medium rounded-md hover:bg-gray-900 focus:ring-2 focus:ring-gray-500 transition-colors shadow-sm flex items-center space-x-2">
-              <i class="fas fa-download"></i>
-              <span>Download PDF Report</span>
+            <button id="serviceChargeBtn" class="w-full text-left px-4 py-3 rounded-md flex items-center space-x-3 transition-colors bg-transparent text-gray-600 hover:bg-gray-50 font-medium border border-transparent">
+                <i class="fas fa-hand-holding-usd w-5 text-center"></i>
+                <span>Service Charge</span>
             </button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Life Section -->
-    <section id="lifeSection" class="hidden space-y-6">
-      <!-- Find Patient for Life Membership -->
-      <div class="bg-white rounded-lg shadow-md p-6 border-t-4 border-red-600">
-        <h2 class="text-lg font-bold text-gray-800 mb-4">Find Patient</h2>
-        <div class="flex flex-col md:flex-row gap-4 items-center">
-          <input id="lifePatientId" type="text" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="Enter Patient ID..."
-                 class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm"/>
-          <button id="fetchLife" class="w-full md:w-auto px-8 py-3 bg-red-600 text-white font-bold rounded-md hover:bg-red-700 focus:ring-2 focus:ring-red-500 transition-colors shadow-sm flex items-center justify-center space-x-2 whitespace-nowrap">
-            <i class="fas fa-search"></i>
-            <span>Fetch Data</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Life Patient Actions Card (Hidden initially) -->
-      <div id="lifePatientActionsCard" class="hidden space-y-6">
-        <!-- Patient Info Display -->
-        <div class="bg-red-50 border-l-4 border-red-500 p-6 rounded-r-md shadow-sm">
-          <h3 class="text-lg font-bold text-red-700 flex items-center mb-3">
-            <i class="fas fa-user-circle mr-2"></i> Patient Information
-          </h3>
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-800">
-            <p><strong>ID:</strong> <span id="lifeInfoId" class="font-bold text-red-600"></span></p>
-            <p><strong>Name:</strong> <span id="lifeInfoName" class="font-medium"></span></p>
-            <p><strong>Phone:</strong> <span id="lifeInfoPhone" class="font-medium"></span></p>
-            <p><strong>Current Status:</strong> <span id="lifeInfoStatus" class="font-medium uppercase px-2 py-1 bg-white rounded shadow-sm border border-red-100"></span></p>
-          </div>
         </div>
 
-        <!-- Update Membership Interface -->
-        <div class="bg-white rounded-lg shadow-md p-6">
-          <h2 class="text-lg font-bold text-gray-800 mb-4">Change Membership Status</h2>
-          <div class="flex flex-col sm:flex-row gap-4 items-end">
-            <div class="w-full sm:w-1/2">
-              <label class="block text-sm font-medium text-gray-700 mb-1">Membership Type</label>
-              <select id="membershipTypeSelect" class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm">
-                <option value="Annual Membership">Annual Membership</option>
-                <option value="Life Membership">Life Membership</option>
-              </select>
+        <div class="p-6 border-t border-gray-100">
+            <p class="text-xs text-center text-gray-400 font-medium">Powered by Firebase</p>
+        </div>
+    </aside>
+
+    <!-- Mobile Drawer -->
+    <div id="sidebarDrawerOverlay" class="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40 hidden"></div>
+    <aside id="sidebarDrawer" class="lg:hidden fixed left-0 top-0 w-72 h-full bg-white shadow-2xl transform -translate-x-full z-50 flex flex-col">
+        <div class="p-6 flex items-center justify-between border-b border-gray-100 mb-4">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center text-red-600">
+                    <i class="fas fa-heartbeat text-lg"></i>
+                </div>
+                <h1 class="text-xl font-bold text-gray-800">Subscription</h1>
             </div>
-            <div class="w-full sm:w-auto">
-              <button id="openLifeModalBtn" class="w-full px-8 py-3 bg-red-600 text-white font-bold rounded-md hover:bg-red-700 focus:ring-2 focus:ring-red-500 transition-colors shadow-sm flex items-center justify-center space-x-2 whitespace-nowrap">
-                <i class="fas fa-edit"></i>
-                <span>Set Membership Type</span>
-              </button>
+            <button id="closeDrawer" class="text-gray-400 hover:text-red-600 transition-colors">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+
+        <div class="px-4 space-y-2 flex-1">
+            <button id="yearlyBtnDrawer" class="w-full text-left px-4 py-3 rounded-md flex items-center space-x-3 transition-colors bg-red-50 text-red-700 font-semibold border border-red-100">
+                <i class="fas fa-calendar-alt w-5 text-center"></i>
+                <span>Yearly Members</span>
+            </button>
+            <button id="lifeBtnDrawer" class="w-full text-left px-4 py-3 rounded-md flex items-center space-x-3 transition-colors bg-transparent text-gray-600 hover:bg-gray-50 font-medium">
+                <i class="fas fa-infinity w-5 text-center"></i>
+                <span>Life Members</span>
+            </button>
+            <button id="serviceChargeBtnDrawer" class="w-full text-left px-4 py-3 rounded-md flex items-center space-x-3 transition-colors bg-transparent text-gray-600 hover:bg-gray-50 font-medium">
+                <i class="fas fa-hand-holding-usd w-5 text-center"></i>
+                <span>Service Charge</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-4 md:p-8 overflow-y-auto w-full max-w-6xl mx-auto pt-20 lg:pt-8 relative">
+
+        <!-- Yearly Section -->
+        <section id="yearlySection" class="space-y-6">
+            <!-- Patient ID + Fetch -->
+            <div class="bg-white rounded-lg shadow-md p-6 border-t-4 border-red-600">
+                <h2 class="text-lg font-bold text-gray-800 mb-4">Find Patient</h2>
+                <div class="flex flex-col md:flex-row gap-4 items-center">
+                    <input id="yearlyPatientId" type="text" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="Enter Patient ID..."
+                           class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm"/>
+                    <button id="fetchYearly" class="w-full md:w-auto px-8 py-3 bg-red-600 text-white font-bold rounded-md hover:bg-red-700 focus:ring-2 focus:ring-red-500 transition-colors shadow-sm flex items-center justify-center space-x-2 whitespace-nowrap">
+                        <i class="fas fa-search"></i>
+                        <span>Fetch Data</span>
+                    </button>
+                </div>
             </div>
-          </div>
+
+            <!-- Add Fee -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-lg font-bold text-gray-800 mb-4">Add Subscription Fee</h2>
+                <div class="flex flex-col sm:flex-row gap-4 items-center">
+                    <div class="w-full sm:w-1/2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                        <input id="subAmount" type="number" placeholder="e.g. 500" class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm"/>
+                    </div>
+                    <div class="w-full sm:w-1/2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Subscription Year</label>
+                        <input id="subYear" type="number" placeholder="e.g. 2024" class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm"/>
+                    </div>
+                    <div class="w-full sm:w-auto sm:self-end">
+                        <button id="addYearlyFee" class="w-full px-8 py-3 bg-green-600 text-white font-bold rounded-md hover:bg-green-700 focus:ring-2 focus:ring-green-500 transition-colors shadow-sm flex items-center justify-center space-x-2 whitespace-nowrap">
+                            <i class="fas fa-plus-circle"></i>
+                            <span>Add Fee</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Patient Info Card -->
+            <div id="patientInfoCard" class="hidden bg-red-50 border-l-4 border-red-500 p-6 rounded-r-md shadow-sm transform transition-all duration-300">
+                <h3 class="text-lg font-bold text-red-700 flex items-center mb-3">
+                    <i class="fas fa-user-circle mr-2"></i> Patient Information
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-800">
+                    <p><strong>ID:</strong> <span id="infoId" class="font-bold text-red-600"></span></p>
+                    <p><strong>Name:</strong> <span id="infoName" class="font-medium"></span></p>
+                    <p><strong>Phone:</strong> <span id="infoPhone" class="font-medium"></span></p>
+                </div>
+            </div>
+
+            <!-- Transaction History -->
+            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="p-5 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-gray-800 flex items-center">
+                        <i class="fas fa-history mr-2 text-red-600"></i> Transaction History
+                    </h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table id="yearlyTransactionTable" class="w-full text-sm text-left">
+                        <thead class="bg-red-50 text-red-700 text-xs uppercase font-bold border-b border-red-100">
+                            <tr>
+                                <th class="px-6 py-4">Txn ID</th>
+                                <th class="px-6 py-4">Date</th>
+                                <th class="px-6 py-4">Year / Details</th>
+                                <th class="px-6 py-4">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-gray-700 divide-y divide-gray-100"></tbody>
+                    </table>
+
+                    <div class="p-6 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <p id="yearlyTotalAmount" class="text-xl font-bold text-gray-800"></p>
+                        <button onclick="downloadYearlyTransactionPDF()" class="px-6 py-2.5 bg-gray-800 text-white font-medium rounded-md hover:bg-gray-900 focus:ring-2 focus:ring-gray-500 transition-colors shadow-sm flex items-center space-x-2">
+                            <i class="fas fa-file-pdf"></i>
+                            <span>Download PDF</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Date to Date Report -->
+            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="p-5 border-b border-gray-200 bg-gray-50">
+                    <h3 class="text-lg font-bold text-gray-800 flex items-center">
+                        <i class="fas fa-chart-line mr-2 text-red-600"></i> General Subscription Report
+                    </h3>
+                </div>
+                <div class="p-6 space-y-6">
+                    <div class="flex flex-col md:flex-row gap-4 items-end">
+                        <div class="w-full md:w-1/3">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">From Date</label>
+                            <input id="fromDate" type="date" class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm"/>
+                        </div>
+                        <div class="w-full md:w-1/3">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">To Date</label>
+                            <input id="toDate" type="date" class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm"/>
+                        </div>
+                        <div class="w-full md:w-auto">
+                            <button id="fetchDateRange" class="w-full px-8 py-3 bg-red-600 text-white font-bold rounded-md hover:bg-red-700 focus:ring-2 focus:ring-red-500 transition-colors shadow-sm flex items-center justify-center space-x-2">
+                                <i class="fas fa-filter"></i>
+                                <span>Generate Report</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto border border-gray-200 rounded-md">
+                        <table id="dateRangeTable" class="w-full text-sm text-left">
+                            <thead class="bg-red-50 text-red-700 text-xs uppercase font-bold border-b border-red-100">
+                                <tr>
+                                    <th class="px-6 py-4">Txn ID</th>
+                                    <th class="px-6 py-4">Patient ID</th>
+                                    <th class="px-6 py-4">Name</th>
+                                    <th class="px-6 py-4">Date</th>
+                                    <th class="px-6 py-4">Year / Details</th>
+                                    <th class="px-6 py-4">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-700 divide-y divide-gray-100"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <p id="dateRangeTotalAmount" class="text-xl font-bold text-gray-800"></p>
+                        <button id="downloadReport" class="hidden px-6 py-2.5 bg-gray-800 text-white font-medium rounded-md hover:bg-gray-900 focus:ring-2 focus:ring-gray-500 transition-colors shadow-sm flex items-center space-x-2">
+                            <i class="fas fa-download"></i>
+                            <span>Download PDF Report</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Life Section -->
+        <section id="lifeSection" class="hidden space-y-6">
+            <!-- Find Patient for Life Membership -->
+            <div class="bg-white rounded-lg shadow-md p-6 border-t-4 border-red-600">
+                <h2 class="text-lg font-bold text-gray-800 mb-4">Find Patient</h2>
+                <div class="flex flex-col md:flex-row gap-4 items-center">
+                    <input id="lifePatientId" type="text" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="Enter Patient ID..."
+                           class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm"/>
+                    <button id="fetchLife" class="w-full md:w-auto px-8 py-3 bg-red-600 text-white font-bold rounded-md hover:bg-red-700 focus:ring-2 focus:ring-red-500 transition-colors shadow-sm flex items-center justify-center space-x-2 whitespace-nowrap">
+                        <i class="fas fa-search"></i>
+                        <span>Fetch Data</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Life Patient Actions Card (Hidden initially) -->
+            <div id="lifePatientActionsCard" class="hidden space-y-6">
+                <!-- Patient Info Display -->
+                <div class="bg-red-50 border-l-4 border-red-500 p-6 rounded-r-md shadow-sm">
+                    <h3 class="text-lg font-bold text-red-700 flex items-center mb-3">
+                        <i class="fas fa-user-circle mr-2"></i> Patient Information
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-800">
+                        <p><strong>ID:</strong> <span id="lifeInfoId" class="font-bold text-red-600"></span></p>
+                        <p><strong>Name:</strong> <span id="lifeInfoName" class="font-medium"></span></p>
+                        <p><strong>Phone:</strong> <span id="lifeInfoPhone" class="font-medium"></span></p>
+                        <p><strong>Current Status:</strong> <span id="lifeInfoStatus" class="font-medium uppercase px-2 py-1 bg-white rounded shadow-sm border border-red-100"></span></p>
+                    </div>
+                </div>
+
+                <!-- Update Membership Interface -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-lg font-bold text-gray-800 mb-4">Change Membership Status</h2>
+                    <div class="flex flex-col sm:flex-row gap-4 items-end">
+                        <div class="w-full sm:w-1/2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Membership Type</label>
+                            <select id="membershipTypeSelect" class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm">
+                                <option value="Annual Membership">Annual Membership</option>
+                                <option value="Life Membership">Life Membership</option>
+                            </select>
+                        </div>
+                        <div class="w-full sm:w-auto">
+                            <button id="openLifeModalBtn" class="w-full px-8 py-3 bg-red-600 text-white font-bold rounded-md hover:bg-red-700 focus:ring-2 focus:ring-red-500 transition-colors shadow-sm flex items-center justify-center space-x-2 whitespace-nowrap">
+                                <i class="fas fa-edit"></i>
+                                <span>Set Membership Type</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Service Charge Section -->
+        <section id="serviceChargeSection" class="hidden space-y-6">
+            <!-- Find Patient -->
+            <div class="bg-white rounded-lg shadow-md p-6 border-t-4 border-red-600">
+                <h2 class="text-lg font-bold text-gray-800 mb-4">Find Patient</h2>
+                <div class="flex flex-col md:flex-row gap-4 items-center">
+                    <input id="servicePatientId" type="text" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="Enter Patient ID..."
+                           class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm"/>
+                    <button id="fetchServicePatient" class="w-full md:w-auto px-8 py-3 bg-red-600 text-white font-bold rounded-md hover:bg-red-700 focus:ring-2 focus:ring-red-500 transition-colors shadow-sm flex items-center justify-center space-x-2 whitespace-nowrap">
+                        <i class="fas fa-search"></i>
+                        <span>Fetch Patient</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Service Charge Patient Info & History (Hidden until fetch) -->
+            <div id="servicePatientCard" class="hidden space-y-6">
+                <!-- Info Card -->
+                <div class="bg-red-50 border-l-4 border-red-500 p-6 rounded-r-md shadow-sm">
+                    <h3 class="text-lg font-bold text-red-700 flex items-center mb-3">
+                        <i class="fas fa-user-circle mr-2"></i> Patient Information
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-800">
+                        <p><strong>ID:</strong> <span id="serviceInfoId" class="font-bold text-red-600"></span></p>
+                        <p><strong>Name:</strong> <span id="serviceInfoName" class="font-medium"></span></p>
+                        <p><strong>Phone:</strong> <span id="serviceInfoPhone" class="font-medium"></span></p>
+                    </div>
+                </div>
+
+                <!-- Service Charge History Table -->
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="p-5 border-b border-gray-200 bg-gray-50">
+                        <h3 class="text-lg font-bold text-gray-800 flex items-center">
+                            <i class="fas fa-receipt mr-2 text-red-600"></i> Recent Service Charges
+                        </h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table id="serviceChargeHistoryTable" class="w-full text-sm text-left">
+                            <thead class="bg-red-50 text-red-700 text-xs uppercase font-bold border-b border-red-100">
+                                <tr>
+                                    <th class="px-6 py-4">Date</th>
+                                    <th class="px-6 py-4">Reason</th>
+                                    <th class="px-6 py-4">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-700 divide-y divide-gray-100"></tbody>
+                        </table>
+                        <p id="noServiceChargesMsg" class="p-6 text-center text-gray-500 italic">No service charges recorded yet.</p>
+                    </div>
+                </div>
+
+                <!-- Add Service Charge Form -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-lg font-bold text-gray-800 mb-4">Add Service Charge</h2>
+                    <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
+                        <div class="w-full sm:w-1/4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Amount (BDT)</label>
+                            <input id="serviceChargeAmount" type="number" placeholder="e.g. 300" class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm"/>
+                        </div>
+                        <div class="w-full sm:w-1/4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Reason</label>
+                            <select id="serviceChargeReasonSelect" class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm">
+                                <option value="Service Charge">Service Charge</option>
+                                <option value="Physiotherapy Payment">Physiotherapy Payment</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div id="customReasonWrapper" class="w-full sm:w-1/4 hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Specify Reason</label>
+                            <input id="customReasonInput" type="text" placeholder="Enter custom reason" class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm"/>
+                        </div>
+                        <div class="w-full sm:w-auto">
+                            <button id="addServiceChargeBtn" class="w-full px-8 py-3 bg-green-600 text-white font-bold rounded-md hover:bg-green-700 focus:ring-2 focus:ring-green-500 transition-colors shadow-sm flex items-center justify-center space-x-2 whitespace-nowrap">
+                                <i class="fas fa-plus-circle"></i>
+                                <span>Add Charge</span>
+                            </button>
+                        </div>
+                    </div>
+                    <p id="serviceChargeError" class="mt-2 text-sm text-red-600 hidden"></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Modal Overlay for Life/Membership Payment -->
+        <div id="lifePaymentModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden transform transition-all">
+                <div class="bg-red-600 p-4 flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-white flex items-center">
+                        <i class="fas fa-file-invoice-dollar mr-2"></i> Payment Details
+                    </h3>
+                    <button id="closeLifeModalBtn" class="text-white/80 hover:text-white transition-colors">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div class="p-6 space-y-4">
+                    <p class="text-sm text-gray-600 mb-4">Please enter the payment details to update the membership status.</p>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Amount (BDT)</label>
+                        <input id="lifeModalAmount" type="number" placeholder="e.g. 5000" class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm"/>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Subscription Year</label>
+                        <input id="lifeModalYear" type="number" placeholder="e.g. 2024" class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm"/>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Receipt No.</label>
+                        <input id="lifeModalReceipt" type="text" placeholder="e.g. REC-12345" class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm"/>
+                    </div>
+                </div>
+                <div class="bg-gray-50 p-4 border-t border-gray-200 flex justify-end space-x-3">
+                    <button id="cancelLifeModalBtn" class="px-5 py-2.5 bg-white border border-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-50 focus:ring-2 focus:ring-gray-200 transition-colors">
+                        Cancel
+                    </button>
+                    <button id="confirmLifeModalBtn" class="px-5 py-2.5 bg-green-600 text-white font-bold rounded-md hover:bg-green-700 focus:ring-2 focus:ring-green-500 transition-colors shadow-sm">
+                        Confirm & Update
+                    </button>
+                </div>
+            </div>
         </div>
-      </div>
-    </section>
 
-    <!-- Modal Overlay for Life/Membership Payment -->
-    <div id="lifePaymentModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div class="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden transform transition-all">
-        <div class="bg-red-600 p-4 flex justify-between items-center">
-          <h3 class="text-lg font-bold text-white flex items-center">
-            <i class="fas fa-file-invoice-dollar mr-2"></i> Payment Details
-          </h3>
-          <button id="closeLifeModalBtn" class="text-white/80 hover:text-white transition-colors">
-            <i class="fas fa-times text-xl"></i>
-          </button>
-        </div>
-        <div class="p-6 space-y-4">
-          <p class="text-sm text-gray-600 mb-4">Please enter the payment details to update the membership status.</p>
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Amount (BDT)</label>
-            <input id="lifeModalAmount" type="number" placeholder="e.g. 5000" class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm"/>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Subscription Year</label>
-            <input id="lifeModalYear" type="number" placeholder="e.g. 2024" class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm"/>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Receipt No.</label>
-            <input id="lifeModalReceipt" type="text" placeholder="e.g. REC-12345" class="w-full p-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm"/>
-          </div>
-        </div>
-        <div class="bg-gray-50 p-4 border-t border-gray-200 flex justify-end space-x-3">
-          <button id="cancelLifeModalBtn" class="px-5 py-2.5 bg-white border border-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-50 focus:ring-2 focus:ring-gray-200 transition-colors">
-            Cancel
-          </button>
-          <button id="confirmLifeModalBtn" class="px-5 py-2.5 bg-green-600 text-white font-bold rounded-md hover:bg-green-700 focus:ring-2 focus:ring-green-500 transition-colors shadow-sm">
-            Confirm & Update
-          </button>
-        </div>
-      </div>
-    </div>
+    </main>
 
-  </main>
+    <!-- Firebase + JS Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+        import { getDatabase, ref, set, push, onValue, get } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
 
-  <!-- Firebase + JS Logic -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-    import { getDatabase, ref, set, push, onValue, get } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyB7QLBLarDiqdpYy5jw8_1e-gTR-aR1Wqc",
-      authDomain: "hemophilia-society-of-bd.firebaseapp.com",
-      projectId: "hemophilia-society-of-bd",
-      storageBucket: "hemophilia-society-of-bd.appspot.com",
-      messagingSenderId: "674332798483",
-      appId: "1:674332798483:web:cedb62cb05e03b5cadd9e6",
-      measurementId: "G-J5D8R7P18D"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    // Styling configurations for Tabs
-    const activeTabClass = ['bg-red-50', 'text-red-700', 'font-semibold', 'border-red-100', 'shadow-sm'];
-    const inactiveTabClass = ['bg-transparent', 'text-gray-600', 'font-medium', 'border-transparent', 'hover:bg-gray-50'];
-
-    // UI Elements
-    const yearlyBtn = document.getElementById('yearlyBtn');
-    const lifeBtn = document.getElementById('lifeBtn');
-    const yearlyBtnDrawer = document.getElementById('yearlyBtnDrawer');
-    const lifeBtnDrawer = document.getElementById('lifeBtnDrawer');
-    
-    const yearlySection = document.getElementById('yearlySection');
-    const lifeSection = document.getElementById('lifeSection');
-    
-    const patientInfoCard = document.getElementById('patientInfoCard');
-    const infoId = document.getElementById('infoId');
-    const infoName = document.getElementById('infoName');
-    const infoPhone = document.getElementById('infoPhone');
-
-    // Mobile Drawer
-    const sidebarDrawer = document.getElementById("sidebarDrawer");
-    const sidebarDrawerOverlay = document.getElementById("sidebarDrawerOverlay");
-    const hamburgerBtn = document.getElementById("hamburgerBtn");
-    const closeDrawer = document.getElementById("closeDrawer");
-
-    // Tab Switching Logic
-    const setTabActive = (isYearly) => {
-      if(isYearly) {
-        yearlySection.classList.remove('hidden'); 
-        lifeSection.classList.add('hidden');
-        
-        yearlyBtn.classList.remove(...inactiveTabClass);
-        yearlyBtn.classList.add(...activeTabClass);
-        lifeBtn.classList.remove(...activeTabClass);
-        lifeBtn.classList.add(...inactiveTabClass);
-        
-        yearlyBtnDrawer.classList.remove(...inactiveTabClass);
-        yearlyBtnDrawer.classList.add(...activeTabClass);
-        lifeBtnDrawer.classList.remove(...activeTabClass);
-        lifeBtnDrawer.classList.add(...inactiveTabClass);
-      } else {
-        lifeSection.classList.remove('hidden'); 
-        yearlySection.classList.add('hidden');
-        
-        lifeBtn.classList.remove(...inactiveTabClass);
-        lifeBtn.classList.add(...activeTabClass);
-        yearlyBtn.classList.remove(...activeTabClass);
-        yearlyBtn.classList.add(...inactiveTabClass);
-        
-        lifeBtnDrawer.classList.remove(...inactiveTabClass);
-        lifeBtnDrawer.classList.add(...activeTabClass);
-        yearlyBtnDrawer.classList.remove(...activeTabClass);
-        yearlyBtnDrawer.classList.add(...inactiveTabClass);
-      }
-    }
-
-    yearlyBtn.onclick = () => setTabActive(true);
-    lifeBtn.onclick = () => setTabActive(false);
-    yearlyBtnDrawer.onclick = () => { setTabActive(true); toggleDrawer(false); };
-    lifeBtnDrawer.onclick = () => { setTabActive(false); toggleDrawer(false); };
-
-    // Drawer Logic
-    const toggleDrawer = (open) => {
-      sidebarDrawer.classList.toggle("-translate-x-full", !open);
-      sidebarDrawerOverlay.classList.toggle("hidden", !open);
-    };
-    hamburgerBtn.onclick = () => toggleDrawer(true);
-    closeDrawer.onclick = () => toggleDrawer(false);
-    sidebarDrawerOverlay.onclick = () => toggleDrawer(false);
-
-    // Enter key support
-    ["yearlyPatientId", "lifePatientId", "fromDate", "toDate"].forEach(id => {
-      document.getElementById(id)?.addEventListener("keydown", e => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          if (id === "yearlyPatientId") document.getElementById("fetchYearly").click();
-          else if (id === "lifePatientId") document.getElementById("fetchLife").click();
-          else document.getElementById("fetchDateRange").click();
-        }
-      });
-    });
-
-    const showPatientCard = () => {
-      patientInfoCard.classList.remove('hidden');
-    };
-
-    // --- YEARLY SECTION LOGIC ---
-    document.getElementById("fetchYearly").onclick = async () => {
-      const patientId = document.getElementById("yearlyPatientId").value.trim();
-      if (!patientId) return alert("Enter Patient ID");
-
-      const patientRef = ref(db, `patients/${patientId}`);
-      const patientSnap = await get(patientRef);
-      if (patientSnap.exists()) {
-        const p = patientSnap.val();
-        showPatientCard();
-        infoId.textContent = p.patientId ?? patientId;
-        infoName.textContent = p.name ?? "";
-        infoPhone.textContent = p.phone ?? "";
-      } else {
-        patientInfoCard.classList.add('hidden');
-        alert("Patient not found in Main Database.");
-        return; // Stops execution if patient isn't found
-      }
-
-      const transRef = ref(db, `subscriptions/${patientId}`);
-      
-      try {
-        const snap = await get(transRef); 
-        const tbody = document.querySelector("#yearlyTransactionTable tbody");
-        tbody.innerHTML = "";
-        const txns = [];
-
-        if (snap.exists()) {
-          const subsData = snap.val();
-          
-          // Parse regular yearly fees
-          if (subsData.yearly) {
-            Object.keys(subsData.yearly).forEach(key => {
-              const d = subsData.yearly[key];
-              txns.push({
-                transactionNumber: d.transactionNumber || key, 
-                date: d.date || new Date().toISOString(),
-                year: d.year || 'N/A',
-                amount: d.amount || 0
-              });
-            });
-          }
-
-          // Parse membership status update fees (from the Life Members tab)
-          if (subsData.statusUpdates) {
-            Object.keys(subsData.statusUpdates).forEach(key => {
-              const d = subsData.statusUpdates[key];
-              txns.push({
-                transactionNumber: d.receiptNo ? `REC-${d.receiptNo}` : (d.transactionNumber || key),
-                date: d.date || new Date().toISOString(),
-                year: d.year || 'N/A',
-                amount: d.amount || 0
-              });
-            });
-          }
-        }
-
-        txns.sort((a, b) => new Date(a.date) - new Date(b.date));
-        const total = txns.reduce((s, t) => s + parseFloat(t.amount || 0), 0);
-        document.getElementById("yearlyTotalAmount").textContent = `Total Amount: ৳${total.toFixed(2)}`;
-
-        if (txns.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500 italic border-b border-gray-100">No transactions found for this patient.</td></tr>`;
-        } else {
-          txns.forEach(t => {
-            const tr = document.createElement("tr");
-            tr.className = "hover:bg-red-50/50 transition-colors";
-            
-            let formattedDate = 'N/A';
-            try { formattedDate = new Date(t.date).toLocaleDateString(); } catch(e) {}
-
-            tr.innerHTML = `
-              <td class="px-6 py-4 font-mono text-xs text-gray-500 border-b border-gray-100">${t.transactionNumber}</td>
-              <td class="px-6 py-4 border-b border-gray-100">${formattedDate}</td>
-              <td class="px-6 py-4 border-b border-gray-100">${t.year}</td>
-              <td class="px-6 py-4 font-semibold text-gray-800 border-b border-gray-100">৳${t.amount}</td>`;
-            tbody.appendChild(tr);
-          });
-        }
-      } catch (err) {
-        alert("Error fetching transactions: " + err.message);
-      }
-    };
-
-    document.getElementById("addYearlyFee").onclick = async () => {
-      const patientId = document.getElementById("yearlyPatientId").value.trim();
-      const amount = document.getElementById("subAmount").value;
-      const year = document.getElementById("subYear").value;
-      if (!patientId || !amount || !year) return alert("All fields required");
-
-      const patientRef = ref(db, `patients/${patientId}`);
-      const snap = await get(patientRef);
-      if (!snap.exists()) return alert("Patient not found in Database. Please register them first.");
-
-      const newRef = push(ref(db, `subscriptions/${patientId}/yearly`));
-      await set(newRef, {
-        amount,
-        year,
-        date: new Date().toISOString(),
-        transactionNumber: newRef.key
-      });
-
-      document.getElementById("subAmount").value = "";
-      document.getElementById("subYear").value = "";
-      document.getElementById("fetchYearly").click();
-    };
-
-
-    // --- LIFE / MEMBERSHIP STATUS SECTION LOGIC ---
-    let currentLifePatientId = null;
-
-    document.getElementById("fetchLife").onclick = async () => {
-      const patientId = document.getElementById("lifePatientId").value.trim();
-      if (!patientId) return alert("Enter Patient ID");
-
-      const patientRef = ref(db, `patients/${patientId}`);
-      const patientSnap = await get(patientRef);
-      
-      if (patientSnap.exists()) {
-        const p = patientSnap.val();
-        currentLifePatientId = patientId;
-        
-        document.getElementById('lifePatientActionsCard').classList.remove('hidden');
-        document.getElementById('lifeInfoId').textContent = p.patientId ?? patientId;
-        document.getElementById('lifeInfoName').textContent = p.name ?? "N/A";
-        document.getElementById('lifeInfoPhone').textContent = p.phone ?? "N/A";
-        
-        const currentStatus = p.membershipStatus || "Annual Membership";
-        document.getElementById('lifeInfoStatus').textContent = currentStatus;
-        document.getElementById('membershipTypeSelect').value = currentStatus;
-        
-      } else {
-        currentLifePatientId = null;
-        document.getElementById('lifePatientActionsCard').classList.add('hidden');
-        alert("Patient not found in Main Database.");
-      }
-    };
-
-    // Modal Control
-    const lifeModal = document.getElementById('lifePaymentModal');
-    const openLifeModalBtn = document.getElementById('openLifeModalBtn');
-    const closeLifeModalBtn = document.getElementById('closeLifeModalBtn');
-    const cancelLifeModalBtn = document.getElementById('cancelLifeModalBtn');
-    const confirmLifeModalBtn = document.getElementById('confirmLifeModalBtn');
-
-    const toggleLifeModal = (show) => {
-      if (show) {
-        lifeModal.classList.remove('hidden');
-      } else {
-        lifeModal.classList.add('hidden');
-        // Reset modal inputs
-        document.getElementById('lifeModalAmount').value = '';
-        document.getElementById('lifeModalYear').value = '';
-        document.getElementById('lifeModalReceipt').value = '';
-      }
-    };
-
-    openLifeModalBtn.onclick = () => {
-      if (!currentLifePatientId) return alert("Please fetch a patient first.");
-      toggleLifeModal(true);
-    };
-    closeLifeModalBtn.onclick = () => toggleLifeModal(false);
-    cancelLifeModalBtn.onclick = () => toggleLifeModal(false);
-
-    confirmLifeModalBtn.onclick = async () => {
-      if (!currentLifePatientId) return;
-
-      const newMembershipStatus = document.getElementById('membershipTypeSelect').value;
-      const amount = document.getElementById('lifeModalAmount').value.trim();
-      const year = document.getElementById('lifeModalYear').value.trim();
-      const receipt = document.getElementById('lifeModalReceipt').value.trim();
-
-      if (!amount || !year || !receipt) {
-        return alert("Please fill in Amount, Subscription Year, and Receipt No.");
-      }
-
-      try {
-        // 1. Update the patient's membershipStatus property
-        const statusRef = ref(db, `patients/${currentLifePatientId}/membershipStatus`);
-        await set(statusRef, newMembershipStatus);
-
-        // 2. Save the transaction record for this update
-        const txnRef = push(ref(db, `subscriptions/${currentLifePatientId}/statusUpdates`));
-        await set(txnRef, {
-          transactionNumber: txnRef.key,
-          receiptNo: receipt,
-          newStatus: newMembershipStatus,
-          amount: amount,
-          year: year,
-          date: new Date().toISOString()
-        });
-
-        alert("Membership status updated and payment recorded successfully!");
-        toggleLifeModal(false);
-        
-        // Refresh patient view
-        document.getElementById("fetchLife").click();
-
-      } catch (err) {
-        alert("Error updating membership: " + err.message);
-      }
-    };
-
-
-    // --- DATE TO DATE REPORT LOGIC ---
-    document.getElementById("fetchDateRange").onclick = async () => {
-      const fromStr = document.getElementById("fromDate").value;
-      const toStr = document.getElementById("toDate").value;
-      if (!fromStr || !toStr) return alert("Select both dates");
-
-      const from = new Date(fromStr + "T00:00:00.000Z");
-      const to = new Date(toStr + "T23:59:59.999Z");
-      if (to < from) return alert("To date must be after From date");
-
-      const subsRef = ref(db, "subscriptions");
-      const patsRef = ref(db, "patients");
-
-      try {
-        const [subsSnap, patsSnap] = await Promise.all([get(subsRef), get(patsRef)]);
-        const subs = subsSnap.val() || {};
-        const pats = patsSnap.val() || {};
-
-        const tbody = document.querySelector("#dateRangeTable tbody");
-        tbody.innerHTML = "";
-        const rows = [];
-
-        for (const pid in subs) {
-          const yearly = subs[pid].yearly || {};
-          const statusUpdates = subs[pid].statusUpdates || {}; // Also include status update payments
-          const name = pats[pid]?.name || "Unknown";
-
-          // Parse yearly
-          for (const tid in yearly) {
-            const rec = yearly[tid];
-            const recDate = new Date(rec.date);
-            if (isNaN(recDate)) continue;
-
-            if (recDate >= from && recDate <= to) {
-              rows.push({
-                txnId: rec.transactionNumber ?? tid,
-                patientId: pid,
-                patientName: name,
-                date: rec.date,
-                year: rec.year,
-                amount: rec.amount
-              });
-            }
-          }
-          
-          // Parse status updates/life payments
-          for (const tid in statusUpdates) {
-            const rec = statusUpdates[tid];
-            const recDate = new Date(rec.date);
-            if (isNaN(recDate)) continue;
-
-            if (recDate >= from && recDate <= to) {
-              rows.push({
-                txnId: rec.receiptNo ? `REC-${rec.receiptNo}` : (rec.transactionNumber ?? tid),
-                patientId: pid,
-                patientName: name,
-                date: rec.date,
-                year: rec.year,
-                amount: rec.amount
-              });
-            }
-          }
-        }
-
-        rows.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-        const total = rows.reduce((s, r) => s + parseFloat(r.amount || 0), 0);
-        document.getElementById("dateRangeTotalAmount").textContent = `Total Amount: ৳${total.toFixed(2)}`;
-
-        rows.forEach(r => {
-          const tr = document.createElement("tr");
-          tr.className = "hover:bg-red-50/50 transition-colors";
-          tr.innerHTML = `
-            <td class="px-6 py-4 font-mono text-xs text-gray-500">${r.txnId}</td>
-            <td class="px-6 py-4 font-bold text-red-600">${r.patientId}</td>
-            <td class="px-6 py-4 font-medium">${r.patientName}</td>
-            <td class="px-6 py-4">${new Date(r.date).toLocaleDateString()}</td>
-            <td class="px-6 py-4">${r.year}</td>
-            <td class="px-6 py-4 font-semibold text-gray-800">৳${r.amount}</td>`;
-          tbody.appendChild(tr);
-        });
-
-        const downloadBtn = document.getElementById("downloadReport");
-        if(rows.length === 0) {
-            downloadBtn.classList.add("hidden");
-        } else {
-            downloadBtn.classList.remove("hidden");
-        }
-
-        downloadBtn.onclick = () => {
-          const { jsPDF } = window.jspdf;
-          const doc = new jsPDF();
-          doc.setFontSize(16);
-          doc.setTextColor(220, 38, 38); // Tailwind Red-600
-          doc.text("Subscription Report (Date Range)", 14, 20);
-          
-          doc.setFontSize(11);
-          doc.setTextColor(80, 80, 80);
-          doc.text(`From: ${fromStr}  To: ${toStr}`, 14, 30);
-
-          doc.autoTable({ 
-            html: "#dateRangeTable", 
-            startY: 40, 
-            theme: "grid",
-            headStyles: { fillColor: [254, 242, 242], textColor: [185, 28, 28] }, // Red-50 bg, Red-700 text
-            alternateRowStyles: { fillColor: [255, 255, 255] }
-          });
-
-          const finalY = doc.lastAutoTable.finalY || 40;
-          doc.setFontSize(14);
-          doc.setTextColor(30, 30, 30);
-          doc.text(`Total Amount: BDT ${total.toFixed(2)}`, 14, finalY + 15);
-          doc.save(`Subscription_Report_${fromStr}_to_${toStr}.pdf`);
-
-          downloadBtn.classList.add('pulse-on-download');
-          setTimeout(() => downloadBtn.classList.remove('pulse-on-download'), 1500);
+        const firebaseConfig = {
+            apiKey: "AIzaSyB7QLBLarDiqdpYy5jw8_1e-gTR-aR1Wqc",
+            authDomain: "hemophilia-society-of-bd.firebaseapp.com",
+            projectId: "hemophilia-society-of-bd",
+            storageBucket: "hemophilia-society-of-bd.appspot.com",
+            messagingSenderId: "674332798483",
+            appId: "1:674332798483:web:cedb62cb05e03b5cadd9e6",
+            measurementId: "G-J5D8R7P18D"
         };
 
-      } catch (e) {
-        console.error(e);
-        alert("Error loading report: " + e.message);
-      }
-    };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-    // PDF for Yearly
-    window.downloadYearlyTransactionPDF = () => {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      const pid = document.getElementById("yearlyPatientId").value.trim() || "N/A";
-      const name = infoName.textContent || "Unknown";
-      const phone = infoPhone.textContent || "N/A";
-      const total = document.getElementById("yearlyTotalAmount").textContent.replace('Total Amount: ৳', '') || "0.00";
+        // Styling configurations for Tabs
+        const activeTabClass = ['bg-red-50', 'text-red-700', 'font-semibold', 'border-red-100', 'shadow-sm'];
+        const inactiveTabClass = ['bg-transparent', 'text-gray-600', 'font-medium', 'border-transparent', 'hover:bg-gray-50'];
 
-      doc.setFontSize(18);
-      doc.setTextColor(220, 38, 38); // Tailwind Red-600
-      doc.text("Yearly Transaction History", 14, 20);
-      
-      doc.setFontSize(11);
-      doc.setTextColor(80, 80, 80);
-      doc.text(`Patient ID: ${pid}`, 14, 32);
-      doc.text(`Name: ${name}`, 14, 38);
-      doc.text(`Phone: ${phone}`, 14, 44);
+        // UI Elements
+        const yearlyBtn = document.getElementById('yearlyBtn');
+        const lifeBtn = document.getElementById('lifeBtn');
+        const serviceChargeBtn = document.getElementById('serviceChargeBtn');
+        const yearlyBtnDrawer = document.getElementById('yearlyBtnDrawer');
+        const lifeBtnDrawer = document.getElementById('lifeBtnDrawer');
+        const serviceChargeBtnDrawer = document.getElementById('serviceChargeBtnDrawer');
 
-      doc.autoTable({ 
-        html: "#yearlyTransactionTable", 
-        startY: 52, 
-        theme: "grid",
-        headStyles: { fillColor: [254, 242, 242], textColor: [185, 28, 28] }, 
-      });
+        const yearlySection = document.getElementById('yearlySection');
+        const lifeSection = document.getElementById('lifeSection');
+        const serviceChargeSection = document.getElementById('serviceChargeSection');
 
-      const finalY = doc.lastAutoTable.finalY || 52;
-      doc.setFontSize(14);
-      doc.setTextColor(30, 30, 30);
-      doc.text(`Total Amount: BDT ${total}`, 14, finalY + 15);
-      doc.save(`Yearly_Subscription_${pid}.pdf`);
-    };
-  </script>
+        const patientInfoCard = document.getElementById('patientInfoCard');
+        const infoId = document.getElementById('infoId');
+        const infoName = document.getElementById('infoName');
+        const infoPhone = document.getElementById('infoPhone');
+
+        // Mobile Drawer
+        const sidebarDrawer = document.getElementById("sidebarDrawer");
+        const sidebarDrawerOverlay = document.getElementById("sidebarDrawerOverlay");
+        const hamburgerBtn = document.getElementById("hamburgerBtn");
+        const closeDrawer = document.getElementById("closeDrawer");
+
+        // Tab Switching Logic (yearly, life, serviceCharge)
+        const setTabActive = (tab) => {
+            // Hide all sections
+            yearlySection.classList.add('hidden');
+            lifeSection.classList.add('hidden');
+            serviceChargeSection.classList.add('hidden');
+
+            // Reset all buttons
+            [yearlyBtn, lifeBtn, serviceChargeBtn, yearlyBtnDrawer, lifeBtnDrawer, serviceChargeBtnDrawer].forEach(btn => {
+                btn.classList.remove(...activeTabClass);
+                btn.classList.add(...inactiveTabClass);
+            });
+
+            if (tab === 'yearly') {
+                yearlySection.classList.remove('hidden');
+                yearlyBtn.classList.add(...activeTabClass);
+                yearlyBtnDrawer.classList.add(...activeTabClass);
+            } else if (tab === 'life') {
+                lifeSection.classList.remove('hidden');
+                lifeBtn.classList.add(...activeTabClass);
+                lifeBtnDrawer.classList.add(...activeTabClass);
+            } else if (tab === 'serviceCharge') {
+                serviceChargeSection.classList.remove('hidden');
+                serviceChargeBtn.classList.add(...activeTabClass);
+                serviceChargeBtnDrawer.classList.add(...activeTabClass);
+            }
+        };
+
+        yearlyBtn.onclick = () => setTabActive('yearly');
+        lifeBtn.onclick = () => setTabActive('life');
+        serviceChargeBtn.onclick = () => setTabActive('serviceCharge');
+
+        yearlyBtnDrawer.onclick = () => { setTabActive('yearly'); toggleDrawer(false); };
+        lifeBtnDrawer.onclick = () => { setTabActive('life'); toggleDrawer(false); };
+        serviceChargeBtnDrawer.onclick = () => { setTabActive('serviceCharge'); toggleDrawer(false); };
+
+        // Drawer Logic
+        const toggleDrawer = (open) => {
+            sidebarDrawer.classList.toggle("-translate-x-full", !open);
+            sidebarDrawerOverlay.classList.toggle("hidden", !open);
+        };
+        hamburgerBtn.onclick = () => toggleDrawer(true);
+        closeDrawer.onclick = () => toggleDrawer(false);
+        sidebarDrawerOverlay.onclick = () => toggleDrawer(false);
+
+        // Enter key support (added service patient ID)
+        ["yearlyPatientId", "lifePatientId", "servicePatientId", "fromDate", "toDate"].forEach(id => {
+            document.getElementById(id)?.addEventListener("keydown", e => {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    if (id === "yearlyPatientId") document.getElementById("fetchYearly").click();
+                    else if (id === "lifePatientId") document.getElementById("fetchLife").click();
+                    else if (id === "servicePatientId") document.getElementById("fetchServicePatient").click();
+                    else document.getElementById("fetchDateRange").click();
+                }
+            });
+        });
+
+        const showPatientCard = () => {
+            patientInfoCard.classList.remove('hidden');
+        };
+
+        // --- YEARLY SECTION LOGIC ---
+        document.getElementById("fetchYearly").onclick = async () => {
+            const patientId = document.getElementById("yearlyPatientId").value.trim();
+            if (!patientId) return alert("Enter Patient ID");
+
+            const patientRef = ref(db, `patients/${patientId}`);
+            const patientSnap = await get(patientRef);
+            if (patientSnap.exists()) {
+                const p = patientSnap.val();
+                showPatientCard();
+                infoId.textContent = p.patientId ?? patientId;
+                infoName.textContent = p.name ?? "";
+                infoPhone.textContent = p.phone ?? "";
+            } else {
+                patientInfoCard.classList.add('hidden');
+                alert("Patient not found in Main Database.");
+                return;
+            }
+
+            const transRef = ref(db, `subscriptions/${patientId}`);
+
+            try {
+                const snap = await get(transRef);
+                const tbody = document.querySelector("#yearlyTransactionTable tbody");
+                tbody.innerHTML = "";
+                const txns = [];
+
+                if (snap.exists()) {
+                    const subsData = snap.val();
+
+                    // Parse regular yearly fees
+                    if (subsData.yearly) {
+                        Object.keys(subsData.yearly).forEach(key => {
+                            const d = subsData.yearly[key];
+                            txns.push({
+                                transactionNumber: d.transactionNumber || key,
+                                date: d.date || new Date().toISOString(),
+                                year: d.year || 'N/A',
+                                amount: d.amount || 0
+                            });
+                        });
+                    }
+
+                    // Parse membership status update fees
+                    if (subsData.statusUpdates) {
+                        Object.keys(subsData.statusUpdates).forEach(key => {
+                            const d = subsData.statusUpdates[key];
+                            txns.push({
+                                transactionNumber: d.receiptNo ? `REC-${d.receiptNo}` : (d.transactionNumber || key),
+                                date: d.date || new Date().toISOString(),
+                                year: d.year || 'N/A',
+                                amount: d.amount || 0
+                            });
+                        });
+                    }
+
+                    // Parse service charges
+                    if (subsData.serviceCharges) {
+                        Object.keys(subsData.serviceCharges).forEach(key => {
+                            const d = subsData.serviceCharges[key];
+                            txns.push({
+                                transactionNumber: d.transactionNumber || key,
+                                date: d.date || new Date().toISOString(),
+                                year: `Service: ${d.reason || 'Charge'}`,
+                                amount: d.amount || 0
+                            });
+                        });
+                    }
+                }
+
+                txns.sort((a, b) => new Date(a.date) - new Date(b.date));
+                const total = txns.reduce((s, t) => s + parseFloat(t.amount || 0), 0);
+                document.getElementById("yearlyTotalAmount").textContent = `Total Amount: ৳${total.toFixed(2)}`;
+
+                if (txns.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500 italic border-b border-gray-100">No transactions found for this patient.</td></tr>`;
+                } else {
+                    txns.forEach(t => {
+                        const tr = document.createElement("tr");
+                        tr.className = "hover:bg-red-50/50 transition-colors";
+
+                        let formattedDate = 'N/A';
+                        try { formattedDate = new Date(t.date).toLocaleDateString(); } catch(e) {}
+
+                        tr.innerHTML = `
+                            <td class="px-6 py-4 font-mono text-xs text-gray-500 border-b border-gray-100">${t.transactionNumber}</td>
+                            <td class="px-6 py-4 border-b border-gray-100">${formattedDate}</td>
+                            <td class="px-6 py-4 border-b border-gray-100">${t.year}</td>
+                            <td class="px-6 py-4 font-semibold text-gray-800 border-b border-gray-100">৳${t.amount}</td>`;
+                        tbody.appendChild(tr);
+                    });
+                }
+            } catch (err) {
+                alert("Error fetching transactions: " + err.message);
+            }
+        };
+
+        document.getElementById("addYearlyFee").onclick = async () => {
+            const patientId = document.getElementById("yearlyPatientId").value.trim();
+            const amount = document.getElementById("subAmount").value;
+            const year = document.getElementById("subYear").value;
+            if (!patientId || !amount || !year) return alert("All fields required");
+
+            const patientRef = ref(db, `patients/${patientId}`);
+            const snap = await get(patientRef);
+            if (!snap.exists()) return alert("Patient not found in Database. Please register them first.");
+
+            const newRef = push(ref(db, `subscriptions/${patientId}/yearly`));
+            await set(newRef, {
+                amount,
+                year,
+                date: new Date().toISOString(),
+                transactionNumber: newRef.key
+            });
+
+            document.getElementById("subAmount").value = "";
+            document.getElementById("subYear").value = "";
+            document.getElementById("fetchYearly").click();
+        };
+
+
+        // --- LIFE / MEMBERSHIP STATUS SECTION LOGIC ---
+        let currentLifePatientId = null;
+
+        document.getElementById("fetchLife").onclick = async () => {
+            const patientId = document.getElementById("lifePatientId").value.trim();
+            if (!patientId) return alert("Enter Patient ID");
+
+            const patientRef = ref(db, `patients/${patientId}`);
+            const patientSnap = await get(patientRef);
+
+            if (patientSnap.exists()) {
+                const p = patientSnap.val();
+                currentLifePatientId = patientId;
+
+                document.getElementById('lifePatientActionsCard').classList.remove('hidden');
+                document.getElementById('lifeInfoId').textContent = p.patientId ?? patientId;
+                document.getElementById('lifeInfoName').textContent = p.name ?? "N/A";
+                document.getElementById('lifeInfoPhone').textContent = p.phone ?? "N/A";
+
+                const currentStatus = p.membershipStatus || "Annual Membership";
+                document.getElementById('lifeInfoStatus').textContent = currentStatus;
+                document.getElementById('membershipTypeSelect').value = currentStatus;
+
+            } else {
+                currentLifePatientId = null;
+                document.getElementById('lifePatientActionsCard').classList.add('hidden');
+                alert("Patient not found in Main Database.");
+            }
+        };
+
+        // Modal Control
+        const lifeModal = document.getElementById('lifePaymentModal');
+        const openLifeModalBtn = document.getElementById('openLifeModalBtn');
+        const closeLifeModalBtn = document.getElementById('closeLifeModalBtn');
+        const cancelLifeModalBtn = document.getElementById('cancelLifeModalBtn');
+        const confirmLifeModalBtn = document.getElementById('confirmLifeModalBtn');
+
+        const toggleLifeModal = (show) => {
+            if (show) {
+                lifeModal.classList.remove('hidden');
+            } else {
+                lifeModal.classList.add('hidden');
+                document.getElementById('lifeModalAmount').value = '';
+                document.getElementById('lifeModalYear').value = '';
+                document.getElementById('lifeModalReceipt').value = '';
+            }
+        };
+
+        openLifeModalBtn.onclick = () => {
+            if (!currentLifePatientId) return alert("Please fetch a patient first.");
+            toggleLifeModal(true);
+        };
+        closeLifeModalBtn.onclick = () => toggleLifeModal(false);
+        cancelLifeModalBtn.onclick = () => toggleLifeModal(false);
+
+        confirmLifeModalBtn.onclick = async () => {
+            if (!currentLifePatientId) return;
+
+            const newMembershipStatus = document.getElementById('membershipTypeSelect').value;
+            const amount = document.getElementById('lifeModalAmount').value.trim();
+            const year = document.getElementById('lifeModalYear').value.trim();
+            const receipt = document.getElementById('lifeModalReceipt').value.trim();
+
+            if (!amount || !year || !receipt) {
+                return alert("Please fill in Amount, Subscription Year, and Receipt No.");
+            }
+
+            try {
+                const statusRef = ref(db, `patients/${currentLifePatientId}/membershipStatus`);
+                await set(statusRef, newMembershipStatus);
+
+                const txnRef = push(ref(db, `subscriptions/${currentLifePatientId}/statusUpdates`));
+                await set(txnRef, {
+                    transactionNumber: txnRef.key,
+                    receiptNo: receipt,
+                    newStatus: newMembershipStatus,
+                    amount: amount,
+                    year: year,
+                    date: new Date().toISOString()
+                });
+
+                alert("Membership status updated and payment recorded successfully!");
+                toggleLifeModal(false);
+                document.getElementById("fetchLife").click();
+
+            } catch (err) {
+                alert("Error updating membership: " + err.message);
+            }
+        };
+
+
+        // --- SERVICE CHARGE SECTION LOGIC ---
+        let currentServicePatientId = null;
+
+        // Show/hide custom reason field based on dropdown
+        const reasonSelect = document.getElementById('serviceChargeReasonSelect');
+        const customWrapper = document.getElementById('customReasonWrapper');
+        const customInput = document.getElementById('customReasonInput');
+
+        reasonSelect.addEventListener('change', () => {
+            if (reasonSelect.value === 'Other') {
+                customWrapper.classList.remove('hidden');
+                customInput.required = true;
+            } else {
+                customWrapper.classList.add('hidden');
+                customInput.required = false;
+                customInput.value = '';
+            }
+        });
+
+        document.getElementById('fetchServicePatient').onclick = async () => {
+            const patientId = document.getElementById('servicePatientId').value.trim();
+            if (!patientId) return alert("Enter Patient ID");
+
+            const patientRef = ref(db, `patients/${patientId}`);
+            const patientSnap = await get(patientRef);
+
+            if (patientSnap.exists()) {
+                const p = patientSnap.val();
+                currentServicePatientId = patientId;
+
+                document.getElementById('servicePatientCard').classList.remove('hidden');
+                document.getElementById('serviceInfoId').textContent = p.patientId ?? patientId;
+                document.getElementById('serviceInfoName').textContent = p.name ?? "N/A";
+                document.getElementById('serviceInfoPhone').textContent = p.phone ?? "N/A";
+
+                // Load existing service charges for this patient
+                await loadServiceChargeHistory(patientId);
+            } else {
+                currentServicePatientId = null;
+                document.getElementById('servicePatientCard').classList.add('hidden');
+                alert("Patient not found in Main Database.");
+            }
+        };
+
+        async function loadServiceChargeHistory(patientId) {
+            const tbody = document.querySelector('#serviceChargeHistoryTable tbody');
+            const noMsg = document.getElementById('noServiceChargesMsg');
+            tbody.innerHTML = '';
+
+            const chargeRef = ref(db, `subscriptions/${patientId}/serviceCharges`);
+            const snap = await get(chargeRef);
+
+            if (snap.exists()) {
+                noMsg.classList.add('hidden');
+                const charges = snap.val();
+                const sortedKeys = Object.keys(charges).sort((a, b) => new Date(charges[b].date) - new Date(charges[a].date)); // newest first
+
+                sortedKeys.forEach(key => {
+                    const c = charges[key];
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-red-50/50 transition-colors';
+                    tr.innerHTML = `
+                        <td class="px-6 py-4">${new Date(c.date).toLocaleDateString()}</td>
+                        <td class="px-6 py-4 font-medium">${c.reason || 'N/A'}</td>
+                        <td class="px-6 py-4 font-semibold">৳${c.amount}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                noMsg.classList.remove('hidden');
+            }
+        }
+
+        document.getElementById('addServiceChargeBtn').onclick = async () => {
+            if (!currentServicePatientId) {
+                document.getElementById('serviceChargeError').classList.remove('hidden');
+                document.getElementById('serviceChargeError').textContent = 'Please fetch a patient first.';
+                return;
+            }
+
+            const amount = document.getElementById('serviceChargeAmount').value.trim();
+            const reasonSelectVal = reasonSelect.value;
+            let finalReason = reasonSelectVal;
+
+            if (reasonSelectVal === 'Other') {
+                finalReason = customInput.value.trim();
+                if (!finalReason) {
+                    document.getElementById('serviceChargeError').classList.remove('hidden');
+                    document.getElementById('serviceChargeError').textContent = 'Please specify the custom reason.';
+                    return;
+                }
+            }
+
+            if (!amount || isNaN(amount) || Number(amount) <= 0) {
+                document.getElementById('serviceChargeError').classList.remove('hidden');
+                document.getElementById('serviceChargeError').textContent = 'Please enter a valid amount.';
+                return;
+            }
+
+            // Clear error
+            document.getElementById('serviceChargeError').classList.add('hidden');
+
+            try {
+                const newRef = push(ref(db, `subscriptions/${currentServicePatientId}/serviceCharges`));
+                await set(newRef, {
+                    amount: amount,
+                    reason: finalReason,
+                    date: new Date().toISOString(),
+                    transactionNumber: newRef.key
+                });
+
+                // Reset form
+                document.getElementById('serviceChargeAmount').value = '';
+                reasonSelect.value = 'Service Charge';
+                customWrapper.classList.add('hidden');
+                customInput.value = '';
+
+                // Refresh the history table
+                await loadServiceChargeHistory(currentServicePatientId);
+                alert('Service charge added successfully!');
+            } catch (err) {
+                alert('Error adding service charge: ' + err.message);
+            }
+        };
+
+
+        // --- DATE TO DATE REPORT LOGIC (updated to include service charges) ---
+        document.getElementById("fetchDateRange").onclick = async () => {
+            const fromStr = document.getElementById("fromDate").value;
+            const toStr = document.getElementById("toDate").value;
+            if (!fromStr || !toStr) return alert("Select both dates");
+
+            const from = new Date(fromStr + "T00:00:00.000Z");
+            const to = new Date(toStr + "T23:59:59.999Z");
+            if (to < from) return alert("To date must be after From date");
+
+            const subsRef = ref(db, "subscriptions");
+            const patsRef = ref(db, "patients");
+
+            try {
+                const [subsSnap, patsSnap] = await Promise.all([get(subsRef), get(patsRef)]);
+                const subs = subsSnap.val() || {};
+                const pats = patsSnap.val() || {};
+
+                const tbody = document.querySelector("#dateRangeTable tbody");
+                tbody.innerHTML = "";
+                const rows = [];
+
+                for (const pid in subs) {
+                    const yearly = subs[pid].yearly || {};
+                    const statusUpdates = subs[pid].statusUpdates || {};
+                    const serviceCharges = subs[pid].serviceCharges || {};
+                    const name = pats[pid]?.name || "Unknown";
+
+                    // Parse yearly
+                    for (const tid in yearly) {
+                        const rec = yearly[tid];
+                        const recDate = new Date(rec.date);
+                        if (isNaN(recDate)) continue;
+                        if (recDate >= from && recDate <= to) {
+                            rows.push({
+                                txnId: rec.transactionNumber ?? tid,
+                                patientId: pid,
+                                patientName: name,
+                                date: rec.date,
+                                year: rec.year,
+                                amount: rec.amount
+                            });
+                        }
+                    }
+
+                    // Parse status updates
+                    for (const tid in statusUpdates) {
+                        const rec = statusUpdates[tid];
+                        const recDate = new Date(rec.date);
+                        if (isNaN(recDate)) continue;
+                        if (recDate >= from && recDate <= to) {
+                            rows.push({
+                                txnId: rec.receiptNo ? `REC-${rec.receiptNo}` : (rec.transactionNumber ?? tid),
+                                patientId: pid,
+                                patientName: name,
+                                date: rec.date,
+                                year: rec.year,
+                                amount: rec.amount
+                            });
+                        }
+                    }
+
+                    // Parse service charges
+                    for (const tid in serviceCharges) {
+                        const rec = serviceCharges[tid];
+                        const recDate = new Date(rec.date);
+                        if (isNaN(recDate)) continue;
+                        if (recDate >= from && recDate <= to) {
+                            rows.push({
+                                txnId: rec.transactionNumber ?? tid,
+                                patientId: pid,
+                                patientName: name,
+                                date: rec.date,
+                                year: `Service: ${rec.reason || 'Charge'}`,
+                                amount: rec.amount
+                            });
+                        }
+                    }
+                }
+
+                rows.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                const total = rows.reduce((s, r) => s + parseFloat(r.amount || 0), 0);
+                document.getElementById("dateRangeTotalAmount").textContent = `Total Amount: ৳${total.toFixed(2)}`;
+
+                rows.forEach(r => {
+                    const tr = document.createElement("tr");
+                    tr.className = "hover:bg-red-50/50 transition-colors";
+                    tr.innerHTML = `
+                        <td class="px-6 py-4 font-mono text-xs text-gray-500">${r.txnId}</td>
+                        <td class="px-6 py-4 font-bold text-red-600">${r.patientId}</td>
+                        <td class="px-6 py-4 font-medium">${r.patientName}</td>
+                        <td class="px-6 py-4">${new Date(r.date).toLocaleDateString()}</td>
+                        <td class="px-6 py-4">${r.year}</td>
+                        <td class="px-6 py-4 font-semibold text-gray-800">৳${r.amount}</td>`;
+                    tbody.appendChild(tr);
+                });
+
+                const downloadBtn = document.getElementById("downloadReport");
+                if(rows.length === 0) {
+                    downloadBtn.classList.add("hidden");
+                } else {
+                    downloadBtn.classList.remove("hidden");
+                }
+
+                downloadBtn.onclick = () => {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+                    doc.setFontSize(16);
+                    doc.setTextColor(220, 38, 38);
+                    doc.text("Subscription Report (Date Range)", 14, 20);
+
+                    doc.setFontSize(11);
+                    doc.setTextColor(80, 80, 80);
+                    doc.text(`From: ${fromStr}  To: ${toStr}`, 14, 30);
+
+                    doc.autoTable({
+                        html: "#dateRangeTable",
+                        startY: 40,
+                        theme: "grid",
+                        headStyles: { fillColor: [254, 242, 242], textColor: [185, 28, 28] },
+                        alternateRowStyles: { fillColor: [255, 255, 255] }
+                    });
+
+                    const finalY = doc.lastAutoTable.finalY || 40;
+                    doc.setFontSize(14);
+                    doc.setTextColor(30, 30, 30);
+                    doc.text(`Total Amount: BDT ${total.toFixed(2)}`, 14, finalY + 15);
+                    doc.save(`Subscription_Report_${fromStr}_to_${toStr}.pdf`);
+
+                    downloadBtn.classList.add('pulse-on-download');
+                    setTimeout(() => downloadBtn.classList.remove('pulse-on-download'), 1500);
+                };
+
+            } catch (e) {
+                console.error(e);
+                alert("Error loading report: " + e.message);
+            }
+        };
+
+        // PDF for Yearly (now also includes service charges)
+        window.downloadYearlyTransactionPDF = () => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const pid = document.getElementById("yearlyPatientId").value.trim() || "N/A";
+            const name = infoName.textContent || "Unknown";
+            const phone = infoPhone.textContent || "N/A";
+            const total = document.getElementById("yearlyTotalAmount").textContent.replace('Total Amount: ৳', '') || "0.00";
+
+            doc.setFontSize(18);
+            doc.setTextColor(220, 38, 38);
+            doc.text("Yearly Transaction History", 14, 20);
+
+            doc.setFontSize(11);
+            doc.setTextColor(80, 80, 80);
+            doc.text(`Patient ID: ${pid}`, 14, 32);
+            doc.text(`Name: ${name}`, 14, 38);
+            doc.text(`Phone: ${phone}`, 14, 44);
+
+            doc.autoTable({
+                html: "#yearlyTransactionTable",
+                startY: 52,
+                theme: "grid",
+                headStyles: { fillColor: [254, 242, 242], textColor: [185, 28, 28] },
+            });
+
+            const finalY = doc.lastAutoTable.finalY || 52;
+            doc.setFontSize(14);
+            doc.setTextColor(30, 30, 30);
+            doc.text(`Total Amount: BDT ${total}`, 14, finalY + 15);
+            doc.save(`Yearly_Subscription_${pid}.pdf`);
+        };
+    </script>
 </body>
 </html>

@@ -20,14 +20,12 @@
       --gray-700: #374151;
       --gray-900: #111827;
     }
-
     body {
       font-family: 'Inter', sans-serif;
       background: linear-gradient(135deg, #fdf2f5 0%, #f8f9fa 100%);
       color: var(--gray-900);
       min-height: 100vh;
     }
-
     .glass-card {
       background: rgba(255, 255, 255, 0.94);
       backdrop-filter: blur(14px);
@@ -38,27 +36,23 @@
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
       transition: all 0.3s ease;
     }
-
     .glass-card:hover {
       box-shadow: 0 20px 40px rgba(225, 29, 72, 0.1);
       border-color: rgba(225, 29, 72, 0.2);
     }
-
     .input-focus:focus {
       outline: none;
       border-color: var(--primary);
       box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.2);
     }
-
-    /* Scrollable Table */
     .table-container {
       max-height: 320px;
       overflow-y: auto;
+      overflow-x: auto;
       border-radius: 0.75rem;
       border: 1px solid var(--gray-200);
       background: white;
     }
-
     .table-container thead {
       position: sticky;
       top: 0;
@@ -66,27 +60,24 @@
       background: var(--primary-light);
       box-shadow: 0 2px 4px rgba(0,0,0,.05);
     }
-
     .table-container th {
       padding: .75rem 1rem;
       font-weight: 600;
-      font-size: .875rem;
+      font-size: .75rem;
       color: var(--primary-dark);
       text-transform: uppercase;
       letter-spacing: .05em;
+      white-space: nowrap;
     }
-
     .table-container td {
       padding: .75rem 1rem;
-      font-size: .875rem;
+      font-size: .8rem;
       border-bottom: 1px solid var(--gray-200);
+      white-space: nowrap;
     }
-
     .table-container tbody tr:hover {
       background: rgba(225,29,72,.03);
     }
-
-    /* Buttons */
     .btn {
       padding: .65rem 1.25rem;
       border-radius: .75rem;
@@ -96,31 +87,19 @@
       display: inline-flex;
       align-items: center;
       gap: .5rem;
+      cursor: pointer;
+      border: none;
     }
-
-    .btn-primary { background: var(--primary); color:#fff; }
+    .btn-primary { background: var(--primary); color: #fff; }
     .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
-
-    .btn-success { background:#10b981; color:#fff; }
-    .btn-success:hover { background:#059669; }
-
-    .btn-danger { background:#ef4444; color:#fff; }
-    .btn-danger:hover { background:#dc2626; }
-
-    .btn-purple { background:#a855f7; color:#fff; }
-    .btn-purple:hover { background:#9333ea; }
-
-    .btn-back {
-      background: white;
-      color: var(--primary);
-      border: 1px solid var(--primary);
-    }
-    .btn-back:hover {
-      background: var(--primary-light);
-      transform: translateY(-1px);
-    }
-
-    /* Loader */
+    .btn-success { background: #10b981; color: #fff; }
+    .btn-success:hover { background: #059669; }
+    .btn-danger { background: #ef4444; color: #fff; }
+    .btn-danger:hover { background: #dc2626; }
+    .btn-purple { background: #a855f7; color: #fff; }
+    .btn-purple:hover { background: #9333ea; }
+    .btn-back { background: white; color: var(--primary); border: 1px solid var(--primary); }
+    .btn-back:hover { background: var(--primary-light); transform: translateY(-1px); }
     .loader {
       width:48px;height:48px;border-radius:50%;border:3px solid;border-color:#fff #fff transparent transparent;
       animation: rotation 1s linear infinite;
@@ -133,22 +112,18 @@
     .loader::before{width:32px;height:32px;border-color:#fff #fff transparent transparent;animation:rotation 1.5s linear infinite;}
     @keyframes rotation{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
     @keyframes rotationBack{0%{transform:rotate(0)}100%{transform:rotate(-360deg)}}
-
     #loaderContainer{
       position:fixed;top:0;left:0;right:0;bottom:0;
       background:rgba(0,0,0,.3);display:flex;justify-content:center;align-items:center;
       z-index:9999;display:none;backdrop-filter:blur(4px);
     }
-
     .section-title{
       font-size:1.5rem;font-weight:700;color:var(--primary-dark);
       margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;
     }
-
     .form-grid{
-      display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;
+      display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem;
     }
-
     .dropdown {
       appearance: none;
       background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23e11d48%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
@@ -157,50 +132,57 @@
       background-size: 0.65rem auto;
       padding-right: 2.5rem;
     }
+    .stock-hint {
+      font-size: 0.8rem; color: #059669; margin-top: 0.25rem; font-weight: 500;
+    }
+    .stock-hint.low { color: #dc2626; }
+    @media (max-width: 640px) {
+      .table-container th, .table-container td { font-size: 0.7rem; padding: 0.5rem 0.6rem; }
+      .glass-card { padding: 1rem; }
+    }
   </style>
 </head>
 <body class="antialiased">
-
   <div id="loaderContainer"><span class="loader"></span></div>
-
-  <div class="max-w-5xl mx-auto p-6 space-y-8 relative">
-
-    <div class="absolute top-4 left-4">
+  <div class="max-w-6xl mx-auto p-4 md:p-6 space-y-8 relative">
+    <div class="absolute top-4 left-4 z-10">
       <a href="https://hsb-youths.github.io/ADMIN_Data-entry/index.html" class="btn btn-back">
         <i class="fas fa-arrow-left"></i> Back to Dashboard
       </a>
     </div>
-
     <div class="text-center mb-8 pt-12">
       <h1 class="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-rose-600 to-rose-700">
         Factor Utilization (HSB Only)
       </h1>
       <p class="text-gray-600 mt-2">Admin Panel – Injection Management</p>
     </div>
-
+    <!-- Search Patient -->
     <div class="glass-card">
-      <h3 class="section-title"><i class="fas fa-search"></i> Search Patient</h3>
+      <h3 class="section-title text-xl"><i class="fas fa-search"></i> Search Patient</h3>
       <div class="flex flex-col sm:flex-row gap-3">
         <input type="text" id="searchPatientId" placeholder="Enter Patient ID (e.g., HSB-001)"
                class="flex-1 p-3 border border-gray-300 rounded-lg input-focus transition-all"/>
         <button id="searchPatientBtn" class="btn btn-primary"><i class="fas fa-search"></i> Search</button>
       </div>
     </div>
-
+    <!-- Patient Info & History -->
     <div id="patientInfo" class="hidden glass-card space-y-5">
       <h3 id="patientName" class="text-xl font-bold text-gray-900"></h3>
-
       <div>
         <h4 class="section-title text-lg"><i class="fas fa-syringe"></i> Injection History</h4>
         <div class="table-container">
-          <table id="individualTable" class="w-full">
+          <table id="individualTable" class="w-full min-w-[1200px]">
             <thead>
               <tr>
                 <th>Transaction ID</th>
                 <th>Injection Type</th>
+                <th>Brand</th>
                 <th>Dosage (IU)</th>
+                <th>Qty (Vials)</th>
                 <th>Vial/Slot/Lot</th>
                 <th>Bleeding</th>
+                <th>HTC / Place</th>
+                <th>Approved</th>
                 <th>Date</th>
               </tr>
             </thead>
@@ -208,15 +190,14 @@
           </table>
         </div>
       </div>
-
       <div class="flex flex-wrap gap-3">
         <button id="addNewInjectionBtn" class="btn btn-success"><i class="fas fa-plus"></i> Add New Injection</button>
         <button onclick="downloadIndividualPDF()" class="btn btn-danger"><i class="fas fa-file-pdf"></i> Download PDF</button>
       </div>
     </div>
-
+    <!-- New Injection Form -->
     <form id="injectionForm" class="hidden glass-card space-y-5">
-      <h4 class="section-title"><i class="fas fa-prescription-bottle-alt"></i> New Injection Request</h4>
+      <h4 class="section-title text-xl"><i class="fas fa-prescription-bottle-alt"></i> New Injection Request</h4>
       <div class="form-grid">
         <select id="injectionType" class="p-3 border rounded-lg input-focus dropdown" required>
           <option value="" disabled selected>Select Factor Type</option>
@@ -225,20 +206,19 @@
           <option value="Feiba">Feiba</option>
           <option value="VWD Factor VIII">VWD Factor VIII</option>
         </select>
-
+        <select id="injectionBrand" class="p-3 border rounded-lg input-focus dropdown" required>
+          <option value="" disabled selected>Select Brand</option>
+        </select>
         <select id="dosage" class="p-3 border rounded-lg input-focus dropdown" required>
           <option value="" disabled selected>Select IU Dosage</option>
-          <option value="250">250 IU</option>
-          <option value="500">500 IU</option>
-          <option value="750">750 IU</option>
-          <option value="1000">1000 IU</option>
-          <option value="1500">1500 IU</option>
-          <option value="2000">2000 IU</option>
+          <option value="250">250 IU</option><option value="500">500 IU</option><option value="750">750 IU</option>
+          <option value="1000">1000 IU</option><option value="1500">1500 IU</option><option value="2000">2000 IU</option>
           <option value="3000">3000 IU</option>
         </select>
-
+        <input type="number" id="injectionQuantity" min="1" value="1" placeholder="No. of Vials"
+               class="p-3 border rounded-lg input-focus" required/>
+        <div id="stockAvailabilityHint" class="stock-hint"></div>
         <input type="text" id="vialInfo" placeholder="Vial/Slot/Lot" class="p-3 border rounded-lg input-focus" required/>
-        
         <select id="bleeding" class="p-3 border rounded-lg input-focus dropdown" required>
           <option value="" disabled selected>Select Bleeding Type</option>
           <option>Left Knee Bleeding</option><option>Right Knee Bleeding</option>
@@ -250,34 +230,37 @@
           <option>External Bleeding</option><option>Muscle Bleeding</option>
           <option>Others</option>
         </select>
-
+        <select id="utilizationPlace" class="p-3 border rounded-lg input-focus dropdown" required>
+          <option value="" disabled>Select HTC / Place</option>
+        </select>
         <input type="date" id="date" class="p-3 border rounded-lg input-focus" required/>
       </div>
-      <button type="submit" class="btn btn-primary w-full sm:w-auto"><i class="fas fa-paper-plane"></i> Submit for Approval</button>
+      <button type="submit" class="btn btn-primary w-full sm:w-auto"><i class="fas fa-paper-plane"></i> Submit Injection</button>
     </form>
-
+    <!-- View by Date -->
     <div class="glass-card">
-      <h4 class="section-title"><i class="fas fa-calendar-day"></i> View by Date</h4>
+      <h4 class="section-title text-xl"><i class="fas fa-calendar-day"></i> View by Date</h4>
       <div class="flex flex-col sm:flex-row gap-3 items-center">
         <input type="date" id="searchDate" class="p-3 border rounded-lg input-focus flex-1"/>
         <button id="loadDateBtn" class="btn btn-purple"><i class="fas fa-sync"></i> Load</button>
         <button onclick="downloadDatewisePDF()" class="btn btn-danger"><i class="fas fa-file-pdf"></i> PDF</button>
       </div>
       <div class="table-container mt-4">
-        <table id="datewiseTable" class="w-full">
+        <table id="datewiseTable" class="w-full min-w-[1200px]">
           <thead>
             <tr>
               <th>TID</th><th>Patient Name</th><th>Patient ID</th><th>Type</th>
-              <th>Vial</th><th>Dosage</th><th>Bleeding</th><th>Date</th>
+              <th>Brand</th><th>Vial</th><th>Dosage</th><th>Qty</th>
+              <th>Bleeding</th><th>HTC / Place</th><th>Approved</th><th>Date</th>
             </tr>
           </thead>
           <tbody id="dateTransactionsTable" class="text-sm"></tbody>
         </table>
       </div>
     </div>
-
+    <!-- View by Date Range -->
     <div class="glass-card">
-      <h4 class="section-title"><i class="fas fa-calendar-week"></i> View by Date Range</h4>
+      <h4 class="section-title text-xl"><i class="fas fa-calendar-week"></i> View by Date Range</h4>
       <div class="flex flex-col sm:flex-row gap-3 items-center">
         <input type="date" id="fromDate" class="p-3 border rounded-lg input-focus"/>
         <span class="hidden sm:block text-gray-500">to</span>
@@ -286,18 +269,18 @@
         <button onclick="downloadDateRangePDF()" class="btn btn-danger"><i class="fas fa-file-pdf"></i> PDF</button>
       </div>
       <div class="table-container mt-4">
-        <table id="dateRangeTable" class="w-full">
+        <table id="dateRangeTable" class="w-full min-w-[1200px]">
           <thead>
             <tr>
               <th>TID</th><th>Patient Name</th><th>Patient ID</th><th>Type</th>
-              <th>Vial</th><th>Dosage</th><th>Bleeding</th><th>Date</th>
+              <th>Brand</th><th>Vial</th><th>Dosage</th><th>Qty</th>
+              <th>Bleeding</th><th>HTC / Place</th><th>Approved</th><th>Date</th>
             </tr>
           </thead>
           <tbody id="dateRangeTransactionsTable" class="text-sm"></tbody>
         </table>
       </div>
     </div>
-
   </div>
 
   <script type="module">
@@ -313,58 +296,120 @@
       appId: "1:674332798483:web:cedb62cb05e03b5cadd9e6",
       measurementId: "G-J5D8R7P18D"
     };
-
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-
     const loader = document.getElementById("loaderContainer");
     function showLoader() { loader.style.display = "flex"; }
     function hideLoader() { loader.style.display = "none"; }
 
-    // Enter key search
-    document.getElementById("searchPatientId").addEventListener("keydown", e => {
-      if (e.key === "Enter") { e.preventDefault(); document.getElementById("searchPatientBtn").click(); }
-    });
+    const DEFAULT_BRANDS = ["Afstyla", "Eloctate", "Kovaltry", "Xyntha", "Alprolix"];
+    const DEFAULT_PLACES = ["Hemophilia Society of Bangladesh", "Dhaka Medical college Hospital"];
+    const DEFAULT_HTC = "Hemophilia Society of Bangladesh";
+    let allBrands = [];
+    let allPlaces = [];
 
-    // Search Patient
+    async function loadBrandsAndPlaces() {
+      try {
+        const brandsRef = ref(db, 'inventory_settings/brands');
+        const brandsSnap = await get(brandsRef);
+        if (brandsSnap.exists()) allBrands = Object.keys(brandsSnap.val()).sort();
+        else allBrands = [...DEFAULT_BRANDS].sort();
+        const placesRef = ref(db, 'inventory_settings/utilization_places');
+        const placesSnap = await get(placesRef);
+        if (placesSnap.exists()) allPlaces = Object.keys(placesSnap.val()).sort();
+        else allPlaces = [...DEFAULT_PLACES].sort();
+        populateBrandDropdown();
+        populatePlaceDropdown();
+      } catch (e) {
+        console.error(e);
+        allBrands = [...DEFAULT_BRANDS].sort();
+        allPlaces = [...DEFAULT_PLACES].sort();
+        populateBrandDropdown();
+        populatePlaceDropdown();
+      }
+    }
+    function populateBrandDropdown() {
+      const sel = document.getElementById("injectionBrand");
+      sel.innerHTML = '<option value="" disabled selected>Select Brand</option>';
+      allBrands.forEach(b => { const o = document.createElement("option"); o.value = b; o.textContent = b; sel.appendChild(o); });
+    }
+    function populatePlaceDropdown() {
+      const sel = document.getElementById("utilizationPlace");
+      sel.innerHTML = '<option value="" disabled>Select HTC / Place</option>';
+      allPlaces.forEach(p => { const o = document.createElement("option"); o.value = p; o.textContent = p; if (p===DEFAULT_HTC) o.selected=true; sel.appendChild(o); });
+      if (!allPlaces.includes(DEFAULT_HTC) && allPlaces.length>0) sel.value = allPlaces[0];
+      else if (allPlaces.includes(DEFAULT_HTC)) sel.value = DEFAULT_HTC;
+    }
+
+    async function getAvailableStock(brand, dosage, place) {
+      const stockSnap = await get(ref(db, 'inventory_transactions/stock_in'));
+      let totalIn = 0;
+      if (stockSnap.exists()) stockSnap.forEach(child => {
+        const item = child.val();
+        if (item.brand===brand && item.dosage===dosage && item.utilizationPlace===place) totalIn += (item.quantity||0);
+      });
+      const injSnap = await get(ref(db, 'injections'));
+      let totalOut = 0;
+      if (injSnap.exists()) injSnap.forEach(patSnap => {
+        patSnap.forEach(injSnap2 => {
+          const inj = injSnap2.val();
+          if (inj.brand===brand && inj.dosage===dosage && inj.utilizationPlace===place) totalOut += (inj.quantity||0);
+        });
+      });
+      return totalIn - totalOut;
+    }
+    async function updateStockHint() {
+      const brand = document.getElementById("injectionBrand").value;
+      const dosage = document.getElementById("dosage").value;
+      const place = document.getElementById("utilizationPlace").value;
+      const hint = document.getElementById("stockAvailabilityHint");
+      if (!brand || !dosage || !place) { hint.textContent=''; return; }
+      try {
+        const avail = await getAvailableStock(brand, dosage, place);
+        hint.textContent = `Available stock: ${avail} vial(s)`;
+        hint.className = avail <= 0 ? 'stock-hint low' : 'stock-hint';
+      } catch(e) { hint.textContent = 'Could not check stock.'; hint.className='stock-hint low'; }
+    }
+    document.getElementById("injectionBrand").addEventListener("change", updateStockHint);
+    document.getElementById("dosage").addEventListener("change", updateStockHint);
+    document.getElementById("utilizationPlace").addEventListener("change", updateStockHint);
+
+    document.getElementById("searchPatientId").addEventListener("keydown", e => { if(e.key==="Enter"){e.preventDefault();document.getElementById("searchPatientBtn").click();} });
     document.getElementById("searchPatientBtn").addEventListener("click", () => {
-      const patientId = document.getElementById("searchPatientId").value.trim();
-      if (!patientId) return alert("Enter patient ID");
-
+      const pid = document.getElementById("searchPatientId").value.trim();
+      if (!pid) return alert("Enter patient ID");
       showLoader();
-      const patientRef = ref(db, 'patients/' + patientId);
-      get(patientRef).then(snapshot => {
-        if (snapshot.exists()) {
-          const data = snapshot.val();
-          document.getElementById("patientName").textContent = "Patient: " + data.name;
+      get(ref(db, 'patients/'+pid)).then(snap => {
+        if (snap.exists()) {
+          document.getElementById("patientName").textContent = "Patient: " + snap.val().name;
           document.getElementById("patientInfo").classList.remove("hidden");
-          fetchInjectionHistory(patientId).finally(hideLoader);
-        } else {
-          alert("Patient not found.");
-          document.getElementById("patientInfo").classList.add("hidden");
-          hideLoader();
-        }
-      }).catch(() => { alert("Error fetching patient."); hideLoader(); });
+          fetchInjectionHistory(pid).finally(hideLoader);
+        } else { alert("Patient not found."); document.getElementById("patientInfo").classList.add("hidden"); hideLoader(); }
+      }).catch(()=>{alert("Error");hideLoader();});
     });
 
-    // Fetch Injection History
     function fetchInjectionHistory(patientId) {
       return new Promise((resolve, reject) => {
-        const injectionsRef = ref(db, 'injections/' + patientId);
-        get(injectionsRef).then(snapshot => {
+        get(ref(db, 'injections/'+patientId)).then(snap => {
           const tbody = document.getElementById("historyTableBody");
           tbody.innerHTML = '';
-          if (snapshot.exists()) {
-            const data = snapshot.val();
-            for (const id in data) {
+          if (snap.exists()) {
+            const data = snap.val();
+            for (const tid in data) {
+              const item = data[tid];
               const row = tbody.insertRow();
-              const item = data[id];
-              row.insertCell(0).textContent = id;
-              row.insertCell(1).textContent = item.injectionType;
-              row.insertCell(2).textContent = item.dosage;
-              row.insertCell(3).textContent = item.vialInfo;
-              row.insertCell(4).textContent = item.bleeding || 'N/A';
-              row.insertCell(5).textContent = item.date;
+              row.insertCell(0).textContent = tid;
+              row.insertCell(1).textContent = item.injectionType||'';
+              row.insertCell(2).textContent = item.brand||'';
+              row.insertCell(3).textContent = item.dosage||'';
+              row.insertCell(4).textContent = item.quantity||'1';
+              row.insertCell(5).textContent = item.vialInfo||'';
+              row.insertCell(6).textContent = item.bleeding||'';
+              row.insertCell(7).textContent = item.utilizationPlace||'';
+              // Approved column: if status is 'approved' show Yes, else No
+              const approved = (item.status === 'approved') ? 'Yes' : (item.status === 'rejected' ? 'Rejected' : 'No');
+              row.insertCell(8).textContent = approved;
+              row.insertCell(9).textContent = item.date||'';
             }
           }
           resolve();
@@ -372,163 +417,122 @@
       });
     }
 
-    // Add New Injection
     document.getElementById("addNewInjectionBtn").addEventListener("click", () => {
       document.getElementById("injectionForm").classList.remove("hidden");
-      document.getElementById("injectionForm").scrollIntoView({ behavior: 'smooth' });
+      document.getElementById("injectionForm").scrollIntoView({behavior:'smooth'});
+      updateStockHint();
     });
 
-    document.getElementById("injectionForm").addEventListener("submit", function (e) {
+    document.getElementById("injectionForm").addEventListener("submit", async function(e) {
       e.preventDefault();
       const patientId = document.getElementById("searchPatientId").value.trim();
       const injectionType = document.getElementById("injectionType").value;
+      const brand = document.getElementById("injectionBrand").value;
       const dosage = document.getElementById("dosage").value;
+      const quantity = parseInt(document.getElementById("injectionQuantity").value, 10);
       const vialInfo = document.getElementById("vialInfo").value.trim();
       const bleeding = document.getElementById("bleeding").value;
+      const utilizationPlace = document.getElementById("utilizationPlace").value;
       const date = document.getElementById("date").value;
-
-      if (!injectionType || !dosage || !vialInfo || !bleeding || !date) return alert("Fill all fields");
-
-      const transactionId = Date.now().toString();
-
-      set(ref(db, 'pending_injections/' + patientId + '/' + transactionId), {
-        injectionType, dosage, vialInfo, bleeding, date
-      }).then(() => {
-        alert("Injection submitted for approval.");
-        document.getElementById("injectionForm").reset();
+      if (!injectionType || !brand || !dosage || !quantity || !vialInfo || !bleeding || !utilizationPlace || !date) return alert("Fill all fields");
+      if (quantity<1) return alert("Quantity min 1");
+      showLoader();
+      try {
+        const avail = await getAvailableStock(brand, dosage, utilizationPlace);
+        if (avail < quantity) { hideLoader(); alert(`Insufficient stock! Only ${avail} vial(s) available.`); return; }
+        const tid = Date.now().toString();
+        const status = utilizationPlace === "Hemophilia Society of Bangladesh" ? "pending_approval" : "approved";
+        await set(ref(db, 'injections/'+patientId+'/'+tid), {
+          injectionType, brand, dosage, quantity, vialInfo, bleeding, utilizationPlace, date, status
+        });
+        alert("Injection recorded successfully.");
+        this.reset();
         document.getElementById("injectionForm").classList.add("hidden");
-      }).catch(() => alert("Error submitting injection."));
+        if (allPlaces.includes(DEFAULT_HTC)) document.getElementById("utilizationPlace").value = DEFAULT_HTC;
+        document.getElementById("injectionQuantity").value = 1;
+        if (!document.getElementById("patientInfo").classList.contains("hidden")) await fetchInjectionHistory(patientId);
+        updateStockHint();
+      } catch(err) { alert("Error: "+err.message); } finally { hideLoader(); }
     });
 
-    // Load by Date
-    window.loadTransactionsByDate = function () {
-      const selectedDate = document.getElementById("searchDate").value;
-      if (!selectedDate) return alert("Select a date");
-
-      const tbody = document.getElementById("dateTransactionsTable");
+    function fillDateTable(tbody, filterFn) {
       tbody.innerHTML = '';
       showLoader();
-
       get(ref(db, 'patients/')).then(pSnap => {
-        const patients = pSnap.val() || {};
+        const patients = pSnap.val()||{};
         const promises = [];
-
-        for (const pid of Object.keys(patients)) {
+        for (const pid in patients) {
           const name = patients[pid].name;
-          const p = get(ref(db, 'injections/' + pid)).then(injSnap => {
+          promises.push(get(ref(db, 'injections/'+pid)).then(injSnap => {
             if (injSnap.exists()) {
               const data = injSnap.val();
               for (const tid in data) {
                 const inj = data[tid];
-                if (inj.date === selectedDate) {
+                if (filterFn(inj)) {
                   const row = tbody.insertRow();
                   row.insertCell(0).textContent = tid;
                   row.insertCell(1).textContent = name;
                   row.insertCell(2).textContent = pid;
-                  row.insertCell(3).textContent = inj.injectionType;
-                  row.insertCell(4).textContent = inj.vialInfo;
-                  row.insertCell(5).textContent = inj.dosage;
-                  row.insertCell(6).textContent = inj.bleeding || 'N/A';
-                  row.insertCell(7).textContent = inj.date;
+                  row.insertCell(3).textContent = inj.injectionType||'';
+                  row.insertCell(4).textContent = inj.brand||'';
+                  row.insertCell(5).textContent = inj.vialInfo||'';
+                  row.insertCell(6).textContent = inj.dosage||'';
+                  row.insertCell(7).textContent = inj.quantity||'1';
+                  row.insertCell(8).textContent = inj.bleeding||'';
+                  row.insertCell(9).textContent = inj.utilizationPlace||'';
+                  row.insertCell(10).textContent = (inj.status === 'approved')?'Yes':(inj.status==='rejected'?'Rejected':'No');
+                  row.insertCell(11).textContent = inj.date||'';
                 }
               }
             }
-          });
-          promises.push(p);
+          }));
         }
         Promise.all(promises).finally(hideLoader);
-      }).catch(() => { alert("Error loading transactions."); hideLoader(); });
+      }).catch(()=>{alert("Error");hideLoader();});
+    }
+
+    window.loadTransactionsByDate = function() {
+      const date = document.getElementById("searchDate").value;
+      if (!date) return alert("Select date");
+      fillDateTable(document.getElementById("dateTransactionsTable"), inj => inj.date === date);
     };
     document.getElementById("loadDateBtn").addEventListener("click", loadTransactionsByDate);
 
-    // Load by Range
-    window.loadTransactionsByDateRange = function () {
+    window.loadTransactionsByDateRange = function() {
       const from = document.getElementById("fromDate").value;
       const to = document.getElementById("toDate").value;
-      if (!from || !to) return alert("Select both dates");
-      if (from > to) return alert("From date must be <= To date");
-
-      const tbody = document.getElementById("dateRangeTransactionsTable");
-      tbody.innerHTML = '';
-      showLoader();
-
-      get(ref(db, 'patients/')).then(pSnap => {
-        const patients = pSnap.val() || {};
-        const promises = [];
-
-        for (const pid of Object.keys(patients)) {
-          const name = patients[pid].name;
-          const p = get(ref(db, 'injections/' + pid)).then(injSnap => {
-            if (injSnap.exists()) {
-              const data = injSnap.val();
-              for (const tid in data) {
-                const inj = data[tid];
-                if (inj.date >= from && inj.date <= to) {
-                  const row = tbody.insertRow();
-                  row.insertCell(0).textContent = tid;
-                  row.insertCell(1).textContent = name;
-                  row.insertCell(2).textContent = pid;
-                  row.insertCell(3).textContent = inj.injectionType;
-                  row.insertCell(4).textContent = inj.vialInfo;
-                  row.insertCell(5).textContent = inj.dosage;
-                  row.insertCell(6).textContent = inj.bleeding || 'N/A';
-                  row.insertCell(7).textContent = inj.date;
-                }
-              }
-            }
-          });
-          promises.push(p);
-        }
-        Promise.all(promises).finally(hideLoader);
-      }).catch(() => { alert("Error loading range."); hideLoader(); });
+      if (!from||!to) return alert("Select both dates");
+      if (from>to) return alert("From <= To");
+      fillDateTable(document.getElementById("dateRangeTransactionsTable"), inj => inj.date >= from && inj.date <= to);
     };
     document.getElementById("loadDateRangeBtn").addEventListener("click", loadTransactionsByDateRange);
 
-    // PDF Downloads
-    window.downloadIndividualPDF = function () {
+    // PDF downloads (unchanged except column widths)
+    window.downloadIndividualPDF = function() {
       const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      const patientName = document.getElementById("patientName").textContent || "Patient";
-      const patientId = document.getElementById("searchPatientId").value.trim() || "N/A";
-
-      doc.setFontSize(16);
-      doc.text("Individual Injection History", 14, 20);
-      doc.setFontSize(12);
-      doc.text(patientName, 14, 30);
-      doc.text(`Patient ID: ${patientId}`, 14, 38);
-
-      doc.autoTable({ html: '#individualTable', startY: 45 });
-      doc.save("individual_injection_history.pdf");
+      const doc = new jsPDF('landscape');
+      doc.setFontSize(16); doc.text("Individual Injection History", 14, 20);
+      doc.setFontSize(12); doc.text(document.getElementById("patientName").textContent||"Patient",14,30);
+      doc.text(`ID: ${document.getElementById("searchPatientId").value||''}`,14,38);
+      doc.autoTable({ html: '#individualTable', startY: 45, styles: { fontSize: 8 } });
+      doc.save("individual_history.pdf");
+    };
+    window.downloadDatewisePDF = function() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('landscape');
+      doc.setFontSize(16); doc.text("Date-wise Transactions",14,20);
+      doc.autoTable({ html: '#datewiseTable', startY: 30, styles: { fontSize: 7 } });
+      doc.save("datewise.pdf");
+    };
+    window.downloadDateRangePDF = function() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('landscape');
+      doc.setFontSize(16); doc.text("Date Range Transactions",14,20);
+      doc.autoTable({ html: '#dateRangeTable', startY: 30, styles: { fontSize: 7 } });
+      doc.save("daterange.pdf");
     };
 
-    window.downloadDatewisePDF = function () {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      const selDate = document.getElementById("searchDate").value || "Selected Date";
-
-      doc.setFontSize(16);
-      doc.text("Date-wise Injection Transactions", 14, 20);
-      doc.setFontSize(12);
-      doc.text(`Date: ${selDate}`, 160, 20, { align: "right" });
-
-      doc.autoTable({ html: '#datewiseTable', startY: 30 });
-      doc.save("datewise_transactions.pdf");
-    };
-
-    window.downloadDateRangePDF = function () {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      const from = document.getElementById("fromDate").value || "N/A";
-      const to = document.getElementById("toDate").value || "N/A";
-
-      doc.setFontSize(16);
-      doc.text("Date Range Injection Transactions", 14, 20);
-      doc.setFontSize(12);
-      doc.text(`From: ${from} To: ${to}`, 160, 20, { align: "right" });
-
-      doc.autoTable({ html: '#dateRangeTable', startY: 30 });
-      doc.save("date_range_transactions.pdf");
-    };
+    loadBrandsAndPlaces();
   </script>
 </body>
 </html>

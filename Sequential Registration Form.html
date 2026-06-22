@@ -305,14 +305,23 @@
                 </datalist>
               </div>
 
-              <div>
-                <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Present Address</label>
-                <input type="text" id="presentAddress" class="w-full fancy-input text-gray-800 placeholder-gray-300" />
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Present Address</label>
+                  <input type="text" id="presentAddress" class="w-full fancy-input text-gray-800 placeholder-gray-300" placeholder="Enter present address" />
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Permanent Address Option</label>
+                  <select id="addressOption" class="w-full fancy-select text-gray-800 outline-none text-base">
+                    <option value="Same" selected>Same as Present Address</option>
+                    <option value="Custom">Custom Permanent Address</option>
+                  </select>
+                </div>
               </div>
 
-              <div>
+              <div id="permanentAddressContainer" class="hidden">
                 <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Permanent Address</label>
-                <input type="text" id="permanentAddress" class="w-full fancy-input text-gray-800 placeholder-gray-300" />
+                <input type="text" id="permanentAddress" class="w-full fancy-input text-gray-800 placeholder-gray-300" placeholder="Enter permanent address" />
               </div>
             </div>
           </div>
@@ -489,6 +498,9 @@
       <canvas id="webcamCanvas" class="hidden"></canvas>
       <div class="mt-6 flex justify-between space-x-4">
         <button type="button" id="closeWebcamBtn" class="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-bold transition-colors">Cancel</button>
+        <button type="button" id="switchCameraBtn" class="py-3 px-5 bg-gray-800 text-white rounded-xl hover:bg-gray-750 font-bold transition-colors flex items-center justify-center" title="Switch Camera">
+          <i class="fas fa-sync-alt text-lg"></i>
+        </button>
         <button type="button" id="captureBtn" class="flex-1 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 font-bold transition-colors shadow-lg shadow-red-600/30 flex items-center justify-center">
           <i class="fas fa-camera mr-2"></i> Capture
         </button>
@@ -711,6 +723,9 @@
         });
         currentStep = 1;
         document.querySelector(`.step-container[data-step="1"]`).classList.add('active');
+        if (typeof permanentAddressContainer !== 'undefined') {
+          permanentAddressContainer.classList.add("hidden");
+        }
         updateUI();
       }
     });
@@ -719,6 +734,22 @@
     document.getElementById("factorType").addEventListener("change", (e) => {
       const mapping = { "VIII": "Hemophilia A", "IX": "Hemophilia B", "VWD": "Von Willebrand Disease", "Others": "Other" };
       if (mapping[e.target.value]) document.getElementById("diseaseClass").value = mapping[e.target.value];
+    });
+
+    // Address Option Dropdown logic
+    const addressOption = document.getElementById("addressOption");
+    const permanentAddressContainer = document.getElementById("permanentAddressContainer");
+    const permanentAddressInput = document.getElementById("permanentAddress");
+    const presentAddressInput = document.getElementById("presentAddress");
+
+    addressOption.addEventListener("change", () => {
+      if (addressOption.value === "Custom") {
+        permanentAddressContainer.classList.remove("hidden");
+        setTimeout(() => permanentAddressInput.focus(), 100);
+      } else {
+        permanentAddressContainer.classList.add("hidden");
+        permanentAddressInput.value = "";
+      }
     });
 
     function calculateAge(dob) {
@@ -787,15 +818,32 @@
       }
     });
 
-    document.getElementById("openWebcamBtn").addEventListener("click", async () => {
-      document.getElementById("webcamModal").classList.remove("hidden");
+    let currentFacingMode = "user";
+
+    async function startWebcam() {
+      if (videoStream) {
+        videoStream.getTracks().forEach(track => track.stop());
+      }
       try {
-        videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } } });
+        videoStream = await navigator.mediaDevices.getUserMedia({ 
+          video: { facingMode: currentFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } } 
+        });
         document.getElementById("webcamVideo").srcObject = videoStream;
       } catch (err) {
         showMessage("Webcam Error", err.message, "error");
         document.getElementById("webcamModal").classList.add("hidden");
       }
+    }
+
+    document.getElementById("openWebcamBtn").addEventListener("click", async () => {
+      document.getElementById("webcamModal").classList.remove("hidden");
+      currentFacingMode = "user"; // reset to front camera
+      await startWebcam();
+    });
+
+    document.getElementById("switchCameraBtn").addEventListener("click", async () => {
+      currentFacingMode = currentFacingMode === "user" ? "environment" : "user";
+      await startWebcam();
     });
 
     function stopWebcam() {
@@ -839,6 +887,11 @@
       document.getElementById("loaderOverlay").style.display = "block";
       const patientId = document.getElementById("patientId").value.trim();
 
+      // If address option is 'Same', replicate present to permanent
+      if (addressOption.value === "Same") {
+        permanentAddressInput.value = presentAddressInput.value;
+      }
+
       try {
         const formData = new FormData();
         formData.append("image", imageFileToUpload, `${patientId}.jpg`);
@@ -862,6 +915,7 @@
               document.getElementById("patientForm").reset();
               photoStatusContainer.classList.add("hidden");
               imageFileToUpload = null;
+              permanentAddressContainer.classList.add("hidden");
               changeStep(1, 'prev'); // Reset UI back to start
           }, 3000);
 

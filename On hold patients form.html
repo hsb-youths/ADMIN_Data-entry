@@ -312,14 +312,23 @@
                 </datalist>
               </div>
 
-              <div>
-                <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Present Address</label>
-                <input type="text" id="presentAddress" class="w-full fancy-input text-gray-800 placeholder-gray-300" />
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Present Address</label>
+                  <input type="text" id="presentAddress" class="w-full fancy-input text-gray-800 placeholder-gray-300" placeholder="Enter present address" />
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Permanent Address Option</label>
+                  <select id="addressOption" class="w-full fancy-select text-gray-800 outline-none text-base">
+                    <option value="Same" selected>Same as Present Address</option>
+                    <option value="Custom">Custom Permanent Address</option>
+                  </select>
+                </div>
               </div>
 
-              <div>
+              <div id="permanentAddressContainer" class="hidden">
                 <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Permanent Address</label>
-                <input type="text" id="permanentAddress" class="w-full fancy-input text-gray-800 placeholder-gray-300" />
+                <input type="text" id="permanentAddress" class="w-full fancy-input text-gray-800 placeholder-gray-300" placeholder="Enter permanent address" />
               </div>
             </div>
           </div>
@@ -436,11 +445,52 @@
         <div class="step-container" data-step="11">
           <div class="bg-white p-8 md:p-12 rounded-3xl shadow-xl shadow-red-900/5 border border-red-50">
             <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">Why is this on hold?</h2>
-            <p class="text-gray-500 mb-8 text-lg">Describe what data is missing or needs clarification.</p>
+            <p class="text-gray-500 mb-8 text-lg">Select what data is missing or needs clarification.</p>
             
-            <div>
-              <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Missing Information Note</label>
-              <textarea id="holdNote" rows="5" class="w-full p-4 border-2 border-red-200 rounded-2xl outline-none focus:border-red-500 bg-red-50/30 text-lg transition-colors" placeholder="Type here..."></textarea>
+            <div class="space-y-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <label class="flex items-center space-x-3 p-4 bg-gray-50 hover:bg-gray-100 rounded-2xl cursor-pointer transition-colors border border-gray-100">
+                  <input type="checkbox" value="No birth certificate" class="hold-reason-cb h-5 w-5 rounded text-red-600 focus:ring-red-500 border-gray-300" />
+                  <span class="text-gray-700 font-medium">No birth certificate</span>
+                </label>
+                <label class="flex items-center space-x-3 p-4 bg-gray-50 hover:bg-gray-100 rounded-2xl cursor-pointer transition-colors border border-gray-100">
+                  <input type="checkbox" value="No image" class="hold-reason-cb h-5 w-5 rounded text-red-600 focus:ring-red-500 border-gray-300" />
+                  <span class="text-gray-700 font-medium">No image</span>
+                </label>
+                <label class="flex items-center space-x-3 p-4 bg-gray-50 hover:bg-gray-100 rounded-2xl cursor-pointer transition-colors border border-gray-100">
+                  <input type="checkbox" value="No blood group" class="hold-reason-cb h-5 w-5 rounded text-red-600 focus:ring-red-500 border-gray-300" />
+                  <span class="text-gray-700 font-medium">No blood group</span>
+                </label>
+                <label class="flex items-center space-x-3 p-4 bg-gray-50 hover:bg-gray-100 rounded-2xl cursor-pointer transition-colors border border-gray-100">
+                  <input type="checkbox" value="No factor Report" class="hold-reason-cb h-5 w-5 rounded text-red-600 focus:ring-red-500 border-gray-300" />
+                  <span class="text-gray-700 font-medium">No factor Report</span>
+                </label>
+                <label class="flex items-center space-x-3 p-4 bg-gray-50 hover:bg-gray-100 rounded-2xl cursor-pointer transition-colors border border-gray-100">
+                  <input type="checkbox" value="No mobile number" class="hold-reason-cb h-5 w-5 rounded text-red-600 focus:ring-red-500 border-gray-300" />
+                  <span class="text-gray-700 font-medium">No mobile number</span>
+                </label>
+                <label class="flex items-center space-x-3 p-4 bg-gray-50 hover:bg-gray-100 rounded-2xl cursor-pointer transition-colors border border-gray-100">
+                  <input type="checkbox" value="No Father name" class="hold-reason-cb h-5 w-5 rounded text-red-600 focus:ring-red-500 border-gray-300" />
+                  <span class="text-gray-700 font-medium">No Father name</span>
+                </label>
+                <label class="flex items-center space-x-3 p-4 bg-gray-50 hover:bg-gray-100 rounded-2xl cursor-pointer transition-colors border border-gray-100">
+                  <input type="checkbox" value="No mother name" class="hold-reason-cb h-5 w-5 rounded text-red-600 focus:ring-red-500 border-gray-300" />
+                  <span class="text-gray-700 font-medium">No mother name</span>
+                </label>
+                <label class="flex items-center space-x-3 p-4 bg-gray-50 hover:bg-gray-100 rounded-2xl cursor-pointer transition-colors border border-gray-100">
+                  <input type="checkbox" id="cbCustom" value="Custom" class="hold-reason-cb h-5 w-5 rounded text-red-600 focus:ring-red-500 border-gray-300" />
+                  <span class="text-gray-700 font-medium">Custom</span>
+                </label>
+              </div>
+
+              <!-- Hidden input to store serialized value for Firebase -->
+              <input type="hidden" id="holdNote" />
+
+              <!-- Custom Text Area (shown when custom checkbox is active) -->
+              <div id="customReasonContainer" class="hidden mt-6">
+                <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Custom Missing Information Note</label>
+                <textarea id="holdNoteCustomText" rows="3" class="w-full p-4 border-2 border-red-200 rounded-2xl outline-none focus:border-red-500 bg-red-50/30 text-lg transition-colors" placeholder="Describe the missing info..."></textarea>
+              </div>
             </div>
           </div>
         </div>
@@ -516,6 +566,9 @@
       <canvas id="webcamCanvas" class="hidden"></canvas>
       <div class="mt-6 flex justify-between space-x-4">
         <button type="button" id="closeWebcamBtn" class="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-bold transition-colors">Cancel</button>
+        <button type="button" id="switchCameraBtn" class="py-3 px-5 bg-gray-800 text-white rounded-xl hover:bg-gray-750 font-bold transition-colors flex items-center justify-center" title="Switch Camera">
+          <i class="fas fa-sync-alt text-lg"></i>
+        </button>
         <button type="button" id="captureBtn" class="flex-1 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 font-bold transition-colors shadow-lg shadow-red-600/30 flex items-center justify-center">
           <i class="fas fa-camera mr-2"></i> Capture
         </button>
@@ -577,6 +630,10 @@
     const mobileContainer = document.getElementById("mobileContainer");
     const mobileInput = document.getElementById("mobile");
     const phoneInput = document.getElementById("phone");
+    const addressOption = document.getElementById("addressOption");
+    const permanentAddressContainer = document.getElementById("permanentAddressContainer");
+    const permanentAddressInput = document.getElementById("permanentAddress");
+    const presentAddressInput = document.getElementById("presentAddress");
 
     // --- Go back redirect button ---
     document.getElementById("goToRegBtn").addEventListener("click", () => {
@@ -597,6 +654,54 @@
         mobileInput.value = "";
       }
     });
+
+    // --- Address Option Dropdown logic ---
+    addressOption.addEventListener("change", () => {
+      if (addressOption.value === "Custom") {
+        permanentAddressContainer.classList.remove("hidden");
+        setTimeout(() => permanentAddressInput.focus(), 100);
+      } else {
+        permanentAddressContainer.classList.add("hidden");
+        permanentAddressInput.value = "";
+      }
+    });
+
+    // --- Missing Information (Hold Note) Checkbox logic ---
+    const holdNoteInput = document.getElementById("holdNote");
+    const cbCustom = document.getElementById("cbCustom");
+    const customReasonContainer = document.getElementById("customReasonContainer");
+    const holdNoteCustomText = document.getElementById("holdNoteCustomText");
+
+    function updateHoldNote() {
+      const selected = [];
+      document.querySelectorAll(".hold-reason-cb:checked").forEach(cb => {
+        if (cb.value !== "Custom") {
+          selected.push(cb.value);
+        }
+      });
+      const customVal = holdNoteCustomText.value.trim();
+      if (cbCustom.checked && customVal) {
+        selected.push(customVal);
+      }
+      holdNoteInput.value = selected.join(", ");
+    }
+
+    document.querySelectorAll(".hold-reason-cb").forEach(cb => {
+      cb.addEventListener("change", () => {
+        if (cb.id === "cbCustom") {
+          if (cb.checked) {
+            customReasonContainer.classList.remove("hidden");
+            setTimeout(() => holdNoteCustomText.focus(), 100);
+          } else {
+            customReasonContainer.classList.add("hidden");
+            holdNoteCustomText.value = "";
+          }
+        }
+        updateHoldNote();
+      });
+    });
+
+    holdNoteCustomText.addEventListener("input", updateHoldNote);
 
     // Custom Alert Logic
     let redirectTimer = null;
@@ -769,6 +874,8 @@
     // --- Parse URL Parameters (Auto-Fill from main form) ---
     window.addEventListener('DOMContentLoaded', () => {
       const params = new URLSearchParams(window.location.search);
+      let loadedPresent = "";
+      let loadedPermanent = "";
       params.forEach((value, key) => {
         const el = document.getElementById(key);
         if (el) {
@@ -781,8 +888,19 @@
             mobileOption.value = 'Custom';
             mobileContainer.classList.remove('hidden');
           }
+          if (key === 'presentAddress') {
+            loadedPresent = value;
+          }
+          if (key === 'permanentAddress') {
+            loadedPermanent = value;
+          }
         }
       });
+      if (loadedPermanent && loadedPermanent !== loadedPresent) {
+        addressOption.value = 'Custom';
+        permanentAddressContainer.classList.remove('hidden');
+        document.getElementById("permanentAddress").value = loadedPermanent;
+      }
     });
 
     // --- Automatic Selection Logic ---
@@ -884,17 +1002,32 @@
       }
     });
 
-    openWebcamBtn.addEventListener("click", async () => {
-      webcamModal.classList.remove("hidden");
+    let currentFacingMode = "user";
+
+    async function startWebcam() {
+      if (videoStream) {
+        videoStream.getTracks().forEach(track => track.stop());
+      }
       try {
         videoStream = await navigator.mediaDevices.getUserMedia({ 
-          video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } } 
+          video: { facingMode: currentFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } } 
         });
         webcamVideo.srcObject = videoStream;
       } catch (err) {
         showMessage("Webcam Error", err.message, "error");
         webcamModal.classList.add("hidden");
       }
+    }
+
+    openWebcamBtn.addEventListener("click", async () => {
+      webcamModal.classList.remove("hidden");
+      currentFacingMode = "user"; // reset to front camera
+      await startWebcam();
+    });
+
+    document.getElementById("switchCameraBtn").addEventListener("click", async () => {
+      currentFacingMode = currentFacingMode === "user" ? "environment" : "user";
+      await startWebcam();
     });
 
     function stopWebcam() {
@@ -945,6 +1078,11 @@
         mobileInput.value = phoneInput.value;
       }
 
+      // If address option is 'Same', replicate present to permanent
+      if (addressOption.value === "Same") {
+        permanentAddressInput.value = presentAddressInput.value;
+      }
+
       try {
         let imageUrl = "";
 
@@ -992,6 +1130,10 @@
           ageInput.value = "";
           openWebcamBtn.innerHTML = '<i class="fas fa-video mr-3"></i> Open Webcam';
           mobileContainer.classList.add("hidden");
+          permanentAddressContainer.classList.add("hidden");
+          customReasonContainer.classList.add("hidden");
+          document.querySelectorAll('.hold-reason-cb').forEach(cb => cb.checked = false);
+          holdNoteCustomText.value = "";
           changeStep(1, 'prev');
         }, 3000);
         

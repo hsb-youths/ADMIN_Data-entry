@@ -277,9 +277,17 @@
                   <input type="text" id="phone" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required class="w-full fancy-input text-gray-800 placeholder-gray-300" placeholder="Required" />
                 </div>
                 <div>
-                  <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Mobile No. (Alt)</label>
-                  <input type="text" id="mobile" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="w-full fancy-input text-gray-800 placeholder-gray-300" placeholder="Optional" />
+                  <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Mobile No. (Alt Option)</label>
+                  <select id="mobileOption" class="w-full fancy-select text-gray-800 outline-none text-base">
+                    <option value="Same" selected>Same as Primary Phone</option>
+                    <option value="Custom">Custom Mobile No.</option>
+                  </select>
                 </div>
+              </div>
+
+              <div id="mobileContainer" class="hidden">
+                <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Custom Mobile No.</label>
+                <input type="text" id="mobile" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="w-full fancy-input text-gray-800 placeholder-gray-300" placeholder="Enter secondary mobile number" />
               </div>
               
               <div>
@@ -726,6 +734,9 @@
         if (typeof permanentAddressContainer !== 'undefined') {
           permanentAddressContainer.classList.add("hidden");
         }
+        if (typeof mobileContainer !== 'undefined') {
+          mobileContainer.classList.add("hidden");
+        }
         updateUI();
       }
     });
@@ -734,6 +745,22 @@
     document.getElementById("factorType").addEventListener("change", (e) => {
       const mapping = { "VIII": "Hemophilia A", "IX": "Hemophilia B", "VWD": "Von Willebrand Disease", "Others": "Other" };
       if (mapping[e.target.value]) document.getElementById("diseaseClass").value = mapping[e.target.value];
+    });
+
+    // Mobile Option Dropdown logic
+    const mobileOption = document.getElementById("mobileOption");
+    const mobileContainer = document.getElementById("mobileContainer");
+    const mobileInput = document.getElementById("mobile");
+    const phoneInput = document.getElementById("phone");
+
+    mobileOption.addEventListener("change", () => {
+      if (mobileOption.value === "Custom") {
+        mobileContainer.classList.remove("hidden");
+        setTimeout(() => mobileInput.focus(), 100);
+      } else {
+        mobileContainer.classList.add("hidden");
+        mobileInput.value = "";
+      }
     });
 
     // Address Option Dropdown logic
@@ -771,14 +798,37 @@
       return function (...args) { clearTimeout(timeout); timeout = setTimeout(() => func.apply(this, args), wait); };
     }
 
+    async function checkPatientId(patientId) {
+      if (!patientId) return false;
+      
+      // Check active patients database
+      const activeSnapshot = await get(ref(db, `patients/${patientId}`));
+      if (activeSnapshot.exists()) {
+        return "registered";
+      }
+
+      // Check on-hold database
+      const holdSnapshot = await get(ref(db, `patients_on_hold/${patientId}`));
+      if (holdSnapshot.exists()) {
+        return "hold";
+      }
+
+      return false;
+    }
+
     const debouncedCheckPatientId = debounce(async (patientId) => {
       if (!patientId) return;
       try {
-        const snapshot = await get(ref(db, `patients/${patientId}`));
-        if (snapshot.exists()) {
-          document.getElementById('patientIdError').classList.remove("hidden");
+        const status = await checkPatientId(patientId);
+        const patientIdError = document.getElementById('patientIdError');
+        if (status === "registered") {
+          patientIdError.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i> This Patient ID is already registered in the active database.';
+          patientIdError.classList.remove("hidden");
+        } else if (status === "hold") {
+          patientIdError.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i> This Patient ID is already in the hold list.';
+          patientIdError.classList.remove("hidden");
         } else {
-          document.getElementById('patientIdError').classList.add("hidden");
+          patientIdError.classList.add("hidden");
         }
       } catch (err) { console.error(err); }
     }, 500);
@@ -887,6 +937,11 @@
       document.getElementById("loaderOverlay").style.display = "block";
       const patientId = document.getElementById("patientId").value.trim();
 
+      // If mobile option is 'Same', replicate phone to mobile
+      if (mobileOption.value === "Same") {
+        mobileInput.value = phoneInput.value;
+      }
+
       // If address option is 'Same', replicate present to permanent
       if (addressOption.value === "Same") {
         permanentAddressInput.value = presentAddressInput.value;
@@ -916,6 +971,7 @@
               photoStatusContainer.classList.add("hidden");
               imageFileToUpload = null;
               permanentAddressContainer.classList.add("hidden");
+              mobileContainer.classList.add("hidden");
               changeStep(1, 'prev'); // Reset UI back to start
           }, 3000);
 

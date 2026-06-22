@@ -188,7 +188,12 @@
               <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
                   <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Date of Birth</label>
-                  <input type="text" id="dob" placeholder="DD/MM/YYYY" class="w-full fancy-input text-gray-800" />
+                  <div class="relative">
+                    <input type="text" id="dob" placeholder="DD/MM/YYYY" class="w-full fancy-input text-gray-800 pr-10" />
+                    <button type="button" id="dob_picker_btn" class="absolute right-2 bottom-2 text-gray-400 hover:text-red-600 transition-colors">
+                      <i class="fas fa-calendar-alt text-xl"></i>
+                    </button>
+                  </div>
                 </div>
                 <div>
                   <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Calculated Age</label>
@@ -418,7 +423,12 @@
             <div class="space-y-8">
               <div>
                 <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Date of Membership</label>
-                <input type="text" id="membershipDate" placeholder="DD/MM/YYYY" class="w-full fancy-input text-gray-800" />
+                <div class="relative">
+                  <input type="text" id="membershipDate" placeholder="DD/MM/YYYY" class="w-full fancy-input text-gray-800 pr-10" />
+                  <button type="button" id="membershipDate_picker_btn" class="absolute right-2 bottom-2 text-gray-400 hover:text-red-600 transition-colors">
+                    <i class="fas fa-calendar-alt text-xl"></i>
+                  </button>
+                </div>
               </div>
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -948,7 +958,7 @@
       return age >= 0 ? age : 0;
     }
 
-    flatpickr(dobInput, {
+    const dobPicker = flatpickr(dobInput, {
       dateFormat: "d/m/Y",
       allowInput: true,
       onChange: function(selectedDates, dateStr) {
@@ -956,14 +966,22 @@
       }
     });
 
+    document.getElementById("dob_picker_btn").addEventListener("click", () => {
+      dobPicker.open();
+    });
+
     // Also trigger age calculation on manual input if typed
     dobInput.addEventListener("input", () => {
       ageInput.value = calculateAge(dobInput.value);
     });
 
-    flatpickr(document.getElementById("membershipDate"), {
+    const membershipDatePicker = flatpickr(document.getElementById("membershipDate"), {
       dateFormat: "d/m/Y",
       allowInput: true
+    });
+
+    document.getElementById("membershipDate_picker_btn").addEventListener("click", () => {
+      membershipDatePicker.open();
     });
 
     // Utils

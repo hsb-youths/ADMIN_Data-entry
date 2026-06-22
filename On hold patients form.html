@@ -944,11 +944,23 @@
       };
     }
 
-    // Checking against the 'patients_on_hold' path specifically
+    // Checking against both 'patients' and 'patients_on_hold' paths
     async function checkPatientId(patientId) {
       if (!patientId) return false;
-      const snapshot = await get(ref(db, `patients_on_hold/${patientId}`));
-      return snapshot.exists();
+      
+      // Check active patients database
+      const activeSnapshot = await get(ref(db, `patients/${patientId}`));
+      if (activeSnapshot.exists()) {
+        return "registered";
+      }
+
+      // Check on-hold database
+      const holdSnapshot = await get(ref(db, `patients_on_hold/${patientId}`));
+      if (holdSnapshot.exists()) {
+        return "hold";
+      }
+
+      return false;
     }
 
     async function checkNid(nid) {
@@ -966,7 +978,12 @@
     // Validation & Listeners
     const debouncedCheckPatientId = debounce(async (patientId) => {
       try {
-        if (await checkPatientId(patientId)) {
+        const status = await checkPatientId(patientId);
+        if (status === "registered") {
+          patientIdError.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i> This Patient ID is already registered in the active database.';
+          patientIdError.classList.remove("hidden");
+        } else if (status === "hold") {
+          patientIdError.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i> This Patient ID is already in the hold list.';
           patientIdError.classList.remove("hidden");
         } else {
           patientIdError.classList.add("hidden");

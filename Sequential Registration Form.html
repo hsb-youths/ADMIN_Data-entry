@@ -6,6 +6,8 @@
   <title>HSB Patient Membership Form (Sequential)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
@@ -805,35 +807,23 @@
     }
     
     const dobInputEl = document.getElementById("dob");
-    dobInputEl.addEventListener("change", (e) => {
-      document.getElementById("age").value = calculateAge(e.target.value);
+    flatpickr(dobInputEl, {
+      dateFormat: "d/m/Y",
+      allowInput: true,
+      onChange: function(selectedDates, dateStr) {
+        document.getElementById("age").value = calculateAge(dateStr);
+      }
     });
 
-    function setupDateFormatter(inputEl) {
-      inputEl.addEventListener("input", (e) => {
-        let value = e.target.value.replace(/[^0-9]/g, ""); // numbers only
-        if (value.length > 8) value = value.slice(0, 8);
-        
-        let formatted = "";
-        if (value.length > 0) {
-          formatted += value.slice(0, 2);
-        }
-        if (value.length > 2) {
-          formatted += "/" + value.slice(2, 4);
-        }
-        if (value.length > 4) {
-          formatted += "/" + value.slice(4, 8);
-        }
-        e.target.value = formatted;
-        
-        if (inputEl.id === "dob") {
-          inputEl.dispatchEvent(new Event("change"));
-        }
-      });
-    }
+    // Also trigger age calculation on manual input if typed
+    dobInputEl.addEventListener("input", () => {
+      document.getElementById("age").value = calculateAge(dobInputEl.value);
+    });
 
-    setupDateFormatter(dobInputEl);
-    setupDateFormatter(document.getElementById("membershipDate"));
+    flatpickr(document.getElementById("membershipDate"), {
+      dateFormat: "d/m/Y",
+      allowInput: true
+    });
 
     // Debounce Checkers
     function debounce(func, wait) {

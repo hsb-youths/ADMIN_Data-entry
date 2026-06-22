@@ -15,6 +15,14 @@
       -webkit-appearance: none;
     }
 
+    .fancy-date-wrapper {
+      border-bottom: 2px solid #e5e7eb;
+      transition: border-color 0.3s;
+    }
+    .fancy-date-wrapper:focus-within {
+      border-bottom: 2px solid #ef4444;
+    }
+
     body {
       font-family: 'Inter', sans-serif;
       background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
@@ -193,8 +201,16 @@
                 <div>
                   <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Date of Birth</label>
                   <div class="relative">
-                    <input type="date" id="dob" class="w-full fancy-input text-gray-800 pr-10" />
-                    <button type="button" id="dob_picker_btn" class="absolute right-2 bottom-2 text-gray-400 hover:text-red-600 transition-colors">
+                    <div class="flex items-center space-x-1 fancy-date-wrapper py-2 dob-container">
+                      <input type="text" maxlength="2" placeholder="DD" inputmode="numeric" class="day-field w-10 text-center bg-transparent outline-none text-2xl font-medium text-gray-800" />
+                      <span class="text-gray-300 text-2xl">/</span>
+                      <input type="text" maxlength="2" placeholder="MM" inputmode="numeric" class="month-field w-10 text-center bg-transparent outline-none text-2xl font-medium text-gray-800" />
+                      <span class="text-gray-300 text-2xl">/</span>
+                      <input type="text" maxlength="4" placeholder="YYYY" inputmode="numeric" class="year-field w-16 text-center bg-transparent outline-none text-2xl font-medium text-gray-800" />
+                      <input type="hidden" id="dob" />
+                      <input type="date" class="native-field hidden absolute w-0 h-0 opacity-0 pointer-events-none" />
+                    </div>
+                    <button type="button" id="dob_picker_btn" class="picker-btn absolute right-2 bottom-4 text-gray-400 hover:text-red-600 transition-colors">
                       <i class="fas fa-calendar-alt text-xl"></i>
                     </button>
                   </div>
@@ -428,8 +444,16 @@
               <div>
                 <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Date of Membership</label>
                 <div class="relative">
-                  <input type="date" id="membershipDate" class="w-full fancy-input text-gray-800 pr-10" />
-                  <button type="button" id="membershipDate_picker_btn" class="absolute right-2 bottom-2 text-gray-400 hover:text-red-600 transition-colors">
+                  <div class="flex items-center space-x-1 fancy-date-wrapper py-2 membership-container">
+                    <input type="text" maxlength="2" placeholder="DD" inputmode="numeric" class="day-field w-10 text-center bg-transparent outline-none text-2xl font-medium text-gray-800" />
+                    <span class="text-gray-300 text-2xl">/</span>
+                    <input type="text" maxlength="2" placeholder="MM" inputmode="numeric" class="month-field w-10 text-center bg-transparent outline-none text-2xl font-medium text-gray-800" />
+                    <span class="text-gray-300 text-2xl">/</span>
+                    <input type="text" maxlength="4" placeholder="YYYY" inputmode="numeric" class="year-field w-16 text-center bg-transparent outline-none text-2xl font-medium text-gray-800" />
+                    <input type="hidden" id="membershipDate" />
+                    <input type="date" class="native-field hidden absolute w-0 h-0 opacity-0 pointer-events-none" />
+                  </div>
+                  <button type="button" id="membershipDate_picker_btn" class="picker-btn absolute right-2 bottom-4 text-gray-400 hover:text-red-600 transition-colors">
                     <i class="fas fa-calendar-alt text-xl"></i>
                   </button>
                 </div>
@@ -900,6 +924,119 @@
       return dateStr;
     }
 
+    function setupDateInputUX(containerEl, hiddenInputId) {
+      const dayInput = containerEl.querySelector('.day-field');
+      const monthInput = containerEl.querySelector('.month-field');
+      const yearInput = containerEl.querySelector('.year-field');
+      const nativeInput = containerEl.querySelector('.native-field');
+      const hiddenInput = document.getElementById(hiddenInputId);
+      const pickerBtn = containerEl.parentElement.querySelector('.picker-btn');
+
+      function updateHiddenValue() {
+        const d = dayInput.value.padStart(2, '0');
+        const m = monthInput.value.padStart(2, '0');
+        const y = yearInput.value;
+
+        if (d && m && y && d.length === 2 && m.length === 2 && y.length === 4) {
+          const val = `${y}-${m}-${d}`;
+          hiddenInput.value = val;
+          hiddenInput.dispatchEvent(new Event('input'));
+          hiddenInput.dispatchEvent(new Event('change'));
+        } else {
+          hiddenInput.value = "";
+          hiddenInput.dispatchEvent(new Event('input'));
+          hiddenInput.dispatchEvent(new Event('change'));
+        }
+      }
+
+      function handleNumericInput(el, nextEl) {
+        el.addEventListener('input', () => {
+          el.value = el.value.replace(/[^0-9]/g, '');
+          if (el.value.length === el.maxLength) {
+            if (nextEl) nextEl.focus();
+          }
+          updateHiddenValue();
+        });
+      }
+
+      handleNumericInput(dayInput, monthInput);
+      handleNumericInput(monthInput, yearInput);
+      handleNumericInput(yearInput, null);
+
+      function handleBackspace(el, prevEl) {
+        el.addEventListener('keydown', (e) => {
+          if (e.key === 'Backspace' && el.value.length === 0) {
+            if (prevEl) {
+              prevEl.focus();
+            }
+          }
+        });
+      }
+
+      handleBackspace(monthInput, dayInput);
+      handleBackspace(yearInput, monthInput);
+
+      nativeInput.addEventListener('change', () => {
+        const val = nativeInput.value;
+        if (val) {
+          const parts = val.split('-');
+          if (parts.length === 3) {
+            yearInput.value = parts[0];
+            monthInput.value = parts[1];
+            dayInput.value = parts[2];
+            hiddenInput.value = val;
+            hiddenInput.dispatchEvent(new Event('input'));
+            hiddenInput.dispatchEvent(new Event('change'));
+          }
+        }
+      });
+
+      if (pickerBtn) {
+        pickerBtn.addEventListener('click', () => {
+          try {
+            nativeInput.showPicker();
+          } catch (err) {
+            console.error("Native showPicker not supported:", err);
+          }
+        });
+      }
+
+      containerEl.setValue = function(val) {
+        if (!val) {
+          dayInput.value = "";
+          monthInput.value = "";
+          yearInput.value = "";
+          hiddenInput.value = "";
+          return;
+        }
+        
+        let y = "", m = "", d = "";
+        if (val.includes("-")) {
+          const parts = val.split('-');
+          y = parts[0];
+          m = parts[1];
+          d = parts[2];
+        } else if (val.includes("/")) {
+          const parts = val.split('/');
+          d = parts[0];
+          m = parts[1];
+          y = parts[2];
+        }
+        
+        dayInput.value = d.padStart(2, '0');
+        monthInput.value = m.padStart(2, '0');
+        yearInput.value = y;
+        hiddenInput.value = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+        nativeInput.value = hiddenInput.value;
+      };
+    }
+
+    const dobContainer = document.querySelector('.dob-container');
+    setupDateInputUX(dobContainer, 'dob');
+
+    const membershipContainer = document.querySelector('.membership-container');
+    setupDateInputUX(membershipContainer, 'membershipDate');
+
     // --- Parse URL Parameters (Auto-Fill from main form) ---
     window.addEventListener('DOMContentLoaded', () => {
       const params = new URLSearchParams(window.location.search);
@@ -908,8 +1045,11 @@
       params.forEach((value, key) => {
         const el = document.getElementById(key);
         if (el) {
-          if (el.type === 'date') {
-            el.value = convertDMYToYMD(value);
+          if (key === 'dob' || key === 'membershipDate') {
+            const container = el.parentElement;
+            if (container && container.setValue) {
+              container.setValue(value);
+            }
           } else {
             el.value = value;
           }
@@ -991,23 +1131,6 @@
     });
     dobInput.addEventListener("change", () => {
       ageInput.value = calculateAge(dobInput.value);
-    });
-
-    document.getElementById("dob_picker_btn").addEventListener("click", () => {
-      try {
-        dobInput.showPicker();
-      } catch (err) {
-        console.error("Native showPicker not supported:", err);
-      }
-    });
-
-    const membershipDatePickerElement = document.getElementById("membershipDate");
-    document.getElementById("membershipDate_picker_btn").addEventListener("click", () => {
-      try {
-        membershipDatePickerElement.showPicker();
-      } catch (err) {
-        console.error("Native showPicker not supported:", err);
-      }
     });
 
     // Utils

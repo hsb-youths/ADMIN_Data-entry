@@ -186,7 +186,7 @@
               <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
                   <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Date of Birth</label>
-                  <input type="date" id="dob" class="w-full fancy-input text-gray-800" />
+                  <input type="text" id="dob" placeholder="DD/MM/YYYY" class="w-full fancy-input text-gray-800" />
                 </div>
                 <div>
                   <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Calculated Age</label>
@@ -416,7 +416,7 @@
             <div class="space-y-8">
               <div>
                 <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Date of Membership</label>
-                <input type="date" id="membershipDate" class="w-full fancy-input text-gray-800" />
+                <input type="text" id="membershipDate" placeholder="DD/MM/YYYY" class="w-full fancy-input text-gray-800" />
               </div>
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -918,10 +918,25 @@
       }
     });
 
+    function parseDateDMY(dateStr) {
+      if (!dateStr) return null;
+      const parts = dateStr.split("/");
+      if (parts.length === 3) {
+        const day = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1; // 0-indexed
+        const year = parseInt(parts[2], 10);
+        if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+          return new Date(year, month, day);
+        }
+      }
+      return null;
+    }
+
     // Age Calculation
-    function calculateAge(dob) {
-      if (!dob) return "";
-      const birthDate = new Date(dob);
+    function calculateAge(dobStr) {
+      if (!dobStr) return "";
+      const birthDate = parseDateDMY(dobStr);
+      if (!birthDate || isNaN(birthDate.getTime())) return "";
       const currentDate = new Date();
       let age = currentDate.getFullYear() - birthDate.getFullYear();
       const monthDiff = currentDate.getMonth() - birthDate.getMonth();
@@ -934,6 +949,32 @@
     dobInput.addEventListener("change", () => {
       ageInput.value = calculateAge(dobInput.value);
     });
+
+    function setupDateFormatter(inputEl) {
+      inputEl.addEventListener("input", (e) => {
+        let value = e.target.value.replace(/[^0-9]/g, ""); // numbers only
+        if (value.length > 8) value = value.slice(0, 8);
+        
+        let formatted = "";
+        if (value.length > 0) {
+          formatted += value.slice(0, 2);
+        }
+        if (value.length > 2) {
+          formatted += "/" + value.slice(2, 4);
+        }
+        if (value.length > 4) {
+          formatted += "/" + value.slice(4, 8);
+        }
+        e.target.value = formatted;
+        
+        if (inputEl.id === "dob") {
+          inputEl.dispatchEvent(new Event("change"));
+        }
+      });
+    }
+
+    setupDateFormatter(dobInput);
+    setupDateFormatter(document.getElementById("membershipDate"));
 
     // Utils
     function debounce(func, wait) {

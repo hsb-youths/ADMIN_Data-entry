@@ -6,10 +6,14 @@
   <title>HSB Patient Membership Form (Sequential)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    /* Hide native calendar icon in date inputs to use custom button */
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      display: none !important;
+      -webkit-appearance: none;
+    }
 
     body {
       font-family: 'Inter', sans-serif;
@@ -189,7 +193,7 @@
                 <div>
                   <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Date of Birth</label>
                   <div class="relative">
-                    <input type="text" id="dob" placeholder="DD/MM/YYYY" required class="w-full fancy-input text-gray-800 pr-10" />
+                    <input type="date" id="dob" required class="w-full fancy-input text-gray-800 pr-10" />
                     <button type="button" id="dob_picker_btn" class="absolute right-2 bottom-2 text-gray-400 hover:text-red-600 transition-colors">
                       <i class="fas fa-calendar-alt text-xl"></i>
                     </button>
@@ -419,7 +423,7 @@
               <div>
                 <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Date of Membership</label>
                 <div class="relative">
-                  <input type="text" id="membershipDate" placeholder="DD/MM/YYYY" class="w-full fancy-input text-gray-800 pr-10" />
+                  <input type="date" id="membershipDate" class="w-full fancy-input text-gray-800 pr-10" />
                   <button type="button" id="membershipDate_picker_btn" class="absolute right-2 bottom-2 text-gray-400 hover:text-red-600 transition-colors">
                     <i class="fas fa-calendar-alt text-xl"></i>
                   </button>
@@ -807,7 +811,14 @@
 
     function calculateAge(dobStr) {
       if (!dobStr) return "";
-      const birthDate = parseDateDMY(dobStr);
+      let birthDate;
+      if (dobStr.includes("-")) {
+        birthDate = new Date(dobStr);
+      } else if (dobStr.includes("/")) {
+        birthDate = parseDateDMY(dobStr);
+      } else {
+        birthDate = new Date(dobStr);
+      }
       if (!birthDate || isNaN(birthDate.getTime())) return "";
       const currentDate = new Date();
       let age = currentDate.getFullYear() - birthDate.getFullYear();
@@ -817,30 +828,31 @@
     }
     
     const dobInputEl = document.getElementById("dob");
-    const dobPicker = flatpickr(dobInputEl, {
-      dateFormat: "d/m/Y",
-      allowInput: true,
-      onChange: function(selectedDates, dateStr) {
-        document.getElementById("age").value = calculateAge(dateStr);
-      }
+    const ageInputEl = document.getElementById("age");
+
+    // Trigger age calculation on input and change events
+    dobInputEl.addEventListener("input", () => {
+      ageInputEl.value = calculateAge(dobInputEl.value);
+    });
+    dobInputEl.addEventListener("change", () => {
+      ageInputEl.value = calculateAge(dobInputEl.value);
     });
 
     document.getElementById("dob_picker_btn").addEventListener("click", () => {
-      dobPicker.open();
+      try {
+        dobInputEl.showPicker();
+      } catch (err) {
+        console.error("Native showPicker not supported:", err);
+      }
     });
 
-    // Also trigger age calculation on manual input if typed
-    dobInputEl.addEventListener("input", () => {
-      document.getElementById("age").value = calculateAge(dobInputEl.value);
-    });
-
-    const membershipDatePicker = flatpickr(document.getElementById("membershipDate"), {
-      dateFormat: "d/m/Y",
-      allowInput: true
-    });
-
+    const membershipDateEl = document.getElementById("membershipDate");
     document.getElementById("membershipDate_picker_btn").addEventListener("click", () => {
-      membershipDatePicker.open();
+      try {
+        membershipDateEl.showPicker();
+      } catch (err) {
+        console.error("Native showPicker not supported:", err);
+      }
     });
 
     // Debounce Checkers

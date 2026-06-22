@@ -6,10 +6,14 @@
   <title>HSB Patients On Hold Form (Sequential)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    /* Hide native calendar icon in date inputs to use custom button */
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      display: none !important;
+      -webkit-appearance: none;
+    }
 
     body {
       font-family: 'Inter', sans-serif;
@@ -189,7 +193,7 @@
                 <div>
                   <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Date of Birth</label>
                   <div class="relative">
-                    <input type="text" id="dob" placeholder="DD/MM/YYYY" class="w-full fancy-input text-gray-800 pr-10" />
+                    <input type="date" id="dob" class="w-full fancy-input text-gray-800 pr-10" />
                     <button type="button" id="dob_picker_btn" class="absolute right-2 bottom-2 text-gray-400 hover:text-red-600 transition-colors">
                       <i class="fas fa-calendar-alt text-xl"></i>
                     </button>
@@ -424,7 +428,7 @@
               <div>
                 <label class="block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Date of Membership</label>
                 <div class="relative">
-                  <input type="text" id="membershipDate" placeholder="DD/MM/YYYY" class="w-full fancy-input text-gray-800 pr-10" />
+                  <input type="date" id="membershipDate" class="w-full fancy-input text-gray-800 pr-10" />
                   <button type="button" id="membershipDate_picker_btn" class="absolute right-2 bottom-2 text-gray-400 hover:text-red-600 transition-colors">
                     <i class="fas fa-calendar-alt text-xl"></i>
                   </button>
@@ -883,6 +887,19 @@
     let videoStream = null;
     let imageFileToUpload = null;
 
+    function convertDMYToYMD(dateStr) {
+      if (!dateStr) return "";
+      if (dateStr.includes("-")) return dateStr; // already YYYY-MM-DD
+      const parts = dateStr.split("/");
+      if (parts.length === 3) {
+        const day = parts[0].padStart(2, '0');
+        const month = parts[1].padStart(2, '0');
+        const year = parts[2];
+        return `${year}-${month}-${day}`;
+      }
+      return dateStr;
+    }
+
     // --- Parse URL Parameters (Auto-Fill from main form) ---
     window.addEventListener('DOMContentLoaded', () => {
       const params = new URLSearchParams(window.location.search);
@@ -891,10 +908,13 @@
       params.forEach((value, key) => {
         const el = document.getElementById(key);
         if (el) {
-          el.value = value;
+          if (el.type === 'date') {
+            el.value = convertDMYToYMD(value);
+          } else {
+            el.value = value;
+          }
           if (key === 'dob') {
-            const event = new Event('change');
-            el.dispatchEvent(event);
+            document.getElementById("age").value = calculateAge(el.value);
           }
           if (key === 'mobile' && value) {
             mobileOption.value = 'Custom';
@@ -947,7 +967,14 @@
     // Age Calculation
     function calculateAge(dobStr) {
       if (!dobStr) return "";
-      const birthDate = parseDateDMY(dobStr);
+      let birthDate;
+      if (dobStr.includes("-")) {
+        birthDate = new Date(dobStr);
+      } else if (dobStr.includes("/")) {
+        birthDate = parseDateDMY(dobStr);
+      } else {
+        birthDate = new Date(dobStr);
+      }
       if (!birthDate || isNaN(birthDate.getTime())) return "";
       const currentDate = new Date();
       let age = currentDate.getFullYear() - birthDate.getFullYear();
@@ -958,30 +985,29 @@
       return age >= 0 ? age : 0;
     }
 
-    const dobPicker = flatpickr(dobInput, {
-      dateFormat: "d/m/Y",
-      allowInput: true,
-      onChange: function(selectedDates, dateStr) {
-        ageInput.value = calculateAge(dateStr);
-      }
-    });
-
-    document.getElementById("dob_picker_btn").addEventListener("click", () => {
-      dobPicker.open();
-    });
-
-    // Also trigger age calculation on manual input if typed
+    // Trigger age calculation on input and change events
     dobInput.addEventListener("input", () => {
       ageInput.value = calculateAge(dobInput.value);
     });
-
-    const membershipDatePicker = flatpickr(document.getElementById("membershipDate"), {
-      dateFormat: "d/m/Y",
-      allowInput: true
+    dobInput.addEventListener("change", () => {
+      ageInput.value = calculateAge(dobInput.value);
     });
 
+    document.getElementById("dob_picker_btn").addEventListener("click", () => {
+      try {
+        dobInput.showPicker();
+      } catch (err) {
+        console.error("Native showPicker not supported:", err);
+      }
+    });
+
+    const membershipDatePickerElement = document.getElementById("membershipDate");
     document.getElementById("membershipDate_picker_btn").addEventListener("click", () => {
-      membershipDatePicker.open();
+      try {
+        membershipDatePickerElement.showPicker();
+      } catch (err) {
+        console.error("Native showPicker not supported:", err);
+      }
     });
 
     // Utils
